@@ -22,15 +22,7 @@
         <meta property = "og:description"   content = "Gene Pool is an artificial life simulation invented by Jeffrey Ventrella">
         <meta property = "og:url"           content = "http://www.swimbots.com/genepool/"/>
 	</head>
-	<body 
-		onload = 
-		    "genePool = new GenePool(); 
-		     genePool.initialize(); 
-		     genePool.setCanvas( canvas ); 
-		     genePool.setCanvasDimensions( canvasID.width, canvasID.height );"  
-		     
-		onresize = "resize();"		
-	>
+	<body>
 	
 		<!-- ------------------------------------------------------------------ -->
 		<!-- the canvas width and height are determined elsewhere...            -->
@@ -47,35 +39,9 @@
 		</script>        
 
 		<!-- ------------------------------------------------------------------------- -->
-		<!-- The Gene Pool simulation is loaded here...                                -->
-		<!-- ------------------------------------------------------------------------- -->
-		<script type = "text/javascript" src = "simulation/MathConstants.js"    ></script>
-		<script type = "text/javascript" src = "simulation/Parameters.js"       ></script>
-		<script type = "text/javascript" src = "simulation/Utility.js"          ></script>
-		<script type = "text/javascript" src = "simulation/Vector2D.js" 	    ></script>
-		<script type = "text/javascript" src = "simulation/Pool.js"             ></script>
-		<script type = "text/javascript" src = "simulation/Camera.js"           ></script>
-		<script type = "text/javascript" src = "simulation/FoodBit.js"          ></script>
-		<script type = "text/javascript" src = "simulation/SwimbotTypes.js"  	></script>
-		<script type = "text/javascript" src = "simulation/Genotype.js"  	    ></script>
-		<script type = "text/javascript" src = "simulation/Embryology.js"       ></script>
-		<script type = "text/javascript" src = "simulation/Brain.js"            ></script>
-		<script type = "text/javascript" src = "simulation/SwimbotRenderer.js"  ></script>
-		<script type = "text/javascript" src = "simulation/Swimbot.js"  	  	></script>
-		<script type = "text/javascript" src = "simulation/Touch.js"		    ></script>		
-		<script type = "text/javascript" src = "simulation/ViewTracking.js"     ></script>		
-		<script type = "text/javascript" src = "simulation/FamilyTree.js"       ></script>		
-		<script type = "text/javascript" src = "simulation/PhyloTree.js"        ></script>		
-		<script type = "text/javascript" src = "simulation/Obstacle.js"         ></script>		
-		<script type = "text/javascript" src = "simulation/GenePool.js"         ></script> 
-		
-		<!-- ------------------------------------------------------------------------- -->
-		<!-- all the javascript files (other than the simulation) are loaded here...   -->
-		<!-- ------------------------------------------------------------------------- -->		
-		<script type = "text/javascript" src = "js/saveLoad.js" ></script>
-		<script type = "text/javascript" src = "js/graph.js"    ></script>
-		<script type = "text/javascript" src = "js/info.js"     ></script>
-		<script type = "text/javascript" src = "js/ui.js"       ></script>
+			<!-- The Gene Pool simulation is loaded here...                                -->
+			<!-- ------------------------------------------------------------------------- -->
+			<script type = "text/javascript" src = "js/genepool.js" ></script>
         
 		<!-- ------------------------------------------------------------------ -->
 		<!-- all the divs and stuff are below                                   -->
@@ -101,48 +67,36 @@
             <div id="viewPanel"  class = "basicPanel" >
                 <div id="viewNavPanel" >
                     <!--&nbsp&nbsppan/zoom-->
-                    <button 
-                        id           = "leftNav" 
-                        class        = "navigationButton"
-                        onmousedown  = "genePool.startCameraNavigation( CameraNavigationAction.LEFT  ); clearViewModeButtons();"
-                        onmouseup    = "genePool.stopCameraNavigation ( CameraNavigationAction.LEFT  );"
-                        onmouseleave = "genePool.stopCameraNavigation ( CameraNavigationAction.LEFT  );" >                
-                    </button>    
-                    <button 
-                        id           = "rightNav" 
-                        class        = "navigationButton"
-                        onmousedown  = "genePool.startCameraNavigation( CameraNavigationAction.RIGHT ); clearViewModeButtons();"
-                        onmouseup    = "genePool.stopCameraNavigation ( CameraNavigationAction.RIGHT );"
-                        onmouseleave = "genePool.stopCameraNavigation ( CameraNavigationAction.RIGHT );" >
-                    </button>
-                    <button 
-                        id           = "downNav" 
-                        class        = "navigationButton"
-                        onmousedown  = "genePool.startCameraNavigation( CameraNavigationAction.DOWN ); clearViewModeButtons();"
-                        onmouseup    = "genePool.stopCameraNavigation ( CameraNavigationAction.DOWN );"
-                        onmouseleave = "genePool.stopCameraNavigation ( CameraNavigationAction.DOWN );" >
-                    </button>
-                    <button 
-                        id           = "upNav" 
-                        class        = "navigationButton"
-                        onmousedown  = "genePool.startCameraNavigation( CameraNavigationAction.UP ); clearViewModeButtons();"
-                        onmouseup    = "genePool.stopCameraNavigation ( CameraNavigationAction.UP );"
-                        onmouseleave = "genePool.stopCameraNavigation ( CameraNavigationAction.UP );" >
-                    </button>
-                    <button 
-                        id           = "inNav" 
-                        class        = "navigationButton"
-                        onmousedown  = "genePool.startCameraNavigation( CameraNavigationAction.IN ); clearViewModeButtons(); "
-                        onmouseup    = "genePool.stopCameraNavigation ( CameraNavigationAction.IN );"
-                        onmouseleave = "genePool.stopCameraNavigation ( CameraNavigationAction.IN );" >
-                    </button>
-                    <button 
-                        id           = "outNav" 
-                        class        = "navigationButton"
-                        onmousedown  = "genePool.startCameraNavigation( CameraNavigationAction.OUT );  clearViewModeButtons();"
-                        onmouseup    = "genePool.stopCameraNavigation ( CameraNavigationAction.OUT );"
-                        onmouseleave = "genePool.stopCameraNavigation ( CameraNavigationAction.OUT );" >
-                    </button>
+                    <button
+                         id           = "leftNav"
+                         class        = "navigationButton"
+                     >
+                     </button>
+                     <button
+                         id           = "rightNav"
+                         class        = "navigationButton"
+                     >
+                     </button>
+                     <button
+                         id           = "downNav"
+                         class        = "navigationButton"
+                     >
+                     </button>
+                     <button
+                         id           = "upNav"
+                         class        = "navigationButton"
+                     >
+                     </button>
+                     <button
+                         id           = "inNav"
+                         class        = "navigationButton"
+                     >
+                     </button>
+                     <button
+                         id           = "outNav"
+                         class        = "navigationButton"
+                     >
+                     </button>
                 </div> <!-- view navigation-->
                 <div id="viewTrackingPanel" >
                     <!--&nbsp&nbspview tracking-->

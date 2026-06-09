@@ -33,7 +33,8 @@ function FamilyTree()
     }
 
     let _nodes = new Array();  
-    let _numNodes = 0;  
+     let _numNodes = 0;  
+     const MAX_FAMILY_TREE_NODES = 50000;
     
     //-----------------------
     this.reset = function()
@@ -60,9 +61,14 @@ function FamilyTree()
     
     
     //-------------------------------------------------------------------------------------------
-    this.addNode = function( poolIndex, parent1PoolIndex, parent2PoolIndex, birthTime, genes )
-    {
-        //calulate the proper parent indices based on.....
+      this.addNode = function( poolIndex, parent1PoolIndex, parent2PoolIndex, birthTime, genes )
+      {
+          if ( _numNodes >= MAX_FAMILY_TREE_NODES )
+          {
+              return;
+          }
+
+          //calulate the proper parent indices based on.....
     
         _nodes[ _numNodes ] = new FamilyTreeNode;
         _nodes[ _numNodes ].poolIndex           = poolIndex;

@@ -14,7 +14,7 @@
 "use strict";
 
 
-//--------------------------
+//----------------------------
 const FIRST_INFO_PAGE = 1;
 const LAST_INFO_PAGE  = 28;
 
@@ -25,11 +25,62 @@ const ACTIVE_BORDER_COLOR               = '#ffffff';
 
 const UI_UPDATE_PERIOD = 500;
 
-
 let _currentInfoPage            = FIRST_INFO_PAGE;
-let _graph                      = new Graph(); 
+let _graph                      = new Graph();
 let _tweakGenesCategory         = 0;
 let _runningFast                = false;
+
+// Global simulation instance (used by inline HTML handlers)
+var genePool;
+
+//----------------------------
+function setupNavigationButtons()
+{
+    const navButtons = [
+        { id: "leftNav",  action: CameraNavigationAction.LEFT  },
+        { id: "rightNav", action: CameraNavigationAction.RIGHT },
+        { id: "upNav",    action: CameraNavigationAction.UP    },
+        { id: "downNav",  action: CameraNavigationAction.DOWN  },
+        { id: "inNav",    action: CameraNavigationAction.IN    },
+        { id: "outNav",   action: CameraNavigationAction.OUT   }
+    ];
+
+    for (let i = 0; i < navButtons.length; i++)
+    {
+        let btn = document.getElementById(navButtons[i].id);
+        if (!btn) continue;
+
+        btn.addEventListener("mousedown", function()
+        {
+            genePool.startCameraNavigation(navButtons[i].action);
+            clearViewModeButtons();
+        });
+
+        btn.addEventListener("mouseup", function()
+        {
+            genePool.stopCameraNavigation(navButtons[i].action);
+        });
+
+        btn.addEventListener("mouseleave", function()
+        {
+            genePool.stopCameraNavigation(navButtons[i].action);
+        });
+    }
+}
+
+//----------------------------
+function initGenePool()
+{
+    genePool = new GenePool();
+    genePool.initialize();
+    genePool.setCanvas(canvas);
+    genePool.setCanvasDimensions(canvasID.width, canvasID.height);
+    setupNavigationButtons();
+    initializeUI();
+}
+
+document.addEventListener("DOMContentLoaded", initGenePool);
+window.addEventListener("resize", resize);
 
 
 //----------------------------
@@ -45,7 +96,7 @@ function initializeUI()
     //--------------------------------------------------
     //console.log( "setTimeout" );
         
-    setTimeout( "updateUI()", 1 );
+    setTimeout(updateUI, 1);
  }
 
 
@@ -91,8 +142,8 @@ function chooseAttraction()
                 
                 else if ( value === "similarColor"      ) { attraction = ATTRACTION_SIMILAR_COLOR;      }
                 else if ( value === "similarSize"       ) { attraction = ATTRACTION_SIMILAR_SIZE;       }
-                else if ( value === "similatHyper"      ) { attraction = ATTRACTION_SIMILAR_HYPER;      }
-                else if ( value === "similatLength"     ) { attraction = ATTRACTION_SIMILAR_LENGTH;     }
+                else if ( value === "similarHyper"      ) { attraction = ATTRACTION_SIMILAR_HYPER;      }
+                 else if ( value === "similarLength"     ) { attraction = ATTRACTION_SIMILAR_LENGTH;     }
                 else if ( value === "similarStraight"   ) { attraction = ATTRACTION_SIMILAR_STRAIGHT;   }
                 
                 else if ( value === "random"            ) { attraction = ATTRACTION_RANDOM;             }
@@ -750,7 +801,6 @@ function requestToLoadPoolFromFile()
 //--------------------------------------
 function requestToLoadPoolFromPreset()
 {
-    console.log( "requestToLoadPool " + _chosenPoolToLoad );
 
     //----------------------------------------
     // get the name of the pool to load...
@@ -956,15 +1006,13 @@ function updateUI()
             let selectedSwimbot = genePool.getSelectedSwimbotID();
         
             if ( selectedSwimbot === NULL_INDEX )
-            {
-                console.log( "selectedSwimbot = NULL_INDEX" );
-                document.getElementById( 'selectedSwimbotPanel'   ).style.visibility = 'hidden';		        	        
+             {
+                 document.getElementById( 'selectedSwimbotPanel'   ).style.visibility = 'hidden';
                 document.getElementById( 'noSelectedSwimbotPanel' ).style.visibility = 'visible';	        	        
             }
             else
-            {
-                console.log( "selectedSwimbot = " + selectedSwimbot );
-                document.getElementById( 'selectedSwimbotPanel'   ).style.visibility = 'visible';		        	        
+             {
+                 document.getElementById( 'selectedSwimbotPanel'   ).style.visibility = 'visible';
                 document.getElementById( 'noSelectedSwimbotPanel' ).style.visibility = 'hidden';	
             
                 let brainState = genePool.getSwimbotBrainState( selectedSwimbot );
@@ -1041,8 +1089,8 @@ function updateUI()
     //---------------------------
     // trigger next update...
     //---------------------------
-    //this.timer = setTimeout( "updateUI()", 100 );
-    setTimeout( "updateUI()", UI_UPDATE_PERIOD );
+    //this.timer = setTimeout(updateUI, 100);
+     setTimeout(updateUI, UI_UPDATE_PERIOD);
 }	
 
 
@@ -1052,16 +1100,14 @@ function notifyGeneTweakPanelMouseDown()
     let selectedSwimbotID = genePool.getSelectedSwimbotID();
     
     if ( selectedSwimbotID === -1 )
-    {
-        console.log( "NULL" );
-        closeTweakGenesPanel();
+     {
+         closeTweakGenesPanel();
     }
     else
     {
         if ( document.getElementById( 'tweakGenesPanel' ).style.visibility === 'visible' )
-        {		        	        
-            console.log( selectedSwimbotID );
-            openTweakGenesPanel( selectedSwimbotID );
+        {		        
+             openTweakGenesPanel( selectedSwimbotID );
         }
     }
 }

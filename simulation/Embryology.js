@@ -110,7 +110,7 @@ let testNoEel = true;
 	//-------------------------------------------------------------
 	// variables
 	//-------------------------------------------------------------
-    let _normalizedGenes        = new Array( NUM_GENES ); 
+    let _normalizedGenes        = new Float32Array( NUM_GENES );
     let _geneNames              = new Array( NUM_GENES ); 
     let _branchStatus           = new Array( MAX_PARTS ); 
     let _categoryValues         = new Array( NUM_CATEGORIES ); 

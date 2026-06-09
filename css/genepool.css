@@ -14,7 +14,6 @@
 body 
 {
     background-color: #889088;
-    /*background-color: #dddddb;*/
 }
 
 /* -------------------------------------------- */
@@ -43,9 +42,6 @@ body
     height: 430px;
     border-width: 0px;
     visibility: hidden; 
-
-    /* for debugging */
-    /*background-color: #9999ff;*/
 }
 
 
@@ -55,7 +51,6 @@ body
     width:                  71px; 
     height:                 30px;
     background-color:       #dcdcd0;
-    /*border-color:           #666659;*/   
     border-color:           #7f7f77;       
     border-style:           solid;
     border-radius:          4px;
@@ -70,12 +65,10 @@ body
 .basicButton:hover 
 {
 	background-color:    #eeeedd;
-    //border-bottom-width: 3px;
 }
 .basicButton:active 
 {
 	background-color:    #ffffee;
-    //border-bottom-width: 1px;
 }
 
 .basicTitle
@@ -95,9 +88,6 @@ body
     border-width: 0;
     background-size: 30px 30px;
     background-color: transparent;
-    
-    /* for debugging */
-    /*background-color: #dd5555;*/
 }
 
 
@@ -106,9 +96,6 @@ body
     position: absolute; 
     left: 0; 
     width: 120;
-    
-    /* for debugging */
-    /*background-color: #9999ff;*/
 }
 
 .EcoSlider
@@ -118,9 +105,6 @@ body
     height: 20;
     width: 100;
     z-index: 2;
-
-    /* for debugging */
-    /*background-color: #ffff99;*/
 }
 
 .EcoSliderValueDisplay
@@ -129,9 +113,6 @@ body
     left: 270; 
     width: 60;
     height: 20;
-
-    /* for debugging */
-    /*background-color: #ccbbcc;*/
 }
 
 .geneTweakerValue
@@ -147,9 +128,6 @@ body
 
     width: 100;
     height: 30;
-
-    /* for debugging */
-    background-color: #ff0000;
 
 }
 
@@ -176,9 +154,6 @@ body
     right:              10px;
     width:              370px; 
     height:             700px;
-
-    /* for debugging */
-    /*background-color:   #ddffff;*/
 }
 
 #mainTitle
@@ -188,9 +163,6 @@ body
     height: 30;
     color: #112211; 
     font-family: "Arial black";
-
-    /* for debugging */
-    /*background-color: #ffffff;*/
 }
 
 #swimbots_url
@@ -202,9 +174,6 @@ body
     height: 20px;    
     font-size:  12px;   
     font-family: "Arial black";
-
-    /* for debugging */
-    /*background-color: #ffffff;*/
 }
 
 
@@ -222,9 +191,6 @@ body
     height: 155;
     background-color: #9daeae;
     border-color:     #646870;       
-
-    /* for debugging */
-    /*background-color: #ffaaaa;*/
 }
 
 #viewNavPanel
@@ -235,9 +201,6 @@ body
     left:   10;
     width:  130;
     height: 120;
-
-    /* for debugging */
-    /*background-color: #99aaaa;*/
 }
 
 #leftNav
@@ -300,9 +263,6 @@ body
     left: 145; 
     width: 215;
     height: 120;
-
-    /* for debugging */
-    /*background-color: #99aaaa;*/
 }
 
 #viewWholePoolButton
@@ -380,9 +340,6 @@ body
     top:        120px;
     width:      360px;
     height:     30px;
-
-    /* for debugging */
-    /*background-color: #99aaaa;*/
 }
 
 
@@ -426,7 +383,6 @@ body
 
 
 
-
 /* -------------------------------------------- */
 /* menu buttonpanel                             */
 /* -------------------------------------------- */
@@ -437,9 +393,6 @@ body
     top: 200;
     height: 30px;
     width: 365px;
-
-    /* for debugging */
-    /*background-color: #ccccff;*/
 }
 
 #menuPoolButton
@@ -498,9 +451,6 @@ body
     left: 0;
     top: 0;
     width: 300;
-
-    /* for debugging */
-    /*background-color: #ccccff;*/
 }
 
 #pool1Button
@@ -576,8 +526,6 @@ body
     width: 280;
     height: 110;
     
-    /* for debugging */
-    /*background-color: #ffffdd;*/
 }
 
 #saveLoadTitle
@@ -604,9 +552,6 @@ body
     top:   100;
     width: 200; 
     height: 100;    
-        
-    /* for debugging */
-    /*background-color: #ffff00; */
 }
 
 
@@ -659,9 +604,6 @@ body
     color: #000000; 
     font-family: "Arial";
     font-size: 14;
-
-    /* for debugging */
-    /*background-color: #55ff44; */
 }
 
 
@@ -675,6 +617,7 @@ body
     width: 375; 
     height: 480;
 }
+
 
 
 
@@ -695,9 +638,6 @@ body
     height: 400px;
     font-family: "Arial";
     font-size: 14;
-
-    /* for debugging */
-    /*background-color: #ccccff;*/
 }
 
 #selectedSwimbotPanel
@@ -710,9 +650,6 @@ body
     font-family: "Arial";
     font-size: 14;
     background-color: #efeedd;
-
-    /* for debugging */
-    /*background-color: #ee3333;*/
 }
 
 #swimbotDataPanel
@@ -725,9 +662,6 @@ body
     font-family: "Arial";
     font-size: 13;
     color: #000000; 
-
-    /* for debugging */
-    /*background-color: #ffffdd;*/
 }
 
 
@@ -790,7 +724,6 @@ body
 
 
 
-
 /* -------------------------------------------- */
 /*  tweak genes panel                           */
 /* -------------------------------------------- */
@@ -805,25 +738,13 @@ body
     z-index: 2;
     box-shadow: 8px 8px 16px #000010;
  
+
+
  
+
+
  
- 
- 
- 
-    /* 	
-    font-family: "Arial";
-    font-size: 12;
-    visibility: hidden;       
-    position: absolute; 
-    right: 10; 
-    top: 10;
-    width: 360; 
-    height: 750;    
-    background-color: #bbb8b4; 
-    box-shadow: 8px 8px 40px #000000;
-	border-radius: 4px;
-	*/
-	
+
 }
 
 #closeTweakGenesPanel
@@ -836,8 +757,6 @@ body
     height: 30;    
     z-index: 3;
     
-    /* for debugging */
-    /*background-color: #bbb8b4;*/
 }
 
 
@@ -861,18 +780,6 @@ body
 #category2 { position: absolute; left:  70; top: 140; }
 #category3 { position: absolute; left: 120; top: 140; }
 #category4 { position: absolute; left: 170; top: 140; }
-
-
-
-
-
-
-
-
-
-
-
-
 
 
 
@@ -953,9 +860,6 @@ body
 #tweakPanel
 {
     /* inherits from menuPanel*/
-
-    /* for debugging */
-    /*background-color: #7777ff;*/
 }
 
 
@@ -966,9 +870,6 @@ body
     top:        0px; 
     width:      340px; 
     height:     160px;
-
-    /* for debugging */
-    background-color: #999933;
 }
 
 #foodGrowthDelayLabel,  #foodGrowthDelayValue   { top:  10; }
@@ -1008,9 +909,6 @@ body
     top:        220px;
     width:      500px
     height:     200px;
-    
-    /* for debugging */
-    /*background-color: #99ffff; */
 }
 
 
@@ -1035,9 +933,6 @@ body
     position: absolute; 
     left: 200; 
     z-index: 2;
-
-    /* for debugging */
-    /*background-color: #99ffff;*/ 
 }
 
 #radioColorful, #radioNoColor, #radioSimilarColor
@@ -1101,9 +996,7 @@ body
     position: absolute; 
     left:  225; 
     width: 100;
-        
-    /* for debugging */
-    /*background-color: #ffcccc; */ 
+    
 }
 
 #colorfulLabel, #noColorLabel, #similarColorLabel
@@ -1191,7 +1084,6 @@ width:          317px;
 height:         105px;
 
 
-    
     padding-top:     20px;
     padding-right:   20px;
     padding-bottom:  20px;
@@ -1249,9 +1141,6 @@ height:         105px;
     left: 10;
     top: 20;
     width: 320;
-    
-    /* for debugging */
-    /*background-color: #559999;*/
 }
 
 
@@ -1268,7 +1157,7 @@ height:         105px;
     
 overflow:auto; /* added for the family tree display
     
-    
+
     /*word-wrap: 'break-word';*/
     word-break: break-all;
     visibility: hidden;       
@@ -1283,9 +1172,6 @@ overflow:auto; /* added for the family tree display
     padding-right: 30px;
     box-shadow: 8px 8px 16px #000010;
 	/*border-radius: 4px;*/
-
-    /* for debugging */
-    /*background-color: #bbb8b4;*/
 }
 
 
@@ -1299,9 +1185,6 @@ overflow:auto; /* added for the family tree display
     width: 30; 
     height: 30;  
     z-index: 3;      
-    
-    /* for debugging */
-    /*background-color: #bbb8b4;*/
 }
 
 
@@ -1314,9 +1197,6 @@ overflow:auto; /* added for the family tree display
     top: 210;
     width: 120; 
     height: 25;    
-    
-    /* for debugging */
-    background-color: #bbb8b4; 
 }
 
 
@@ -1365,8 +1245,5 @@ overflow:auto; /* added for the family tree display
     top: 460; 
     width: 150; 
     height: 40; 
-
-    /* for debugging */
-    /*background-color: #aaccaa;*/
 }
 

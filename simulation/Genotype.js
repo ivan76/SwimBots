@@ -55,7 +55,7 @@ function Genotype()
 	//------------------------------------------------
 	// create array of genes and initialize to 0
 	//------------------------------------------------
-	let _genes = new Array( NUM_GENES ); 
+	let _genes = new Uint8Array( NUM_GENES );
 	
     for (let g=0; g<NUM_GENES; g++)
     {

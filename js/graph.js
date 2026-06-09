@@ -52,30 +52,26 @@ function Graph()
 	let _time           = new Array(); 
 	let _numSwimbots    = new Array(); 
 	//let _numSwimbots1   = new Array(); 
-	let _numFoodBits    = new Array(); 
-    let _numFoodBits1   = new Array(); //kind of a hack - but I wanna get it working first....
- 
+	let _numFoodBits    = new Array();
+	    let _numFoodBits1   = new Array(); //kind of a hack - but I wanna get it working first....
+	    let _graphContext   = null;
+	    	let _graphCanvas    = null;
 
-	//---------------------------
-	this.initialize = function()
-	{	
-        //console.log( "initialize graph!" );	
-	
-    	_currentCount = 0;
-    	_maxGraphCount = 20;
-    	
-	    _time.length = 0;
-	    _numSwimbots.length  = 0;
-	    //_numSwimbots1.length = 0;
-        _numFoodBits.length  = 0;
-        _numFoodBits1.length = 0;
+	    	//---------------------------
+	        this.initialize = function()
+	        {
 
-	    _time = [];
-	    _numSwimbots  = [];
-	    //_numSwimbots1 = [];
-        _numFoodBits  = [];
-        _numFoodBits1 = [];
-	}
+	          	_currentCount = 0;
+	          	_maxGraphCount = 20;
+
+	        	_time = [];
+	        	_numSwimbots  = [];
+	                _numFoodBits  = [];
+	                _numFoodBits1 = [];
+
+	                _graphCanvas = document.getElementById( 'graphCanvas' );
+	                _graphContext = _graphCanvas.getContext( '2d' );
+	        }
 
 
 	//---------------------------------------------------------------------
@@ -110,39 +106,29 @@ function Graph()
 
 
 	//-----------------------
-	this.scroll = function()
-	{	
-        for (let c=0; c<_maxGraphCount; c++)
-        {
-            _time		 [c] = _time	    [c+1];
-            _numSwimbots [c] = _numSwimbots	[c+1];
-            //_numSwimbots1[c] = _numSwimbots	[c+1];
-            _numFoodBits [c] = _numFoodBits	[c+1];
-            _numFoodBits1[c] = _numFoodBits1[c+1];
-        }
-    }
+		this.scroll = function()
+		{
+	        _time.splice(0, 1);
+	        _numSwimbots.splice(0, 1);
+	        _numFoodBits.splice(0, 1);
+	        _numFoodBits1.splice(0, 1);
+	    }
     
 
 	//------------------------
-	this.clear = function()
-	{	
-        //console.log( "clear graph!" );	
-
-        let graphCanvasID = document.getElementById( 'graphCanvas' );
-        let graphCanvas   = graphCanvasID.getContext( '2d' );
-    
-        graphCanvas.clearRect( 0, 0, graphCanvasID.width, graphCanvasID.height );	    
-	}
+		this.clear = function()
+			{
+				_graphContext.clearRect( 0, 0, _graphCanvas.width, _graphCanvas.height );
+			}
 	
 	
 	//------------------------
-	this.render = function()
-	{	
-let graphCanvasID = document.getElementById( 'graphCanvas' );
-let graphCanvas   = graphCanvasID.getContext( '2d' );
+		this.render = function()
+				{
+			let graphCanvas   = _graphContext;
 
-_width  = graphCanvasID.width;
-_height = graphCanvasID.height;
+			_width  = _graphCanvas.width;
+		_height = _graphCanvas.height;
 
 _left = 0;
 _top = 0;
@@ -304,20 +290,16 @@ _top = 0;
     
 
 	//---------------------------------------
-	this.renderPopulationLines = function()
-	{	
-        let graphCanvasID = document.getElementById( 'graphCanvas' );
-        let graphCanvas   = graphCanvasID.getContext( '2d' );
+		this.renderPopulationLines = function()
+		{	
+	        let graphCanvas   = _graphContext;
 
-        let xInc = _width / ( _maxGraphCount );
+	             let xInc = _width / ( _maxGraphCount );
 
-		graphCanvas.lineWidth = 1.0; 
-		
-		
-//console.log( "_currentCount ' " + _currentCount );
-		
-        
-        for (let g=1; g<_currentCount; g++ )
+			graphCanvas.lineWidth = 1.0; 
+
+
+	        for (let g=1; g<_currentCount; g++ )
         {
             let xFraction = (g - 1 ) / _maxGraphCount;        
             let x1	= _graphLeft + xFraction * _graphWidth;

@@ -198,9 +198,9 @@ function FoodBit()
         assert( childIndex != NULL_INDEX, "foodbit.js: spawnNearParent: childIndex != NULL_INDEX" );
         
         if ( childIndex === parentFoodBit.getIndex() )
-        {
-            console.log( "warning: foodbit.js: spawnNearParent: childIndex = " + childIndex + " and parentFoodBit.getIndex() = " + parentFoodBit.getIndex() );
-        }
+          {
+              // warning: childIndex same as parentFoodBit index
+          }
         
         //assert( childIndex != parentFoodBit.getIndex(), "foodbit.js: spawnNearParent: childIndex != parentFoodBit.index" );
 

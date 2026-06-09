@@ -47,10 +47,8 @@ function PhyloTree()
     
 	//-------------------------------------------
 	this.initialize = function( numJunkGenes )
-	{
-        console.log( "initialize phylo tree! numJunkGenes = " + numJunkGenes );
-
-        _numSpecies = 0;
+		{
+	        _numSpecies = 0;
 
         for (let s=0; s<MAX_SPECIES; s++)
         {

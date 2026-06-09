@@ -140,8 +140,7 @@ function GenePool()
     let _windowWidth            = 0;
     let _windowHeight           = 0;
     
-    let hhh = 0;	
-	
+
 	//-------------------------------------
 	// create fixed-sized swimbot array
 	//-------------------------------------
@@ -221,7 +220,7 @@ function GenePool()
 		//------------------------------------------------------------
 		// start up the timer
 		//------------------------------------------------------------
-		this.timer = setTimeout( "genePool.update()", _millisecondsPerUpdate );	
+		this.timer = setTimeout(() => genePool.update(), _millisecondsPerUpdate);	
 	}
 	
 	
@@ -1060,7 +1059,7 @@ if ( mode === SimulationStartMode.SPECIES )
 		//---------------------------
 		// trigger next update...
 		//---------------------------
-        this.timer = setTimeout( "genePool.update()", _millisecondsPerUpdate );
+        this.timer = setTimeout(() => genePool.update(), _millisecondsPerUpdate);
 	}
 
 
@@ -1145,7 +1144,6 @@ if ( mode === SimulationStartMode.SPECIES )
                             //------------------------------------------------------------------------------
 if ( !this.getJunkDnaSimilarity( _myGenotype, _mateGenotype ) > NON_REPRODUCING_JUNK_DNA_LIMIT )
 {
-    console.log( "attempting to mate but junk dna too dissimilar!" );
 }
                             if ( this.getJunkDnaSimilarity( _myGenotype, _mateGenotype ) > NON_REPRODUCING_JUNK_DNA_LIMIT )
                             {
@@ -2218,9 +2216,9 @@ if ( globalTweakers.numFoodTypes === 2 )
             setSelectedSwimbot( index )
         }
         else
-        {
-            console.log( "cannot make random swimbot" );
-        }
+         {
+             // cannot make random swimbot
+         }
     }
 
 	//---------------------------------------

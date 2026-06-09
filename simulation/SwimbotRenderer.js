@@ -16,10 +16,10 @@
 function SwimbotRenderer()
 {
 
-var    flopperX = 0;
-var    flopperY = 0;
-var    flopperXV = 0;
-var    flopperYV = 0;
+let    flopperX = 0;
+let    flopperY = 0;
+let    flopperXV = 0;
+let    flopperYV = 0;
     
     //---------------------------------
     //  colors 

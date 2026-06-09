@@ -27,7 +27,6 @@ const ViewTrackingMode =
 };
 
 
-let hh = 0;
 
 //----------------------
 function ViewTracking()
@@ -39,7 +38,8 @@ function ViewTracking()
     const INNER_WINDOW_RATIO        = 0.1;
     
     let _vectorUtility      = new Vector2D();
-    let _isTracking         = false;
+     let _centroidUtility    = new Vector2D();
+     let _isTracking         = false;
     let _trackingEaseIn     = ZERO;
     let _trackingPosition   = new Vector2D();
     let _trackingScale      = POOL_WIDTH;
@@ -333,11 +333,10 @@ _trackingScale += ( ( loverDistance * 2 ) - _trackingScale ) * 0.1;
 
     //--------------------------------------
     function getCentroidOfVisibleSwimbots()
-    {
-        //let num = 0;
-        let totalWeight = ZERO;
-        let centroid = new Vector2D();	    
-        centroid.clear();
+     {
+         //let num = 0;
+         let totalWeight = ZERO;
+         _centroidUtility.clear();
          
         for (let s=0; s<MAX_SWIMBOTS; s++)
         {
@@ -355,7 +354,7 @@ _trackingScale += ( ( loverDistance * 2 ) - _trackingScale ) * 0.1;
                     //assert( weight <= ONE,  "weight <= ONE"  );
                     //assert( weight >= ZERO, "weight >= ZERO" );
                     
-                    centroid.addScaled( _swimbots[s].getPosition(), weight );
+                    _centroidUtility.addScaled( _swimbots[s].getPosition(), weight );
                     //num ++;
                     totalWeight += weight;
                 }
@@ -365,25 +364,25 @@ _trackingScale += ( ( loverDistance * 2 ) - _trackingScale ) * 0.1;
         if ( totalWeight > ZERO )
         //if ( num > 0 )
         {
-            //centroid.scale( ONE / num );
-            centroid.scale( ONE / totalWeight );
+            //_centroidUtility.scale( ONE / num );
+             _centroidUtility.scale( ONE / totalWeight );
         }
         else
         {
             let closestSwimbot = getClosestSwimbotToTrackingPosition();
 
             if ( closestSwimbot != NULL_INDEX )
-            {
-                centroid.copyFrom( _swimbots[ closestSwimbot ].getPosition() );   
-            }
-            else
-            {
-                centroid.copyFrom( _trackingPosition );   
-            }
-        }
+                  {
+                      _centroidUtility.copyFrom( _swimbots[ closestSwimbot ].getPosition() );   
+                  }
+                  else
+                  {
+                      _centroidUtility.copyFrom( _trackingPosition );   
+                  }
+              }
             
-        return centroid;
-    }
+              return _centroidUtility;
+            }
 
 
 

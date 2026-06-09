@@ -191,16 +191,14 @@ function Camera()
 		if ( _scale > limit )
 		{
 		    if ( _scale > POOL_WIDTH )
-		    {
-		        _scale = POOL_WIDTH;
-		    }
-
-		    let dampening = ONE - ( ( _scale - limit ) / ( POOL_WIDTH - limit ) );
-		    		    
-		    console.log( dampening );
-		    
-		    
-		    _velocity.x *= dampening;
+		      {
+		          _scale = POOL_WIDTH;
+		      }
+		      let dampening = ONE - ( ( _scale - limit ) / ( POOL_WIDTH - limit ) );
+			
+			
+		
+		    	_velocity.x *= dampening;
 		    _velocity.y *= dampening;
 		}
     }
