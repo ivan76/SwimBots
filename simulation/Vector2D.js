@@ -1,35 +1,37 @@
 "use strict";
 
-function Vector2D() {
-	this.x = 0.0;
-	this.y = 0.0;
+class Vector2D {
+	constructor() {
+		this.x = 0.0;
+		this.y = 0.0;
+	}
 
-	this.setXY = function(x_, y_) {
+	setXY(x_, y_) {
 		this.x = x_;
 		this.y = y_;
 	}
 
-	this.copyFrom = function(v) {
+	copyFrom(v) {
 		this.x = v.x;
 		this.y = v.y;
 	}
 
-	this.addXY = function(x_, y_) {
+	addXY(x_, y_) {
 		this.x += x_;
 		this.y += y_;
 	}
 
-	this.set = function(p_) {
+	set(p_) {
 		this.x = p_.x;
 		this.y = p_.y;
 	}
 
-	this.setToDifference = function(v1, v2) {
+	setToDifference(v1, v2) {
 		this.x = v1.x - v2.x;
 		this.y = v1.y - v2.y;
 	}
 
-	this.normalize = function() {
+	normalize() {
 		let m = Math.sqrt(this.x * this.x + this.y * this.y);
 
 		if (m > 0) {
@@ -41,50 +43,49 @@ function Vector2D() {
 		}
 	}
 
-	this.add = function(v) {
+	add(v) {
 		this.x += v.x;
 		this.y += v.y;
-
 	}
 
-	this.subtract = function(v) {
+	subtract(v) {
 		this.x -= v.x;
 		this.y -= v.y;
 	}
 
-	this.getMagnitude = function() {
+	getMagnitude() {
 		return Math.sqrt(this.x * this.x + this.y * this.y);
 	}
 
-	this.getMagnitudeSquared = function() {
+	getMagnitudeSquared() {
 		return this.x * this.x + this.y * this.y;
 	}
 
-	this.clear = function() {
+	clear() {
 		this.x = 0.0;
 		this.y = 0.0;
 	}
 
-	this.scale = function(s) {
+	scale(s) {
 		this.x *= s;
 		this.y *= s;
 	}
 
-	this.addScaled = function(vectorToAdd, scale) {
+	addScaled(vectorToAdd, scale) {
 		this.x += vectorToAdd.x * scale;
 		this.y += vectorToAdd.y * scale;
 	}
 
-	this.subtractScaled = function(vectorToSubtract, scale) {
+	subtractScaled(vectorToSubtract, scale) {
 		this.x -= vectorToSubtract.x * scale;
 		this.y -= vectorToSubtract.y * scale;
 	}
 
-	this.dotWith = function(v) {
+	dotWith(v) {
 		return this.x * v.x + this.y * v.y;
 	}
 
-	this.setToRandomLocationInDisk = function(position, radius) {
+	setToRandomLocationInDisk(position, radius) {
 		let radian = PI2 * Math.random();
 		let magnitude = radius * Math.sqrt(Math.random());
 
@@ -92,19 +93,19 @@ function Vector2D() {
 		this.y = position.y + Math.cos(radian) * magnitude;
 	}
 
-	this.getDistanceSquaredTo = function(position) {
+	getDistanceSquaredTo(position) {
 		let xx = this.x - position.x;
 		let yy = this.y - position.y;
 		return xx * xx + yy * yy;
 	}
 
-	this.getDistanceTo = function(position) {
+	getDistanceTo(position) {
 		let xx = this.x - position.x;
 		let yy = this.y - position.y;
 		return Math.sqrt(xx * xx + yy * yy);
 	}
 
-	this.setToPerpendicular = function() {
+	setToPerpendicular() {
 		let px = this.y;
 		let py = -this.x;
 
@@ -113,7 +114,7 @@ function Vector2D() {
 	}
 
 	// check to see if segment a crosses segment b
-	this.getSegmentsCrossing = function(a0, a1, b0, b1) {
+	getSegmentsCrossing(a0, a1, b0, b1) {
 		// get the a and b vectors
 		let aX = a1.x - a0.x;
 		let aY = a1.y - a0.y;
@@ -152,7 +153,7 @@ function Vector2D() {
 		let b0Dota0 = bPerpX * b0a0x + bPerpY * b0a0y;
 		let b0Dota1 = bPerpX * b0a1x + bPerpY * b0a1y;
 
-		// if both pairs of dots are on opoosite 
+		// if both pairs of dots are on opoosite
 		// sides of zero, then the lines are crossing.
 		if ((((a0Dotb0 > ZERO) && (a0Dotb1 < ZERO)) ||
 				((a0Dotb1 > ZERO) && (a0Dotb0 < ZERO))) &&

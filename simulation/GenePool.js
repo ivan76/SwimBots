@@ -27,173 +27,183 @@ const CameraNavigationAction = {
 const NUM_GENES_USED = 112;
 
 // The global tweakers are all adjustable through the UI.
-var globalTweakers = new GlobalTweakers();
+SwimbotsApp.globalTweakers = new GlobalTweakers();
+var globalTweakers = SwimbotsApp.globalTweakers; // alias for legacy compatibility
 
-function GenePool() {
-	// count-related constants
-	//const MAX_FOODBITS          = 2000;
-	//const INITIAL_NUM_SWIMBOTS  = 200;
-	//const INITIAL_NUM_FOODBITS  = 800;    
-	const TRAIL_LENGTH = 100;
+class GenePool {
+	constructor() {
+		// count-related constants
+		//const MAX_FOODBITS          = 2000;
+		//const INITIAL_NUM_SWIMBOTS  = 200;
+		//const INITIAL_NUM_FOODBITS  = 800;
+		const TRAIL_LENGTH = 100;
 
-	const NUM_NEIGHBORHOOD_SWIMBOTS = 14 * 14;
-	const NUM_NEIGHBORHOOD_FOODBITS = 28 * 28;
+		const NUM_NEIGHBORHOOD_SWIMBOTS = 14 * 14;
+		const NUM_NEIGHBORHOOD_FOODBITS = 28 * 28;
 
-	// rendering-related constants
-	const DEFAULT_MILLISECONDS_PER_UPDATE = 20;
+		// rendering-related constants
+		const DEFAULT_MILLISECONDS_PER_UPDATE = 20;
 
-	const LEVEL_OF_DETAIL_THRESHOLD = 1200.0;
+		const LEVEL_OF_DETAIL_THRESHOLD = 1200.0;
 
-	const INITIAL_VIEW_SCALE = POOL_WIDTH * 0.1;
-	const RACE_VIEW_SCALE = POOL_WIDTH * 0.3;
-	const BANG_VIEW_SCALE = POOL_WIDTH * 0.2;
-	const PARENT_VIEW_SCALE = POOL_WIDTH * 0.05;
-	const NEIGHBORHOOD_VIEW_SCALE = POOL_WIDTH * 0.4;
-	const NEIGHBORHOOD_FREQ = 5.0;
-	const DEBUG_SHOW_SWIMBOT_TRAIL = false;
-	//const SWIMBOT_DATA_UPDATE_PERIOD        = 30;
-	const CAMERA_TRACKING_UPDATE_PERIOD = 10;
-	const CLONE_SEPARATION = 10.0;
-	const FOOD_RACE_SIZE = 1000;
-	const FOOD_BANG_SIZE = 1700;
+		const INITIAL_VIEW_SCALE = POOL_WIDTH * 0.1;
+		const RACE_VIEW_SCALE = POOL_WIDTH * 0.3;
+		const BANG_VIEW_SCALE = POOL_WIDTH * 0.2;
+		const PARENT_VIEW_SCALE = POOL_WIDTH * 0.05;
+		const NEIGHBORHOOD_VIEW_SCALE = POOL_WIDTH * 0.4;
+		const NEIGHBORHOOD_FREQ = 5.0;
+		const DEBUG_SHOW_SWIMBOT_TRAIL = false;
+		//const SWIMBOT_DATA_UPDATE_PERIOD        = 30;
+		const CAMERA_TRACKING_UPDATE_PERIOD = 10;
+		const CLONE_SEPARATION = 10.0;
+		const FOOD_RACE_SIZE = 1000;
+		const FOOD_BANG_SIZE = 1700;
 
-	// variables
-	let _millisecondsPerUpdate = 0;
-	let _touch = new Touch();
-	let _swimbots = new Array(Swimbot);
-	let _foodBits = new Array(MAX_FOODBITS);
-	let _nearbySwimbotsArray = new Array(BRAIN_MAX_PERCEIVED_NEARBY_SWIMBOTS);
-	let _viewTracking = new ViewTracking();
-	let _potentialMate = new Swimbot();
-	let _chosenFoodBit = new FoodBit();
-	let _camera = new Camera();
-	let _obstacle = new Obstacle();
-	let _pool = new Pool();
-	let _embryology = new Embryology();
-	let _vectorUtility = new Vector2D();
-	let _myGenotype = new Genotype();
-	let _mateGenotype = new Genotype();
-	let _childGenotype = new Genotype();
-	let _neighborhoodX = new Array();
-	let _neighborhoodY = new Array();
-	let _neighborhoodAxis = new Array();
-	let _simulationRunning = false;
-	let _rendering = false;
-	let _swimbotBeingDragged = false;
-	let _foodBitBeingDragged = false;
-	let _poolCenter = new Vector2D();
-	let _canvas = null;
-	let _clock = 0;
-	let _numSwimbots = 0;
-	let _numNearbySwimbots = 0;
-	let _numFoodBits = 0;
-	let _canvasWidth = 0;
-	let _canvasHeight = 0;
-	let _mousedOverSwimbot = NULL_INDEX;
-	let _mousedOverFoodBit = NULL_INDEX;
-	let _selectedSwimbot = NULL_INDEX;
-	let _selectedFoodBit = NULL_INDEX;
-	let _startTime = ZERO;
-	let _seconds = ZERO;
-	let _gardenOfEdenRadius = ZERO;
-	let _levelOfDetail = SWIMBOT_LEVEL_OF_DETAIL_LOW;
-	let _previousTime = ZERO;
-	let _frameRate = ZERO;
-	let _debugTrail = new Array(TRAIL_LENGTH);
-	let _familyTree = new FamilyTree();
-	let _phyloTree = new PhyloTree();
-	let _panningLeft = false;
-	let _panningRight = false;
-	let _panningUp = false;
-	let _panningDown = false;
-	let _zoomingIn = false;
-	let _zoomingOut = false;
-	let _renderingGoals = false;
-	let _windowWidth = 0;
-	let _windowHeight = 0;
+		// instance fields (previously let-local variables)
+		this._millisecondsPerUpdate = 0;
+		this._touch = new Touch();
+		this._swimbots = [];
+		this._foodBits = Array(MAX_FOODBITS);
+		this._nearbySwimbotsArray = Array(BRAIN_MAX_PERCEIVED_NEARBY_SWIMBOTS);
+		this._viewTracking = new ViewTracking();
+		this._potentialMate = new Swimbot();
+		this._chosenFoodBit = new FoodBit();
+		this._camera = new Camera();
+		this._obstacle = new Obstacle();
+		this._pool = new Pool();
+		this._embryology = new Embryology();
+		this._vectorUtility = new Vector2D();
+		this._myGenotype = new Genotype();
+		this._mateGenotype = new Genotype();
+		this._childGenotype = new Genotype();
+		this._neighborhoodX = [];
+		this._neighborhoodY = [];
+		this._neighborhoodAxis = [];
+		this._simulationRunning = false;
+		this._rendering = false;
+		this._swimbotBeingDragged = false;
+		this._foodBitBeingDragged = false;
+		this._poolCenter = new Vector2D();
+		this._canvas = null;
+		this._clock = 0;
+		this._numSwimbots = 0;
+		this._numNearbySwimbots = 0;
+		this._numFoodBits = 0;
+		this._canvasWidth = 0;
+		this._canvasHeight = 0;
+		this._mousedOverSwimbot = NULL_INDEX;
+		this._mousedOverFoodBit = NULL_INDEX;
+		this._selectedSwimbot = NULL_INDEX;
+		this._selectedFoodBit = NULL_INDEX;
+		this._startTime = ZERO;
+		this._seconds = ZERO;
+		this._gardenOfEdenRadius = ZERO;
+		this._levelOfDetail = SWIMBOT_LEVEL_OF_DETAIL_LOW;
+		this._previousTime = ZERO;
+		this._frameRate = ZERO;
+		this._debugTrail = Array(TRAIL_LENGTH);
+		this._familyTree = new FamilyTree();
+		this._phyloTree = new PhyloTree();
+		this._spatialGrid = new SpatialHashGrid(200); // cell size of 200 pixels
+		this._panningLeft = false;
+		this._panningRight = false;
+		this._panningUp = false;
+		this._panningDown = false;
+		this._zoomingIn = false;
+		this._zoomingOut = false;
+		this._renderingGoals = false;
+		this._windowWidth = 0;
+		this._windowHeight = 0;
+		this._lastFrameTime = 0;
+		this._lastSimTime = 0;
+		this._frameAccumulator = 0;
+		this._animationFrameId = null;
 
-	// create fixed-sized swimbot array
-	for (let s = 0; s < MAX_SWIMBOTS; s++) {
-		_swimbots[s] = new Swimbot();
-		_swimbots[s].setParent(this);
+		// create fixed-sized swimbot array
+		for (let s = 0; s < MAX_SWIMBOTS; s++) {
+			this._swimbots[s] = new Swimbot();
+			this._swimbots[s].setParent(this);
+		}
+
+		// create fixed-sized perceived nearby swimbot array
+		for (let s = 0; s < BRAIN_MAX_PERCEIVED_NEARBY_SWIMBOTS; s++) {
+			this._nearbySwimbotsArray[s] = new Swimbot();
+		}
+
+		// create fixed-sized foodbit array
+		for (let f = 0; f < MAX_FOODBITS; f++) {
+			this._foodBits[f] = new FoodBit();
+		}
+
+		// create trail array
+		for (let t = 0; t < TRAIL_LENGTH; t++) {
+			this._debugTrail[t] = new Vector2D();
+		}
 	}
 
-	// create fixed-sized perceived nearby swimbot array
-	for (let s = 0; s < BRAIN_MAX_PERCEIVED_NEARBY_SWIMBOTS; s++) {
-		_nearbySwimbotsArray[s] = new Swimbot();
+	setCanvas(c) {
+		this._canvas = c;
 	}
 
-	// create fixed-sized foodbit array
-	for (let f = 0; f < MAX_FOODBITS; f++) {
-		_foodBits[f] = new FoodBit();
+	setCanvasDimensions(w, h) {
+		this._canvasWidth = w;
+		this._canvasHeight = h;
+		this._camera.setAspectRatio(this._canvasWidth / this._canvasHeight);
 	}
 
-	// create trail array
-	for (let t = 0; t < TRAIL_LENGTH; t++) {
-		_debugTrail[t] = new Vector2D();
-	}
-
-	// This is an important call!
-	this.setCanvas = function(c) {
-		_canvas = c;
-	}
-
-	this.setCanvasDimensions = function(w, h) {
-		_canvasWidth = w;
-		_canvasHeight = h;
-		_camera.setAspectRatio(_canvasWidth / _canvasHeight);
-	}
-
-	this.initialize = function() {
+	initialize() {
 		// get pool center
-		_poolCenter.copyFrom(_pool.getCenter());
+		this._poolCenter.copyFrom(this._pool.getCenter());
 
 		// start with a random simulation
 		this.startSimulation(SimulationStartMode.RANDOM);
 
-		_millisecondsPerUpdate = DEFAULT_MILLISECONDS_PER_UPDATE;
+		this._millisecondsPerUpdate = 20; // DEFAULT_MILLISECONDS_PER_UPDATE
 
 		// configure view tracking
-		//_viewTracking.setPoolCenter(_poolCenter);	        
-		_viewTracking.setSwimbots(_swimbots);
-		_viewTracking.setMode(ViewTrackingMode.AUTOTRACK, _camera.getPosition(), _camera.getScale(), 0);
+		//_viewTracking.setPoolCenter(_poolCenter);
+		this._viewTracking.setSwimbots(this._swimbots);
+		this._viewTracking.setMode(ViewTrackingMode.AUTOTRACK, this._camera.getPosition(), this._camera.getScale(), 0);
 
-		// start up the timer
-		this.timer = setTimeout(() => genePool.update(), _millisecondsPerUpdate);
+		// start up the rAF game loop
+		this._lastFrameTime = 0;
+		this._lastSimTime = 0;
+		this._frameAccumulator = 0;
+		this.timer = requestAnimationFrame((timestamp) => genePool.update(timestamp));
 	}
 
-	this.startSimulation = function(mode) {
+	startSimulation(mode) {
 		//looks like numOffspring didn't get reset. fix this! (and any other related side effects
 
 		// start time
-		_startTime = (new Date).getTime();
+		this._startTime = (new Date).getTime();
 
 		// initialize pool
-		_seconds = ((new Date).getTime() - _startTime) / MILLISECONDS_PER_SECOND;
-		_pool.initialize(_seconds);
+		this._seconds = ((new Date).getTime() - this._startTime) / MILLISECONDS_PER_SECOND;
+		this._pool.initialize(this._seconds);
 
 		// initialize camera
-		_camera.setScale(INITIAL_VIEW_SCALE);
-		_camera.setPosition(_poolCenter);
+		this._camera.setScale(POOL_WIDTH * 0.1); // INITIAL_VIEW_SCALE
+		this._camera.setPosition(this._poolCenter);
 
 		// reset view control
-		_viewTracking.reset();
+		this._viewTracking.reset();
 
 		// reset family tree
-		_familyTree.reset();
+		this._familyTree.reset();
 
 		// clear out all swimbots and food bits
-		_numSwimbots = 0;
+		this._numSwimbots = 0;
 		for (let s = 0; s < MAX_SWIMBOTS; s++) {
-			_swimbots[s].clear();
+			this._swimbots[s].clear();
 		}
 
-		_numFoodBits = 0
+		this._numFoodBits = 0
 		for (let f = 0; f < MAX_FOODBITS; f++) {
-			_foodBits[f].kill();
+			this._foodBits[f].kill();
 		}
 
-		// Here I set ecosystem tweak values to their defaults. Some of 
+		// Here I set ecosystem tweak values to their defaults. Some of
 		// them may be changed afterwards depending on the simulation mode.
 		this.setFoodGrowthDelay(DEFAULT_FOOD_REGENERATION_PERIOD);
 		this.setFoodSpread(DEFAULT_FOOD_BIT_MAX_SPAWN_RADIUS);
@@ -205,8 +215,8 @@ function GenePool() {
 		this.setMaximumSwimbotAge(DEFAULT_MAXIMUM_AGE);
 
 		// do this stuff after doing the stuff above:
-		_numSwimbots = INITIAL_NUM_SWIMBOTS;
-		_numFoodBits = INITIAL_NUM_FOODBITS;
+		this._numSwimbots = INITIAL_NUM_SWIMBOTS;
+		this._numFoodBits = INITIAL_NUM_FOODBITS;
 
 		// default
 		globalTweakers.numFoodTypes = 1;
@@ -222,25 +232,25 @@ function GenePool() {
 			//this.setGardenOfEdenRadius(1500); /* again... */ this.randomizeFood();
 			this.setFoodGrowthDelay(15);
 			this.setMaximumSwimbotAge(20000);
-			_numSwimbots = 1000;
-			_numFoodBits = 2000;
+			this._numSwimbots = 1000;
+			this._numFoodBits = 2000;
 			this.setFoodToSpeciesConfiguration();
-			_camera.setScale(POOL_WIDTH);
+			this._camera.setScale(POOL_WIDTH);
 		} else if (mode === SimulationStartMode.FROGGIES) {
 			//this.randomizeFood();
 		} else if (mode === SimulationStartMode.TANGO) {
-			_numSwimbots = 2;
+			this._numSwimbots = 2;
 			//this.randomizeFood();
 		} else if (mode === SimulationStartMode.RACE) {
-			_numSwimbots = 4;
+			this._numSwimbots = 4;
 			this.setFoodToRaceConfiguration();
-			_camera.setScale(RACE_VIEW_SCALE);
+			this._camera.setScale(POOL_WIDTH * 0.3); // RACE_VIEW_SCALE
 		} else if (mode === SimulationStartMode.BIG_BANG) {
-			_numSwimbots = 100;
+			this._numSwimbots = 100;
 			this.setFoodToBangConfiguration();
-			_camera.setScale(BANG_VIEW_SCALE);
+			this._camera.setScale(POOL_WIDTH * 0.2); // BANG_VIEW_SCALE
 		} else if (mode === SimulationStartMode.BAD_PARENTS) {
-			_numSwimbots = 2;
+			this._numSwimbots = 2;
 			this.setFoodToBadParentsConfiguration();
 
 			this.setFoodGrowthDelay(200);
@@ -249,7 +259,7 @@ function GenePool() {
 			this.setFoodBitEnergy(6);
 			this.setOffspringEnergyRatio(0.0001);
 
-			_camera.setScale(PARENT_VIEW_SCALE);
+			this._camera.setScale(POOL_WIDTH * 0.05); // PARENT_VIEW_SCALE
 		} else if (mode === SimulationStartMode.BARRIER) {
 			// the obstacle is initialized below to be in the middle of the pool!
 
@@ -257,20 +267,20 @@ function GenePool() {
 			//this.randomizeFood();
 			//_camera.setScale(PARENT_VIEW_SCALE);
 		} else if (mode === SimulationStartMode.NEIGHBORHOOD) {
-			_camera.setScale(NEIGHBORHOOD_VIEW_SCALE);
-			_numSwimbots = NUM_NEIGHBORHOOD_SWIMBOTS;
+			this._camera.setScale(POOL_WIDTH * 0.4); // NEIGHBORHOOD_VIEW_SCALE
+			this._numSwimbots = 14 * 14; // NUM_NEIGHBORHOOD_SWIMBOTS
 			this.randomizeNeighborhood();
-			this.setFoodToNeighborhood(_poolCenter, _gardenOfEdenRadius);
+			this.setFoodToNeighborhood(this._poolCenter, this._gardenOfEdenRadius);
 		} else if (mode === SimulationStartMode.EMPTY) {
-			_numSwimbots = 0;
+			this._numSwimbots = 0;
 			//this.randomizeFood();
 		}
 
 		// initialize swimbots
-		for (let i = 0; i < _numSwimbots; i++) {
+		for (let i = 0; i < this._numSwimbots; i++) {
 			let initialPosition = new Vector2D();
 
-			initialPosition.setToRandomLocationInDisk(_poolCenter, _gardenOfEdenRadius);
+			initialPosition.setToRandomLocationInDisk(this._poolCenter, this._gardenOfEdenRadius);
 
 			if (mode === SimulationStartMode.SPECIES) {
 				let s = POOL_WIDTH * 0.4;
@@ -300,25 +310,25 @@ function GenePool() {
 
 			// neighborhood
 			if (mode === SimulationStartMode.NEIGHBORHOOD) {
-				let sqrt = Math.floor(Math.sqrt(_numSwimbots));
+				let sqrt = Math.floor(Math.sqrt(this._numSwimbots));
 				let xMod = i % sqrt;
-				let yMod = Math.floor((i / _numSwimbots) * sqrt);
+				let yMod = Math.floor((i / this._numSwimbots) * sqrt);
 
 				let xFraction = xMod / sqrt;
 				let yFraction = yMod / sqrt;
 
-				let x = _poolCenter.x - _gardenOfEdenRadius + xFraction * _gardenOfEdenRadius * 2;
-				let y = _poolCenter.y - _gardenOfEdenRadius + yFraction * _gardenOfEdenRadius * 2;
+				let x = this._poolCenter.x - this._gardenOfEdenRadius + xFraction * this._gardenOfEdenRadius * 2;
+				let y = this._poolCenter.y - this._gardenOfEdenRadius + yFraction * this._gardenOfEdenRadius * 2;
 
 				initialPosition.setXY(x, y);
 
 				for (let g = 0; g < NUM_GENES; g++) {
 					let value = ZERO;
 
-					if (_neighborhoodAxis[g]) {
-						value = ONE_HALF + ONE_HALF * Math.sin((_neighborhoodX[g] + (-ONE_HALF + xFraction)) * NEIGHBORHOOD_FREQ);
+					if (this._neighborhoodAxis[g]) {
+						value = ONE_HALF + ONE_HALF * Math.sin((this._neighborhoodX[g] + (-ONE_HALF + xFraction)) * 5.0); // NEIGHBORHOOD_FREQ
 					} else {
-						value = ONE_HALF + ONE_HALF * Math.sin((_neighborhoodY[g] + (-ONE_HALF + yFraction)) * NEIGHBORHOOD_FREQ);
+						value = ONE_HALF + ONE_HALF * Math.sin((this._neighborhoodY[g] + (-ONE_HALF + yFraction)) * 5.0); // NEIGHBORHOOD_FREQ
 					}
 
 					if (value < ZERO) { value = ZERO; }
@@ -326,20 +336,20 @@ function GenePool() {
 
 					let geneValue = Math.floor((BYTE_SIZE - 1) * value);
 
-					_myGenotype.setGeneValue(g, geneValue);
+					this._myGenotype.setGeneValue(g, geneValue);
 				}
 			}
 			// froggies
 			else if (mode === SimulationStartMode.FROGGIES) {
-				_myGenotype.setToFroggy();
+				this._myGenotype.setToFroggy();
 			}
 			// tango
 			else if (mode === SimulationStartMode.TANGO) {
-				if (i === 0) { _myGenotype.setToPreset(PRESET_GENOTYPE_DARWIN); }
-				if (i === 1) { _myGenotype.setToPreset(PRESET_GENOTYPE_MENDEL); }
+				if (i === 0) { this._myGenotype.setToPreset(PRESET_GENOTYPE_DARWIN); }
+				if (i === 1) { this._myGenotype.setToPreset(PRESET_GENOTYPE_MENDEL); }
 
-				if (i === 0) { initialPosition.setXY(_poolCenter.x - 100 * ONE_HALF, _poolCenter.y); }
-				if (i === 1) { initialPosition.setXY(_poolCenter.x + 100 * ONE_HALF, _poolCenter.y); }
+				if (i === 0) { initialPosition.setXY(this._poolCenter.x - 100 * ONE_HALF, this._poolCenter.y); }
+				if (i === 1) { initialPosition.setXY(this._poolCenter.x + 100 * ONE_HALF, this._poolCenter.y); }
 			}
 			// race
 			else if (mode === SimulationStartMode.RACE) {
@@ -350,40 +360,40 @@ function GenePool() {
 				if (i === 3) { _myGenotype.setToPreset(PRESET_GENOTYPE_DAWKINS ); }
 				*/
 
-				if (i === 0) { _myGenotype.setToPreset(PRESET_GENOTYPE_WILSON); }
-				if (i === 1) { _myGenotype.setToPreset(PRESET_GENOTYPE_WILSON); }
-				if (i === 2) { _myGenotype.setToPreset(PRESET_GENOTYPE_DENNETT); }
-				if (i === 3) { _myGenotype.setToPreset(PRESET_GENOTYPE_DENNETT); }
+				if (i === 0) { this._myGenotype.setToPreset(PRESET_GENOTYPE_WILSON); }
+				if (i === 1) { this._myGenotype.setToPreset(PRESET_GENOTYPE_WILSON); }
+				if (i === 2) { this._myGenotype.setToPreset(PRESET_GENOTYPE_DENNETT); }
+				if (i === 3) { this._myGenotype.setToPreset(PRESET_GENOTYPE_DENNETT); }
 
-				if (i === 0) { initialPosition.setXY(_poolCenter.x - FOOD_RACE_SIZE, _poolCenter.y + FOOD_RACE_SIZE); }
-				if (i === 1) { initialPosition.setXY(_poolCenter.x - FOOD_RACE_SIZE, _poolCenter.y + FOOD_RACE_SIZE - 60); }
-				if (i === 2) { initialPosition.setXY(_poolCenter.x + FOOD_RACE_SIZE, _poolCenter.y + FOOD_RACE_SIZE); }
-				if (i === 3) { initialPosition.setXY(_poolCenter.x + FOOD_RACE_SIZE, _poolCenter.y + FOOD_RACE_SIZE - 60); }
+				if (i === 0) { initialPosition.setXY(this._poolCenter.x - 1000, this._poolCenter.y + 1000); } // FOOD_RACE_SIZE
+				if (i === 1) { initialPosition.setXY(this._poolCenter.x - 1000, this._poolCenter.y + 1000 - 60); }
+				if (i === 2) { initialPosition.setXY(this._poolCenter.x + 1000, this._poolCenter.y + 1000); }
+				if (i === 3) { initialPosition.setXY(this._poolCenter.x + 1000, this._poolCenter.y + 1000 - 60); }
 			}
 			// big bang
 			else if (mode === SimulationStartMode.BIG_BANG) {
-				initialPosition.setXY(_poolCenter.x, _poolCenter.y);
-				_myGenotype.randomize();
+				initialPosition.setXY(this._poolCenter.x, this._poolCenter.y);
+				this._myGenotype.randomize();
 			}
 			// bad parents
 			else if (mode === SimulationStartMode.BAD_PARENTS) {
-				if (i === 0) { _myGenotype.setToPreset(PRESET_GENOTYPE_TURING); }
-				if (i === 1) { _myGenotype.setToPreset(PRESET_GENOTYPE_TURING); }
+				if (i === 0) { this._myGenotype.setToPreset(PRESET_GENOTYPE_TURING); }
+				if (i === 1) { this._myGenotype.setToPreset(PRESET_GENOTYPE_TURING); }
 
-				if (i === 0) { initialPosition.setXY(_poolCenter.x - 200 * ONE_HALF, _poolCenter.y); }
-				if (i === 1) { initialPosition.setXY(_poolCenter.x + 200 * ONE_HALF, _poolCenter.y); }
+				if (i === 0) { initialPosition.setXY(this._poolCenter.x - 200 * ONE_HALF, this._poolCenter.y); }
+				if (i === 1) { initialPosition.setXY(this._poolCenter.x + 200 * ONE_HALF, this._poolCenter.y); }
 			}
 			/*
 			// barrier
 			else if (mode === SimulationStartMode.BARRIER)
-			{            
+			{
 			    if (i === 0) { _myGenotype.setToPreset(PRESET_GENOTYPE_DAWKINS  ); }
 			    if (i === 1) { _myGenotype.setToPreset(PRESET_GENOTYPE_WALLACE  ); }
 			    if (i === 2) { _myGenotype.setToPreset(PRESET_GENOTYPE_MENDEL   ); }
 			    if (i === 3) { _myGenotype.setToPreset(PRESET_GENOTYPE_WILSON   ); }
 			    if (i === 4) { _myGenotype.setToPreset(PRESET_GENOTYPE_TURING   ); }
 			    if (i === 5) { _myGenotype.setToPreset(PRESET_GENOTYPE_MARGULIS ); }
-			    
+
 			    let s = 150;
 
 			    if (i === 0) { initialPosition.setXY(_poolCenter.x + s * -1,  _poolCenter.y + s * -1); }
@@ -396,34 +406,34 @@ function GenePool() {
 			*/
 			// normal
 			else {
-				_myGenotype.randomize();
+				this._myGenotype.randomize();
 			}
 
 			// This sets all junk DNA to a value of 0!!!
 			for (let g = NUM_GENES_USED; g < NUM_GENES; g++) {
-				_myGenotype.setGeneValue(g, 0);
+				this._myGenotype.setGeneValue(g, 0);
 			}
 
 			// This is not the most elegant way to do this, but just to get it working.....
-			// For any simulation mode (pool preset) other than Species, the swimbot genes 
+			// For any simulation mode (pool preset) other than Species, the swimbot genes
 			// for food type preferrence and food type digestion are set to 0 (green).
 			if (mode != SimulationStartMode.SPECIES) {
 				// This sets the food type gene to be the same as the preferredFoodColor gene
 				//let foodColorGene = _embryology.getFoodColorGene();
-				//let foodTypeGene  = _embryology.getFoodNutritionGene();  
+				//let foodTypeGene  = _embryology.getFoodNutritionGene();
 				//let geneValue = _myGenotype.getGeneValue(foodColorGene);
-				//_myGenotype.setGeneValue(foodNutritionGene, 0);                
-				//_myGenotype.setGeneValue(foodNutritionGene, 0);                
+				//_myGenotype.setGeneValue(foodNutritionGene, 0);
+				//_myGenotype.setGeneValue(foodNutritionGene, 0);
 			}
 
 			// create the swimbot
-			_swimbots[i].create(i, initialAge, initialPosition, initialAngle, initialEnergy, _myGenotype, _embryology);
+			this._swimbots[i].create(i, initialAge, initialPosition, initialAngle, initialEnergy, this._myGenotype, this._embryology);
 
 			// add the new swimbot to the family tree
-			_familyTree.addNode(i, NULL_INDEX, NULL_INDEX, _clock, this.getSwimbotGenes(i));
+			this._familyTree.addNode(i, NULL_INDEX, NULL_INDEX, this._clock, this.getSwimbotGenes(i));
 		}
 
-		// initialize obstacle         
+		// initialize obstacle
 		let end1 = new Vector2D();
 		let end2 = new Vector2D();
 
@@ -435,45 +445,45 @@ function GenePool() {
 			end2.setXY(POOL_LEFT + POOL_WIDTH * 0.8, POOL_TOP + POOL_HEIGHT * ONE_HALF);
 		}
 
-		_obstacle.setEndpointPositions(end1, end2);
+		this._obstacle.setEndpointPositions(end1, end2);
 
 		for (let m = 0; m < 10; m++) {
-			moveFoodBitsFromObstacle();
+			this._moveFoodBitsFromObstacle();
 		}
 
 		// clear this!
-		setSelectedSwimbot(NULL_INDEX);
+		this._setSelectedSwimbot(NULL_INDEX);
 
 		// set _simulationRunning to true
-		_simulationRunning = true;
+		this._simulationRunning = true;
 
 		// set rendering to true
-		_rendering = true;
+		this._rendering = true;
 
 		// reset clock to 0
-		_clock = 0;
+		this._clock = 0;
 	}
 
-	this.setGardenOfEdenRadius = function(r) {
-		_gardenOfEdenRadius = r;
+	setGardenOfEdenRadius(r) {
+		this._gardenOfEdenRadius = r;
 	}
 
-	this.randomizeNeighborhood = function() {
+	randomizeNeighborhood() {
 		for (let g = 0; g < NUM_GENES; g++) {
-			_neighborhoodX[g] = -ONE + Math.random() * 2.0;
-			_neighborhoodY[g] = -ONE + Math.random() * 2.0;
+			this._neighborhoodX[g] = -ONE + Math.random() * 2.0;
+			this._neighborhoodY[g] = -ONE + Math.random() * 2.0;
 
 			if (Math.random() < ONE_HALF) {
-				_neighborhoodAxis[g] = false;
+				this._neighborhoodAxis[g] = false;
 			} else {
-				_neighborhoodAxis[g] = true;
+				this._neighborhoodAxis[g] = true;
 			}
 		}
 	}
 
-	this.randomizeFood = function() {
-		for (let f = 0; f < _numFoodBits; f++) {
-			_foodBits[f].initialize(f);
+	randomizeFood() {
+		for (let f = 0; f < this._numFoodBits; f++) {
+			this._foodBits[f].initialize(f);
 
 			// set food type...
 			let n = 0;
@@ -483,18 +493,18 @@ function GenePool() {
 
 				/*
 				//first half is one type, the other half is the other type...
-				if (f < _numFoodBits * ONE_HALF ) 
+				if (f < _numFoodBits * ONE_HALF )
 				{
 				    n = 0;
 				}
 				else
 				{
 				    n = 1;
-				} 
+				}
 				*/
 			}
 
-			_foodBits[f].setType(n);
+			this._foodBits[f].setType(n);
 
 			// place food bit randomly in a disk in the middle of the pool
 			let poolCenter = new Vector2D();
@@ -502,14 +512,14 @@ function GenePool() {
 			poolCenter.y = POOL_TOP + POOL_HEIGHT * ONE_HALF;
 
 			let foodBitPosition = new Vector2D();
-			foodBitPosition.setToRandomLocationInDisk(poolCenter, _gardenOfEdenRadius);
+			foodBitPosition.setToRandomLocationInDisk(poolCenter, this._gardenOfEdenRadius);
 
 			/*
 			if (mode === SimulationStartMode.SPECIES)
 			{
 			    lfoodBitPosition.x = Math.random() * POOL_WIDTH * 0.24;
 			    foodBitPosition.y = Math.random() * POOL_HEIGHT;
-			    
+
 			    if (Math.random() < ONE_HALF)
 			    {
 			        foodBitPosition.x = POOL_WIDTH - foodBitPosition.x;
@@ -517,17 +527,17 @@ function GenePool() {
 			}
 			*/
 
-			_foodBits[f].setPosition(foodBitPosition);
+			this._foodBits[f].setPosition(foodBitPosition);
 		}
 	}
 
-	this.setFoodToNeighborhood = function(position, size) {
-		_numFoodBits = NUM_NEIGHBORHOOD_FOODBITS;
+	setFoodToNeighborhood(position, size) {
+		this._numFoodBits = 28 * 28; // NUM_NEIGHBORHOOD_FOODBITS
 
-		for (let f = 0; f < _numFoodBits; f++) {
-			let sqrt = Math.floor(Math.sqrt(_numFoodBits));
+		for (let f = 0; f < this._numFoodBits; f++) {
+			let sqrt = Math.floor(Math.sqrt(this._numFoodBits));
 			let xMod = f % sqrt;
-			let yMod = Math.floor((f / _numFoodBits) * sqrt);
+			let yMod = Math.floor((f / this._numFoodBits) * sqrt);
 
 			let xFraction = xMod / sqrt;
 			let yFraction = yMod / sqrt;
@@ -539,74 +549,74 @@ function GenePool() {
 				position.y - size + yFraction * size * 2
 			);
 
-			_foodBits[f].initialize(f);
-			_foodBits[f].setPosition(foodBitPosition);
+			this._foodBits[f].initialize(f);
+			this._foodBits[f].setPosition(foodBitPosition);
 		}
 	}
 
-	this.setFoodToBarrierConfiguration = function() {
-		_numFoodBits = 40;
+	setFoodToBarrierConfiguration() {
+		this._numFoodBits = 40;
 		let spread = 500;
 		let p = new Vector2D();
 
-		for (let f = 0; f < _numFoodBits; f++) {
-			_foodBits[f].initialize(f);
+		for (let f = 0; f < this._numFoodBits; f++) {
+			this._foodBits[f].initialize(f);
 			p.setXY(
-				_poolCenter.x + (-spread * ONE_HALF + Math.random() * spread),
-				_poolCenter.y + (-spread * ONE_HALF + Math.random() * spread)
+				this._poolCenter.x + (-spread * ONE_HALF + Math.random() * spread),
+				this._poolCenter.y + (-spread * ONE_HALF + Math.random() * spread)
 			);
 
-			_foodBits[f].setPosition(p);
+			this._foodBits[f].setPosition(p);
 		}
 
 		this.setFoodSpread(MIN_FOOD_BIT_MAX_SPAWN_RADIUS + (MAX_FOOD_BIT_MAX_SPAWN_RADIUS - MIN_FOOD_BIT_MAX_SPAWN_RADIUS) * 0.2);
 	}
 
-	this.setFoodToBadParentsConfiguration = function() {
-		_numFoodBits = 5;
+	setFoodToBadParentsConfiguration() {
+		this._numFoodBits = 5;
 
 		let spread = 100;
 		let p = new Vector2D();
 		let f = -1;
 
 		f++;
-		_foodBits[f].initialize(f);
-		p.setXY(_poolCenter.x, _poolCenter.y + spread * -1.0);
-		_foodBits[f].setPosition(p);
+		this._foodBits[f].initialize(f);
+		p.setXY(this._poolCenter.x, this._poolCenter.y + spread * -1.0);
+		this._foodBits[f].setPosition(p);
 		f++;
-		_foodBits[f].initialize(f);
-		p.setXY(_poolCenter.x, _poolCenter.y + spread * -0.5);
-		_foodBits[f].setPosition(p);
+		this._foodBits[f].initialize(f);
+		p.setXY(this._poolCenter.x, this._poolCenter.y + spread * -0.5);
+		this._foodBits[f].setPosition(p);
 		f++;
-		_foodBits[f].initialize(f);
-		p.setXY(_poolCenter.x, _poolCenter.y + spread * 0.0);
-		_foodBits[f].setPosition(p);
+		this._foodBits[f].initialize(f);
+		p.setXY(this._poolCenter.x, this._poolCenter.y + spread * 0.0);
+		this._foodBits[f].setPosition(p);
 		f++;
-		_foodBits[f].initialize(f);
-		p.setXY(_poolCenter.x, _poolCenter.y + spread * 0.5);
-		_foodBits[f].setPosition(p);
+		this._foodBits[f].initialize(f);
+		p.setXY(this._poolCenter.x, this._poolCenter.y + spread * 0.5);
+		this._foodBits[f].setPosition(p);
 		f++;
-		_foodBits[f].initialize(f);
-		p.setXY(_poolCenter.x, _poolCenter.y + spread * 1.0);
-		_foodBits[f].setPosition(p);
+		this._foodBits[f].initialize(f);
+		p.setXY(this._poolCenter.x, this._poolCenter.y + spread * 1.0);
+		this._foodBits[f].setPosition(p);
 
 		this.setFoodSpread(MIN_FOOD_BIT_MAX_SPAWN_RADIUS);
 	}
 
-	this.setFoodToBangConfiguration = function() {
-		_numFoodBits = 500;
+	setFoodToBangConfiguration() {
+		this._numFoodBits = 500;
 		let radius = ONE;
 		let fraction = ZERO;
-		let thirdNum = _numFoodBits / 3.0;
+		let thirdNum = this._numFoodBits / 3.0;
 
 		let foodBitPosition = new Vector2D();
 
-		for (let f = 0; f < _numFoodBits; f++) {
-			if (f > _numFoodBits * 0.66666) {
-				fraction = (f - (_numFoodBits * 0.66666)) / thirdNum;
+		for (let f = 0; f < this._numFoodBits; f++) {
+			if (f > this._numFoodBits * 0.66666) {
+				fraction = (f - (this._numFoodBits * 0.66666)) / thirdNum;
 				radius = 600;
-			} else if (f > _numFoodBits * 0.333333) {
-				fraction = (f - (_numFoodBits * 0.333333)) / thirdNum;
+			} else if (f > this._numFoodBits * 0.333333) {
+				fraction = (f - (this._numFoodBits * 0.333333)) / thirdNum;
 				radius = 900;
 			} else {
 				fraction = f / thirdNum;
@@ -617,64 +627,64 @@ function GenePool() {
 
 			// spiral
 			/*
-			radius *= 1.016;          
+			radius *= 1.016;
 			let radian = f * 0.2;
 			*/
 
-			let x = _poolCenter.x + radius * Math.sin(radian);
-			let y = _poolCenter.y + radius * Math.cos(radian);
+			let x = this._poolCenter.x + radius * Math.sin(radian);
+			let y = this._poolCenter.y + radius * Math.cos(radian);
 
 			foodBitPosition.setXY(x, y);
 
-			_foodBits[f].initialize(f);
-			_foodBits[f].setPosition(foodBitPosition);
+			this._foodBits[f].initialize(f);
+			this._foodBits[f].setPosition(foodBitPosition);
 		}
 
 		this.setFoodGrowthDelay(DEFAULT_FOOD_REGENERATION_PERIOD);
 		this.setFoodSpread(20);
 	}
 
-	this.setFoodToSpeciesConfiguration = function() {
+	setFoodToSpeciesConfiguration() {
 		let p = new Vector2D();
 
-		for (let f = 0; f < _numFoodBits; f++) {
+		for (let f = 0; f < this._numFoodBits; f++) {
 			let s = POOL_WIDTH * 0.4;
 			p.x = Math.random() * s;
 			p.y = POOL_HEIGHT * ONE_HALF - s * ONE_HALF + +Math.random() * s;
 
-			_foodBits[f].setType(Math.floor(Math.random() * 2));
+			this._foodBits[f].setType(Math.floor(Math.random() * 2));
 
 			if (Math.random() < ONE_HALF) {
 				p.x = POOL_WIDTH - p.x;
 			}
 
-			_foodBits[f].setPosition(p);
+			this._foodBits[f].setPosition(p);
 		}
 	}
 
-	this.setFoodToRaceConfiguration = function() {
-		_numFoodBits = 0;
+	setFoodToRaceConfiguration() {
+		this._numFoodBits = 0;
 
 		let p = new Vector2D();
 		let num = 200;
-		let xx = _poolCenter.x;
-		let yy = _poolCenter.y + FOOD_RACE_SIZE * 0.9;
+		let xx = this._poolCenter.x;
+		let yy = this._poolCenter.y + 1000 * 0.9; // FOOD_RACE_SIZE
 
 		for (let f = 0; f < num; f++) {
 			let fraction = f / num;
 
-			p.x = xx + FOOD_RACE_SIZE * Math.cos(fraction * Math.PI);
-			p.y = yy - FOOD_RACE_SIZE * Math.sin(fraction * Math.PI);
+			p.x = xx + 1000 * Math.cos(fraction * Math.PI); // FOOD_RACE_SIZE
+			p.y = yy - 1000 * Math.sin(fraction * Math.PI); // FOOD_RACE_SIZE
 
-			_foodBits[_numFoodBits].initialize(f);
-			_foodBits[_numFoodBits].setPosition(p);
-			_numFoodBits++;
+			this._foodBits[this._numFoodBits].initialize(f);
+			this._foodBits[this._numFoodBits].setPosition(p);
+			this._numFoodBits++;
 		}
 
 		num = 140;
 		let r = 0;
-		xx = _poolCenter.x;
-		yy = _poolCenter.y - FOOD_RACE_SIZE * 0.4;
+		xx = this._poolCenter.x;
+		yy = this._poolCenter.y - 1000 * 0.4; // FOOD_RACE_SIZE
 
 		for (let f = 0; f < num; f++) {
 			let ff = f * 0.1;
@@ -684,9 +694,9 @@ function GenePool() {
 			p.x = xx + r * Math.cos(ff);
 			p.y = yy + r * Math.sin(ff);
 
-			_foodBits[_numFoodBits].initialize(f);
-			_foodBits[_numFoodBits].setPosition(p);
-			_numFoodBits++;
+			this._foodBits[this._numFoodBits].initialize(f);
+			this._foodBits[this._numFoodBits].setPosition(p);
+			this._numFoodBits++;
 		}
 
 		//set the delay of food growth
@@ -694,157 +704,179 @@ function GenePool() {
 		this.setFoodSpread(MIN_FOOD_BIT_MAX_SPAWN_RADIUS);
 	}
 
-	this.setAttraction = function(a) {
+	setAttraction(a) {
 		globalTweakers.attractionCriterion = a;
 
 		assert(globalTweakers.attractionCriterion >= 0, "genepool: setAttraction: globalTweakers.attractionCriterion >= 0")
 		assert(globalTweakers.attractionCriterion < NUM_ATTRACTIONS, "genepool: setAttraction: globalTweakers.attractionCriterion < NUM_ATTRACTIONS")
 
 		for (let s = 0; s < MAX_SWIMBOTS; s++) {
-			_swimbots[s].setAttraction(globalTweakers.attractionCriterion);
+			this._swimbots[s].setAttraction(globalTweakers.attractionCriterion);
 		}
 	}
 
-	this.notifySwimbotDeathTime = function(deceasedSwimbotIndex) {
+	notifySwimbotDeathTime(deceasedSwimbotIndex) {
 		assert(deceasedSwimbotIndex != NULL_INDEX, "GenePool.js: this.notifySwimbotDeathTime: deceasedSwimbotIndex != NULL_INDEX")
-		_familyTree.setDeathTime(deceasedSwimbotIndex, _clock);
+		this._familyTree.setDeathTime(deceasedSwimbotIndex, this._clock);
+		eventBus.emit('SWIMBOT_DIED', { index: deceasedSwimbotIndex, clock: this._clock });
 	}
 
-	this.update = function() {
+	update(timestamp) {
 		// get seconds since started...
-		_seconds = ((new Date).getTime() - _startTime) / MILLISECONDS_PER_SECOND;
+		this._seconds = ((new Date).getTime() - this._startTime) / MILLISECONDS_PER_SECOND;
 
-		// calculate frame rate...
-		//_frameRate = _seconds - _previousTime;
-		//_previousTime = _seconds;
-
-		if (_simulationRunning) {
-			// advance clock...
-			_clock++;
-
-			// update swimbots...
-			this.updateSwimbots();
-
-			// update food
-			this.updateFood();
+		if (this._simulationRunning) {
+			if (this._millisecondsPerUpdate <= 0) {
+				// "fastest" mode: run as many simulation steps as possible per frame
+				let steps = 0;
+				let maxSteps = 50;
+				let deadline = timestamp + this._millisecondsPerUpdate;
+				while (steps < maxSteps) {
+					this._clock++;
+					this.updateSwimbots();
+					this.updateFood();
+					steps++;
+				}
+			} else {
+				// Normal mode: throttle by _millisecondsPerUpdate
+				let elapsed = timestamp - this._lastSimTime;
+				if (elapsed >= this._millisecondsPerUpdate) {
+					this._clock++;
+					this.updateSwimbots();
+					this.updateFood();
+					this._lastSimTime = timestamp;
+				}
+			}
 		}
 
-		if (_rendering) {
+		if (this._rendering) {
 			// update camera...
-			_camera.update(_seconds);
+			this._camera.update(this._seconds);
 
 			if (RENDER_SWIMBOT_AS_DOT) {
-				_levelOfDetail = SWIMBOT_LEVEL_OF_DETAIL_DOT;
+				this._levelOfDetail = SWIMBOT_LEVEL_OF_DETAIL_DOT;
 			} else {
-				if (_camera.getScale() > LEVEL_OF_DETAIL_THRESHOLD) {
-					_levelOfDetail = SWIMBOT_LEVEL_OF_DETAIL_LOW;
+				if (this._camera.getScale() > 1200.0) { // LEVEL_OF_DETAIL_THRESHOLD
+					this._levelOfDetail = SWIMBOT_LEVEL_OF_DETAIL_LOW;
 				} else {
-					_levelOfDetail = SWIMBOT_LEVEL_OF_DETAIL_HIGH;
+					this._levelOfDetail = SWIMBOT_LEVEL_OF_DETAIL_HIGH;
 				}
 			}
 
 			// update camera tracking...
-			if (_viewTracking.getIsTracking()) {
+			if (this._viewTracking.getIsTracking()) {
 
-				_viewTracking.updateTracking(_camera.getPosition(), _camera.getScale(), _selectedSwimbot);
+				this._viewTracking.updateTracking(this._camera.getPosition(), this._camera.getScale(), this._selectedSwimbot);
 
-				_camera.addForce(_viewTracking.getCameraForce(), _viewTracking.getCameraScaleForce());
+				this._camera.addForce(this._viewTracking.getCameraForce(), this._viewTracking.getCameraScaleForce());
 
 			}
 
 			// update camera navigation
 			this.updateCameraNavigation();
 
-			// render everything...		
+			// render everything...
 			this.render();
 		}
 
-		// update touch state 
+		// update touch state
 		// (important for generating state for touch velocity, etc.)
 		// also, important to call this after updateCameraNavigation
-		_touch.update();
+		this._touch.update();
 
-		// trigger next update...
-		this.timer = setTimeout(() => genePool.update(), _millisecondsPerUpdate);
+		// trigger next frame via rAF
+		this._lastFrameTime = timestamp;
+		this.timer = requestAnimationFrame((ts) => genePool.update(ts));
 	}
 
-	this.updateSwimbots = function() {
+	_rebuildSpatialGrid() {
+		this._spatialGrid.clear();
+		for (let s = 0; s < MAX_SWIMBOTS; s++) {
+			if (this._swimbots[s].getAlive()) {
+				this._spatialGrid.add(this._swimbots[s]);
+			}
+		}
+	}
+
+	updateSwimbots() {
+		this._rebuildSpatialGrid();
 
 		for (let s = 0; s < MAX_SWIMBOTS; s++) {
-			if (_swimbots[s].getAlive()) {
+			if (this._swimbots[s].getAlive()) {
 
-				_swimbots[s].update();
+				this._swimbots[s].update();
 
 				// provide aspects of the environment for the swimbot to perceive
-				if (_swimbots[s].getIsLookingForSensoryInput()) {
+				if (this._swimbots[s].getIsLookingForSensoryInput()) {
 					this.giveSwimbotNearbyEnvironmentalStimuli(s);
 				}
 
 				// check for obstacle collision....
-				if (_obstacle.getCollision(_swimbots[s].getPosition(), _swimbots[s].getBoundingRadius() * ONE_HALF)) {
+				if (this._obstacle.getCollision(this._swimbots[s].getPosition(), this._swimbots[s].getBoundingRadius() * ONE_HALF)) {
 					// only call this IMMEDIATELY after calling "_obstacle.getCollision"...
-					_vectorUtility = _obstacle.getCurrentCollisionForce();
-					_vectorUtility.scale(1.2);
-					_swimbots[s].addForce(_vectorUtility);
+					this._vectorUtility = this._obstacle.getCurrentCollisionForce();
+					this._vectorUtility.scale(1.2);
+					this._swimbots[s].addForce(this._vectorUtility);
 				}
 
 				// eating
-				if (_swimbots[s].getIsTryingToEat()) {
-					let eatenFoodBit = _swimbots[s].eatChosenFoodBit();
+				if (this._swimbots[s].getIsTryingToEat()) {
+					let eatenFoodBit = this._swimbots[s].eatChosenFoodBit();
 				}
 
 				// giving birth to a new swimbot
-				if (_swimbots[s].getIsTryingToMate()) {
+				if (this._swimbots[s].getIsTryingToMate()) {
 					let newBornSwimbotIndex = this.findLowestDeadSwimbotInArray();
 
 					// a few quick reality checks here...
 					if ((newBornSwimbotIndex != NULL_INDEX) &&
-						(_swimbots[s].getChosenMateIndex() != NULL_INDEX)) {
-						let chosenMateIndex = _swimbots[s].getChosenMateIndex();
+						(this._swimbots[s].getChosenMateIndex() != NULL_INDEX)) {
+						let chosenMateIndex = this._swimbots[s].getChosenMateIndex();
 
-						_potentialMate = _swimbots[chosenMateIndex];
+						this._potentialMate = this._swimbots[chosenMateIndex];
 
-						assert(_potentialMate != null, "genepool: updateSwimbots: _potentialMate != null");
+						assert(this._potentialMate != null, "genepool: updateSwimbots: _potentialMate != null");
 
-						if (_potentialMate.getAlive()) {
-							assert(_myGenotype != null, "genepool: updateSwimbots: _myGenotype    != null");
-							assert(_mateGenotype != null, "genepool: updateSwimbots: _mateGenotype  != null");
+						if (this._potentialMate.getAlive()) {
+							assert(this._myGenotype != null, "genepool: updateSwimbots: _myGenotype    != null");
+							assert(this._mateGenotype != null, "genepool: updateSwimbots: _mateGenotype  != null");
 
 							// collect genes from me and my chosen mate and recombine them for the child
-							_myGenotype = _swimbots[s].getGenotype();
-							_mateGenotype = _potentialMate.getGenotype();
+							this._myGenotype = this._swimbots[s].getGenotype();
+							this._mateGenotype = this._potentialMate.getGenotype();
 
 							// if the junk dna of each swimbot are similar enough...
-							if (!this.getJunkDnaSimilarity(_myGenotype, _mateGenotype) > NON_REPRODUCING_JUNK_DNA_LIMIT) {}
+							if (!this.getJunkDnaSimilarity(this._myGenotype, this._mateGenotype) > NON_REPRODUCING_JUNK_DNA_LIMIT) {}
 
-							if (this.getJunkDnaSimilarity(_myGenotype, _mateGenotype) > NON_REPRODUCING_JUNK_DNA_LIMIT) {
-								// recombine genes for the child 
-								assert(_childGenotype != null, "_childGenotype != null");
+							if (this.getJunkDnaSimilarity(this._myGenotype, this._mateGenotype) > NON_REPRODUCING_JUNK_DNA_LIMIT) {
+								// recombine genes for the child
+								assert(this._childGenotype != null, "_childGenotype != null");
 
-								_childGenotype.setAsOffspring(_myGenotype, _mateGenotype);
+								this._childGenotype.setAsOffspring(this._myGenotype, this._mateGenotype);
 
 								// collect energy from parents for child energy
-								let myEnergyContribution = _swimbots[s].contributeToOffspring();
-								let mateEnergyContribution = _potentialMate.contributeToOffspring();
+								let myEnergyContribution = this._swimbots[s].contributeToOffspring();
+								let mateEnergyContribution = this._potentialMate.contributeToOffspring();
 								let energyToOffspring = myEnergyContribution + mateEnergyContribution;
 
 								// set birth position
-								let diffX = _potentialMate.getGenitalPosition().x - _swimbots[s].getGenitalPosition().x;
-								let diffY = _potentialMate.getGenitalPosition().y - _swimbots[s].getGenitalPosition().y;
+								let diffX = this._potentialMate.getGenitalPosition().x - this._swimbots[s].getGenitalPosition().x;
+								let diffY = this._potentialMate.getGenitalPosition().y - this._swimbots[s].getGenitalPosition().y;
 
-								_vectorUtility.x = _swimbots[s].getGenitalPosition().x + diffX * ONE_HALF;
-								_vectorUtility.y = _swimbots[s].getGenitalPosition().y + diffY * ONE_HALF;
+								this._vectorUtility.x = this._swimbots[s].getGenitalPosition().x + diffX * ONE_HALF;
+								this._vectorUtility.y = this._swimbots[s].getGenitalPosition().y + diffY * ONE_HALF;
 
 								// pool effect
-								_pool.endTouch(_vectorUtility, _seconds);
+								this._pool.endTouch(this._vectorUtility, this._seconds);
 
 								// create the child swimbot
 								let initialAngle = getRandomAngleInDegrees();
-								_swimbots[newBornSwimbotIndex].create(newBornSwimbotIndex, 0, _vectorUtility, initialAngle, energyToOffspring, _childGenotype, _embryology)
+								this._swimbots[newBornSwimbotIndex].create(newBornSwimbotIndex, 0, this._vectorUtility, initialAngle, energyToOffspring, this._childGenotype, this._embryology)
 
 								// add the new swimbot to the family tree
-								_familyTree.addNode(newBornSwimbotIndex, s, chosenMateIndex, _clock, this.getSwimbotGenes(newBornSwimbotIndex));
+								this._familyTree.addNode(newBornSwimbotIndex, s, chosenMateIndex, this._clock, this.getSwimbotGenes(newBornSwimbotIndex));
 
+								eventBus.emit('SWIMBOT_BORN', { index: newBornSwimbotIndex, clock: this._clock });
 							} // if (getJunkDnaDistance(_myGenotype, _mateGenotype) > NON_REPRODUCING_JUNK_DNA_LIMIT)
 							else {
 								//console.log("reproduction not possible because junk dna is too dissimilar!");
@@ -854,36 +886,42 @@ function GenePool() {
 				}
 			} else {
 				// In case the selected swimbot has just died, de-select it!
-				if (_selectedSwimbot === s) {
-					setSelectedSwimbot(NULL_INDEX);
+				if (this._selectedSwimbot === s) {
+					this._setSelectedSwimbot(NULL_INDEX);
 				}
 			}
 		}
 
 		// if showing mutual love....
-		if (_viewTracking.getMode() === ViewTrackingMode.MUTUAL) {
-			let lover1 = _viewTracking.getLover1Index();
-			let lover2 = _viewTracking.getLover2Index();
+		if (this._viewTracking.getMode() === ViewTrackingMode.MUTUAL) {
+			let lover1 = this._viewTracking.getLover1Index();
+			let lover2 = this._viewTracking.getLover2Index();
 
 			if ((lover1 != NULL_INDEX) &&
 				(lover2 != NULL_INDEX)) {
 				// show the mouths and genitals
-				_swimbots[lover1].setRenderingGoals(true);
-				_swimbots[lover2].setRenderingGoals(true);
+				this._swimbots[lover1].setRenderingGoals(true);
+				this._swimbots[lover2].setRenderingGoals(true);
 
 				// if either of the lovers stop pursuing the other then cancel mutual view mode
-				if ((_swimbots[lover1].getChosenMateIndex() != lover2) || (_swimbots[lover2].getChosenMateIndex() != lover1)) {
+				if ((this._swimbots[lover1].getChosenMateIndex() != lover2) || (this._swimbots[lover2].getChosenMateIndex() != lover1)) {
 					//_viewTracking.setMode(ViewTrackingMode.NULL, 0);
 					//this.clearViewMode();
-					_viewTracking.stopTracking();
+					this._viewTracking.stopTracking();
 				}
 			} else {
-				_viewTracking.stopTracking();
+				this._viewTracking.stopTracking();
 			}
 		}
+
+		eventBus.emit('SWIMBOTS_UPDATED', {
+			numSwimbots: this._numSwimbots,
+			numFoodBits: this._numFoodBits,
+			clock: this._clock
+		});
 	}
 
-	this.getJunkDnaSimilarity = function(genotype1, genotype2) {
+	getJunkDnaSimilarity(genotype1, genotype2) {
 		let diff = ZERO;
 		let num = 0;
 		for (let g = NUM_GENES_USED; g < NUM_GENES; g++) {
@@ -896,18 +934,18 @@ function GenePool() {
 		return similarity;
 	}
 
-	this.generatePhyloTree = function() {
+	generatePhyloTree() {
 		let numJunkGenes = NUM_GENES - NUM_GENES_USED;
-		_phyloTree.initialize(numJunkGenes);
+		this._phyloTree.initialize(numJunkGenes);
 
 		for (let s = 0; s < MAX_SWIMBOTS; s++) {
-			if (_swimbots[s].getAlive()) {
-				_phyloTree.addJunkDNA(_swimbots[s].getGenotype());
+			if (this._swimbots[s].getAlive()) {
+				this._phyloTree.addJunkDNA(this._swimbots[s].getGenotype());
 			}
 		}
 	}
 
-	this.findLowestDeadSwimbotInArray = function() {
+	findLowestDeadSwimbotInArray() {
 		let s = NULL_INDEX;
 		let t = NULL_INDEX;
 
@@ -915,7 +953,7 @@ function GenePool() {
 		while (looking) {
 			t++;
 
-			if (!_swimbots[t].getAlive()) {
+			if (!this._swimbots[t].getAlive()) {
 				s = t;
 				assert(s < MAX_SWIMBOTS, "s < MAX_SWIMBOTS");
 				looking = false;
@@ -929,19 +967,19 @@ function GenePool() {
 		return s;
 	}
 
-	this.giveSwimbotNearbyEnvironmentalStimuli = function(s) {
+	giveSwimbotNearbyEnvironmentalStimuli(s) {
 		// collect the array of nearby visible swimbots...
-		_numNearbySwimbots = 0;
-		for (let o = 0; o < MAX_SWIMBOTS; o++) {
-			if ((s != o) &&
-				(_swimbots[o].getAlive()) &&
-				(_numNearbySwimbots < BRAIN_MAX_PERCEIVED_NEARBY_SWIMBOTS)) {
-				let distanceSquared = _swimbots[s].getGenitalPosition().getDistanceSquaredTo(_swimbots[o].getGenitalPosition());
-
+		this._numNearbySwimbots = 0;
+		let pos = this._swimbots[s].getGenitalPosition();
+		let nearby = this._spatialGrid.query(pos.x, pos.y, SWIMBOT_VIEW_RADIUS);
+		for (let i = 0; i < nearby.length && this._numNearbySwimbots < BRAIN_MAX_PERCEIVED_NEARBY_SWIMBOTS; i++) {
+			let o = nearby[i];
+			if (o !== this._swimbots[s]) {
+				let distanceSquared = pos.getDistanceSquaredTo(o.getGenitalPosition());
 				if (distanceSquared < SWIMBOT_VIEW_RADIUS * SWIMBOT_VIEW_RADIUS) {
-					if (!_obstacle.getObstruction(_swimbots[s].getGenitalPosition(), _swimbots[o].getGenitalPosition())) {
-						_nearbySwimbotsArray[_numNearbySwimbots] = _swimbots[o];
-						_numNearbySwimbots++;
+					if (!this._obstacle.getObstruction(pos, o.getGenitalPosition())) {
+						this._nearbySwimbotsArray[this._numNearbySwimbots] = o;
+						this._numNearbySwimbots++;
 					}
 				}
 			}
@@ -953,25 +991,25 @@ function GenePool() {
 		for (let f = 0; f < MAX_FOODBITS; f++) {
 			let okay = true;
 
-			// In the current implementation, if the number of food types is 2, 
-			// then the swimbot only "sees" a foodbit of its preferred type. 
+			// In the current implementation, if the number of food types is 2,
+			// then the swimbot only "sees" a foodbit of its preferred type.
 			if (globalTweakers.numFoodTypes === 2) {
-				if (_foodBits[f].getType() != _swimbots[s].getPreferredFoodType()) {
+				if (this._foodBits[f].getType() != this._swimbots[s].getPreferredFoodType()) {
 					okay = false;
 				}
 			}
 
 			if (okay) {
-				if (_foodBits[f].getAlive()) {
-					let viewDistance = _swimbots[s].getMouthPosition().getDistanceTo(_foodBits[f].getPosition());
+				if (this._foodBits[f].getAlive()) {
+					let viewDistance = this._swimbots[s].getMouthPosition().getDistanceTo(this._foodBits[f].getPosition());
 
 					if (viewDistance < SWIMBOT_VIEW_RADIUS) {
 						let distance = viewDistance / SWIMBOT_VIEW_RADIUS;
 
 						if (distance < smallestDistance) {
-							if (!_obstacle.getObstruction(_swimbots[s].getMouthPosition(), _foodBits[f].getPosition())) {
+							if (!this._obstacle.getObstruction(this._swimbots[s].getMouthPosition(), this._foodBits[f].getPosition())) {
 								smallestDistance = distance;
-								_chosenFoodBit = _foodBits[f];
+								this._chosenFoodBit = this._foodBits[f];
 								foundFoodBit = true;
 							}
 						}
@@ -981,23 +1019,23 @@ function GenePool() {
 		}
 
 		// pass these environmental stimuli along to the swimbot...
-		_swimbots[s].setEnvironmentalStimuli(_numNearbySwimbots, _nearbySwimbotsArray, foundFoodBit, _chosenFoodBit);
+		this._swimbots[s].setEnvironmentalStimuli(this._numNearbySwimbots, this._nearbySwimbotsArray, foundFoodBit, this._chosenFoodBit);
 	}
 
-	this.updateFood = function() {
+	updateFood() {
 		let numType0FoodBits = 0;
 		let numType1FoodBits = 0;
 
 		// general update for all food bits
 		for (let f = 0; f < MAX_FOODBITS; f++) {
-			if (_foodBits[f].getAlive()) {
-				_foodBits[f].update();
+			if (this._foodBits[f].getAlive()) {
+				this._foodBits[f].update();
 
 				if (globalTweakers.numFoodTypes === 2) {
 					// calculate num foodbits of both types...
-					if (_foodBits[f].getType() === 0) { numType0FoodBits++; } else if (_foodBits[f].getType() === 1) { numType1FoodBits++; }
+					if (this._foodBits[f].getType() === 0) { numType0FoodBits++; } else if (this._foodBits[f].getType() === 1) { numType1FoodBits++; }
 
-					assert(((_foodBits[f].getType() === 0) || (_foodBits[f].getType() === 1)), "genepool.updateFood: _foodBits[f].getType() invalid!");
+					assert(((this._foodBits[f].getType() === 0) || (this._foodBits[f].getType() === 1)), "genepool.updateFood: _foodBits[f].getType() invalid!");
 
 					assert(numType0FoodBits <= MAX_FOODBITS_PER_TYPE, "this.updateFood: numType0FoodBits > MAX_FOODBITS_PER_TYPE");
 					assert(numType1FoodBits <= MAX_FOODBITS_PER_TYPE, "this.updateFood: numType1FoodBits > MAX_FOODBITS_PER_TYPE");
@@ -1008,17 +1046,17 @@ function GenePool() {
 		// periodically regenerate food
 		assert(globalTweakers.foodRegenerationPeriod > 0, "GenePool:updateFood:globalTweakers.foodRegenerationPeriod > 0");
 
-		if (_clock % globalTweakers.foodRegenerationPeriod == 0) {
+		if (this._clock % globalTweakers.foodRegenerationPeriod == 0) {
 			let childFoodBitIndex = this.findLowestDeadFoodBitInArray();
 
 			if (childFoodBitIndex != NULL_INDEX) {
-				assert(!_foodBits[childFoodBitIndex].getAlive(), "GenePool:updateFood: ! _foodBits[ childFoodBit ].getAlive");
+				assert(!this._foodBits[childFoodBitIndex].getAlive(), "GenePool:updateFood: ! _foodBits[ childFoodBit ].getAlive");
 
 				let newFoodType = 0;
 				let parentFoodBitIndex = this.findRandomLivingFoodBit(newFoodType);
 
-				// If we are using two types of food bits, then we need to do some housekeeping to make sure that 
-				// neither type exceeds max population and also that there is always at least one bit of each type  
+				// If we are using two types of food bits, then we need to do some housekeeping to make sure that
+				// neither type exceeds max population and also that there is always at least one bit of each type
 				if (globalTweakers.numFoodTypes === 2) {
 					// randomize the new food bit type, so that both
 					// food types have a chance to grow at the same rate.
@@ -1049,11 +1087,11 @@ function GenePool() {
 				}
 
 				if (parentFoodBitIndex != NULL_INDEX) {
-					assert(!_foodBits[childFoodBitIndex].getAlive(), "GenePool:updateFood: ! _foodBits[ childFoodBit ].getAlive");
-					assert(childFoodBitIndex != _foodBits[parentFoodBitIndex].getIndex(), "genepool.js: updateFood: childFoodBitIndex != _foodBits[ parentFoodBitIndex ].getIndex()");
+					assert(!this._foodBits[childFoodBitIndex].getAlive(), "GenePool:updateFood: ! _foodBits[ childFoodBit ].getAlive");
+					assert(childFoodBitIndex != this._foodBits[parentFoodBitIndex].getIndex(), "genepool.js: updateFood: childFoodBitIndex != _foodBits[ parentFoodBitIndex ].getIndex()");
 
 					// spawn the child in a position relative to parent...
-					_foodBits[childFoodBitIndex].spawnFromParent(_foodBits[parentFoodBitIndex], childFoodBitIndex, newFoodType);
+					this._foodBits[childFoodBitIndex].spawnFromParent(this._foodBits[parentFoodBitIndex], childFoodBitIndex, newFoodType);
 
 					// make sure the new food bit position is not obscured by
 					// the obstacle. If it is, keep trying new spawn positions...
@@ -1061,9 +1099,9 @@ function GenePool() {
 					let num = 0;
 					while (looking) {
 						// spawn the child to new position relative to parent...
-						_foodBits[childFoodBitIndex].randomizeSpawnPosition(_foodBits[parentFoodBitIndex]);
+						this._foodBits[childFoodBitIndex].randomizeSpawnPosition(this._foodBits[parentFoodBitIndex]);
 
-						if (!_obstacle.getObstruction(_foodBits[parentFoodBitIndex].getPosition(), _foodBits[childFoodBitIndex].getPosition())) {
+						if (!this._obstacle.getObstruction(this._foodBits[parentFoodBitIndex].getPosition(), this._foodBits[childFoodBitIndex].getPosition())) {
 							looking = false;
 						}
 
@@ -1077,61 +1115,61 @@ function GenePool() {
 		}
 	}
 
-	this.setFoodSpread = function(s) {
+	setFoodSpread(s) {
 		assert(s >= MIN_FOOD_BIT_MAX_SPAWN_RADIUS, "GenePool: setFoodSpread: s >= MIN_FOOD_BIT_MAX_SPAWN_RADIUS")
 		assert(s <= MAX_FOOD_BIT_MAX_SPAWN_RADIUS, "GenePool: setFoodSpread: s <= MAX_FOOD_BIT_MAX_SPAWN_RADIUS")
 
 		globalTweakers.foodSpread = s;
 
 		for (let f = 0; f < MAX_FOODBITS; f++) {
-			_foodBits[f].setMaxSpawnRadius(globalTweakers.foodSpread);
+			this._foodBits[f].setMaxSpawnRadius(globalTweakers.foodSpread);
 		}
 	}
 
-	this.setFoodBitEnergy = function(e) {
+	setFoodBitEnergy(e) {
 		assert(e >= MIN_FOOD_BIT_ENERGY, "GenePool: setFoodBitEnergy: e >= MIN_FOOD_BIT_ENERGY");
 		assert(e <= MAX_FOOD_BIT_ENERGY, "GenePool: setFoodBitEnergy: e <= MAX_FOOD_BIT_ENERGY");
 
 		globalTweakers.foodBitEnergy = e;
 
 		for (let f = 0; f < MAX_FOODBITS; f++) {
-			_foodBits[f].setEnergy(globalTweakers.foodBitEnergy);
+			this._foodBits[f].setEnergy(globalTweakers.foodBitEnergy);
 		}
 	}
 
-	this.setHungerThreshold = function(h) {
+	setHungerThreshold(h) {
 		assert(h >= MIN_SWIMBOT_HUNGER_THRESHOLD, "GenePool: setHungerThreshold: h >= MIN_SWIMBOT_HUNGER_THRESHOLD");
 		assert(h <= MAX_SWIMBOT_HUNGER_THRESHOLD, "GenePool: setHungerThreshold: h <= MAX_SWIMBOT_HUNGER_THRESHOLD");
 
 		globalTweakers.hungerThreshold = h;
 
 		for (let s = 0; s < MAX_SWIMBOTS; s++) {
-			_swimbots[s].setHungerThreshold(globalTweakers.hungerThreshold);
+			this._swimbots[s].setHungerThreshold(globalTweakers.hungerThreshold);
 		}
 	}
 
-	this.setOffspringEnergyRatio = function(e) {
+	setOffspringEnergyRatio(e) {
 		assert(e >= MIN_CHILD_ENERGY_RATIO, "GenePool: setOffspringEnergyRatio: e >= MIN_CHILD_ENERGY_RATIO");
 		assert(e <= MAX_CHILD_ENERGY_RATIO, "GenePool: setOffspringEnergyRatio: e <= MAX_CHILD_ENERGY_RATIO");
 
 		globalTweakers.childEnergyRatio = e;
 	}
 
-	this.setFoodGrowthDelay = function(d) {
+	setFoodGrowthDelay(d) {
 		assert(d >= MIN_FOOD_REGENERATION_PERIOD, "setFoodGrowthDelay: d >= MIN_FOOD_REGENERATION_PERIOD")
 		assert(d <= MAX_FOOD_REGENERATION_PERIOD, "setFoodGrowthDelay: d <= MAX_FOOD_REGENERATION_PERIOD")
 
 		globalTweakers.foodRegenerationPeriod = d;
 	}
 
-	this.setMaximumSwimbotAge = function(m) {
+	setMaximumSwimbotAge(m) {
 		assert(m >= MIN_MAXIMUM_AGE, "GenePool: setMaximumSwimbotAge: m >= MIN_MAXIMUM_AGE");
 		assert(m <= MAX_MAXIMUM_AGE, "GenePool: setMaximumSwimbotAge: m <= MAX_MAXIMUM_AGE");
 
 		globalTweakers.maximumLifeSpan = m;
 	}
 
-	this.findRandomLivingFoodBit = function(foodType) {
+	findRandomLivingFoodBit(foodType) {
 		let f = NULL_INDEX;
 		let numTimesLooking = 200;
 		let i = 0;
@@ -1140,8 +1178,8 @@ function GenePool() {
 		while (looking) {
 			let testIndex = Math.floor(Math.random() * (MAX_FOODBITS - 1));
 
-			if (_foodBits[testIndex].getAlive()) {
-				if (_foodBits[testIndex].getType() === foodType) {
+			if (this._foodBits[testIndex].getAlive()) {
+				if (this._foodBits[testIndex].getType() === foodType) {
 					f = testIndex;
 					looking = false;
 				}
@@ -1158,7 +1196,7 @@ function GenePool() {
 		return f;
 	}
 
-	this.findLowestDeadFoodBitInArray = function() {
+	findLowestDeadFoodBitInArray() {
 		let f = NULL_INDEX;
 		let t = NULL_INDEX;
 
@@ -1168,7 +1206,7 @@ function GenePool() {
 			t++;
 
 			if (t < MAX_FOODBITS) {
-				if (!_foodBits[t].getAlive()) {
+				if (!this._foodBits[t].getAlive()) {
 					f = t;
 					assert(f < MAX_FOODBITS, "Genepool.js: findLowestDeadFoodBitInArray: f < MAX_FOODBITS");
 					looking = false;
@@ -1181,57 +1219,57 @@ function GenePool() {
 		return f;
 	}
 
-	this.createNewSwimbotWithGenes = function(genes) {
+	createNewSwimbotWithGenes(genes) {
 		let index = this.findLowestDeadSwimbotInArray();
 
 		assert(index != NULL_INDEX, "GenePool.createNewSwimbotWithGenes: index != NULL_INDEX");
 
-		_myGenotype.setGenes(genes);
+		this._myGenotype.setGenes(genes);
 
 		let initialAge = YOUNG_AGE_DURATION;
 		let initialAngle = ZERO;
 		let initialEnergy = DEFAULT_SWIMBOT_HUNGER_THRESHOLD;
 
-		_swimbots[index].create(index, initialAge, _camera.getPosition(), initialAngle, initialEnergy, _myGenotype, _embryology);
+		this._swimbots[index].create(index, initialAge, this._camera.getPosition(), initialAngle, initialEnergy, this._myGenotype, this._embryology);
 
 		// add the new swimbot to the family tree
-		_familyTree.addNode(index, NULL_INDEX, NULL_INDEX, _clock, this.getSwimbotGenes(index));
+		this._familyTree.addNode(index, NULL_INDEX, NULL_INDEX, this._clock, this.getSwimbotGenes(index));
 
-		setSelectedSwimbot(index);
+		this._setSelectedSwimbot(index);
 	}
 
-	this.setPoolData = function(data) {
+	setPoolData(data) {
 		// frozen or running?
-		_simulationRunning = data.simulationRunning;
+		this._simulationRunning = data.simulationRunning;
 
 		// load food
-		_numFoodBits = data.numFoodBits;
+		this._numFoodBits = data.numFoodBits;
 
 		for (let f = 0; f < MAX_FOODBITS; f++) {
-			_foodBits[f].kill();
+			this._foodBits[f].kill();
 		}
 
 		for (let f = 0; f < data.numFoodBits; f++) {
 			let id = data.foodBitArray[f].id;
 
-			_foodBits[id].initialize();
+			this._foodBits[id].initialize();
 
 			let foodBitPosition = new Vector2D();
 			foodBitPosition.setXY(data.foodBitArray[f].x, data.foodBitArray[f].y);
-			_foodBits[id].setPosition(foodBitPosition);
+			this._foodBits[id].setPosition(foodBitPosition);
 		}
 
-		// load swimbots 
-		_numSwimbots = data.numSwimbots;
+		// load swimbots
+		this._numSwimbots = data.numSwimbots;
 
 		for (let s = 0; s < MAX_SWIMBOTS; s++) {
-			_swimbots[s].die();
+			this._swimbots[s].die();
 		}
 
-		// reset family tree array 
-		_familyTree.reset();
+		// reset family tree array
+		this._familyTree.reset();
 
-		// create the swimbots 
+		// create the swimbots
 		for (let s = 0; s < data.numSwimbots; s++) {
 			let id = data.swimbotArray[s].id;
 
@@ -1241,30 +1279,30 @@ function GenePool() {
 			let loadedGenotype = new Genotype();
 			loadedGenotype.setGenes(data.swimbotArray[s].genes);
 
-			_swimbots[id].create(
+			this._swimbots[id].create(
 				s,
 				data.swimbotArray[s].age,
 				swimbotPosition,
 				data.swimbotArray[s].angle,
 				data.swimbotArray[s].energy,
 				loadedGenotype,
-				_embryology
+				this._embryology
 			);
 
 			// add the new swimbot to the family tree
-			_familyTree.addNode(id, NULL_INDEX, NULL_INDEX, _clock, this.getSwimbotGenes(id));
+			this._familyTree.addNode(id, NULL_INDEX, NULL_INDEX, this._clock, this.getSwimbotGenes(id));
 		}
 
-		// camera       
+		// camera
 		let cameraPosition = new Vector2D();
 		cameraPosition.setXY(data.cameraX, data.cameraY);
-		_camera.setPosition(cameraPosition);
-		_camera.setScale(data.cameraScale);
+		this._camera.setPosition(cameraPosition);
+		this._camera.setScale(data.cameraScale);
 
-		// set view control--          
-		_viewTracking.reset();
+		// set view control--
+		this._viewTracking.reset();
 
-		// set tweakers          
+		// set tweakers
 		this.setFoodGrowthDelay(data.foodRegenerationPeriod);
 		this.setFoodSpread(data.foodSpread);
 		this.setFoodBitEnergy(data.foodBitEnergy);
@@ -1272,10 +1310,10 @@ function GenePool() {
 		this.setAttraction(data.attractionCriterion);
 		this.setOffspringEnergyRatio(data.childEnergyRatio);
 
-		_renderingGoals = data.renderingGoals;
+		this._renderingGoals = data.renderingGoals;
 
-		// set obstacle  
-		// todo        
+		// set obstacle
+		// todo
 		let end1 = new Vector2D();
 		let end2 = new Vector2D();
 
@@ -1290,30 +1328,30 @@ function GenePool() {
 			end2.setXY(200, 100);
 		}
 
-		_obstacle.setEndpointPositions(end1, end2);
+		this._obstacle.setEndpointPositions(end1, end2);
 
 		// start time
-		_startTime = (new Date).getTime();
+		this._startTime = (new Date).getTime();
 
 		// get seconds
-		_seconds = ((new Date).getTime() - _startTime) / MILLISECONDS_PER_SECOND;
+		this._seconds = ((new Date).getTime() - this._startTime) / MILLISECONDS_PER_SECOND;
 
 		// initialize pool
-		_pool.initialize(_seconds);
+		this._pool.initialize(this._seconds);
 
 		// clear this!
-		setSelectedSwimbot(NULL_INDEX);
+		this._setSelectedSwimbot(NULL_INDEX);
 
 		// set clock to 0
-		_clock = 0;
+		this._clock = 0;
 	}
 
-	// set selected swimbot
-	function setSelectedSwimbot(index) {
-		_selectedSwimbot = index;
+	// set selected swimbot (previously inner function)
+	_setSelectedSwimbot(index) {
+		this._selectedSwimbot = index;
 	}
 
-	this.makeNewRandomSwimbot = function() {
+	makeNewRandomSwimbot() {
 		let index = this.findLowestDeadSwimbotInArray();
 
 		if (index != NULL_INDEX) {
@@ -1321,179 +1359,178 @@ function GenePool() {
 			let initialAngle = getRandomAngleInDegrees(); //-180.0 + Math.random() * 360.0;
 			let initialEnergy = DEFAULT_SWIMBOT_HUNGER_THRESHOLD;
 
-			_myGenotype.randomize();
+			this._myGenotype.randomize();
 
-			_swimbots[index].create(index, initialAge, _camera.getPosition(), initialAngle, initialEnergy, _myGenotype, _embryology);
+			this._swimbots[index].create(index, initialAge, this._camera.getPosition(), initialAngle, initialEnergy, this._myGenotype, this._embryology);
 
 			// add the new swimbot to the family tree
-			_familyTree.addNode(index, NULL_INDEX, NULL_INDEX, _clock, this.getSwimbotGenes(index));
+			this._familyTree.addNode(index, NULL_INDEX, NULL_INDEX, this._clock, this.getSwimbotGenes(index));
 
-			setSelectedSwimbot(index)
+			this._setSelectedSwimbot(index)
 		} else {
 			// cannot make random swimbot
 		}
 	}
 
-	this.zapSwimbot = function(ID, amount) {
+	zapSwimbot(ID, amount) {
 		assert(ID != NULL_INDEX, "genepool: zapSwimbot: ID != NULL_INDEX");
-		_swimbots[ID].zap(_embryology, amount);
-		_pool.endTouch(_swimbots[ID].getPosition(), _seconds);
+		this._swimbots[ID].zap(this._embryology, amount);
+		this._pool.endTouch(this._swimbots[ID].getPosition(), this._seconds);
 	}
 
-	this.randomizeSwimbot = function(ID) {
+	randomizeSwimbot(ID) {
 		assert(ID != NULL_INDEX, "genepool: randomizeSwimbot: ID != NULL_INDEX");
 		this.zapSwimbot(ID, ONE);
-		_pool.endTouch(_swimbots[ID].getPosition(), _seconds);
+		this._pool.endTouch(this._swimbots[ID].getPosition(), this._seconds);
 	}
 
-	this.cloneSwimbot = function(ID) {
+	cloneSwimbot(ID) {
 		assert(ID != NULL_INDEX, "genepool: cloneSwimbot: ID != NULL_INDEX");
 
 		let index = this.findLowestDeadSwimbotInArray();
 
 		if (index != NULL_INDEX) {
-			//let initialAge      = YOUNG_AGE_DURATION;          
-			let initialAge = _swimbots[ID].getAge();
-			let initialAngle = _swimbots[ID].getAngle();
-			let initialEnergy = _swimbots[ID].getEnergy() * ONE_HALF;
-			let genotype = _swimbots[ID].getGenotype();
+			//let initialAge      = YOUNG_AGE_DURATION;
+			let initialAge = this._swimbots[ID].getAge();
+			let initialAngle = this._swimbots[ID].getAngle();
+			let initialEnergy = this._swimbots[ID].getEnergy() * ONE_HALF;
+			let genotype = this._swimbots[ID].getGenotype();
 
 			let initialPosition = new Vector2D();
 			let p = new Vector2D();
-			initialPosition.copyFrom(_swimbots[ID].getPosition());
+			initialPosition.copyFrom(this._swimbots[ID].getPosition());
 			p.copyFrom(initialPosition);
 
-			initialPosition.x += CLONE_SEPARATION;
-			p.x -= CLONE_SEPARATION;
+			initialPosition.x += 10.0; // CLONE_SEPARATION
+			p.x -= 10.0; // CLONE_SEPARATION
 
-			_swimbots[ID].setPosition(p);
-			_swimbots[ID].setEnergy(initialEnergy); // the clonee gets its energy halved as well as the cloned
-			_swimbots[index].create(index, initialAge, initialPosition, initialAngle, initialEnergy, genotype, _embryology);
+			this._swimbots[ID].setPosition(p);
+			this._swimbots[ID].setEnergy(initialEnergy); // the clonee gets its energy halved as well as the cloned
+			this._swimbots[index].create(index, initialAge, initialPosition, initialAngle, initialEnergy, genotype, this._embryology);
 
 			// add the new swimbot to the family tree
-			_familyTree.addNode(index, NULL_INDEX, NULL_INDEX, _clock, this.getSwimbotGenes(index));
+			this._familyTree.addNode(index, NULL_INDEX, NULL_INDEX, this._clock, this.getSwimbotGenes(index));
 
-			setSelectedSwimbot(index)
+			this._setSelectedSwimbot(index)
 		}
 	}
 
-	this.killSwimbot = function(ID) {
+	killSwimbot(ID) {
 		assert(ID != NULL_INDEX, "genepool: killSwimbot: ID != NULL_INDEX");
 
 		// if this swimbot is one of the mutal lovers, then turn off mutal mode....
-		if (_viewTracking.getMode() === ViewTrackingMode.MUTUAL) {
-			if ((_viewTracking.getLover1Index() === ID) ||
-				(_viewTracking.getLover2Index() === ID)) {
+		if (this._viewTracking.getMode() === ViewTrackingMode.MUTUAL) {
+			if ((this._viewTracking.getLover1Index() === ID) ||
+				(this._viewTracking.getLover2Index() === ID)) {
 				this.clearViewMode();
 			}
 		}
 
 		// deselect, if selected....
-		if (_selectedSwimbot === ID) {
-			setSelectedSwimbot(NULL_INDEX);
+		if (this._selectedSwimbot === ID) {
+			this._setSelectedSwimbot(NULL_INDEX);
 		}
 
 		// kill that mofo....
-		_swimbots[ID].die();
+		this._swimbots[ID].die();
 
 		// add a pool effect....
-		_pool.endTouch(_swimbots[ID].getPosition(), _seconds);
+		this._pool.endTouch(this._swimbots[ID].getPosition(), this._seconds);
 	}
 
-	this.updateCameraNavigation = function() {
-		if (_panningLeft) { _camera.panLeft(); }
-		if (_panningRight) { _camera.panRight(); }
-		if (_panningUp) { _camera.panUp(); }
-		if (_panningDown) { _camera.panDown(); }
-		if (_zoomingIn) { _camera.zoomIn(); }
-		if (_zoomingOut) { _camera.zoomOut(); }
+	updateCameraNavigation() {
+		if (this._panningLeft) { this._camera.panLeft(); }
+		if (this._panningRight) { this._camera.panRight(); }
+		if (this._panningUp) { this._camera.panUp(); }
+		if (this._panningDown) { this._camera.panDown(); }
+		if (this._zoomingIn) { this._camera.zoomIn(); }
+		if (this._zoomingOut) { this._camera.zoomOut(); }
 	}
 
-	this.setSimulationRunning = function(s) {
-		_simulationRunning = s;
+	setSimulationRunning(s) {
+		this._simulationRunning = s;
 	}
 
-	this.setRendering = function(r) {
-		_rendering = r;
+	setRendering(r) {
+		this._rendering = r;
 	}
 
-	this.setMillisecondsPerUpdate = function(m) {
-		_millisecondsPerUpdate = m;
+	setMillisecondsPerUpdate(m) {
+		this._millisecondsPerUpdate = m;
 	}
 
-	this.toggleGoalOverlay = function() {
-		if (_renderingGoals) {
-			_renderingGoals = false;
+	toggleGoalOverlay() {
+		if (this._renderingGoals) {
+			this._renderingGoals = false;
 		} else {
-			_renderingGoals = true;
+			this._renderingGoals = true;
 		}
 
 		for (let s = 0; s < MAX_SWIMBOTS; s++) {
-			_swimbots[s].setRenderingGoals(_renderingGoals);
+			this._swimbots[s].setRenderingGoals(this._renderingGoals);
 		}
 	}
 
-	// shift any food bit that maye be overlapping with the obstacle...
-	function moveFoodBitsFromObstacle() {
+	// shift any food bit that maye be overlapping with the obstacle... (previously inner function)
+	_moveFoodBitsFromObstacle() {
 		for (let f = 0; f < MAX_FOODBITS; f++) {
-			if (_foodBits[f].getAlive()) {
-				if (_obstacle.getCollision(_foodBits[f].getPosition(), 30)) {
-					_vectorUtility = _obstacle.getCurrentCollisionForce();
-					_vectorUtility.scale(5);
-					_foodBits[f].shiftPosition(_vectorUtility);
+			if (this._foodBits[f].getAlive()) {
+				if (this._obstacle.getCollision(this._foodBits[f].getPosition(), 30)) {
+					this._vectorUtility = this._obstacle.getCurrentCollisionForce();
+					this._vectorUtility.scale(5);
+					this._foodBits[f].shiftPosition(this._vectorUtility);
 
 				}
 			}
 		}
 	}
 
-
 	//-------------------------
-	this.render = function() {
+	render() {
 		// set transform according to camera
-		let nx = _camera.getPosition().x / _camera.getXDimension();
-		let ny = _camera.getPosition().y / _camera.getYDimension();
+		let nx = this._camera.getPosition().x / this._camera.getXDimension();
+		let ny = this._camera.getPosition().y / this._camera.getYDimension();
 
-		let xTranslation = (ONE_HALF - nx) * _canvasWidth;
-		let yTranslation = (ONE_HALF - ny) * _canvasHeight;
+		let xTranslation = (ONE_HALF - nx) * this._canvasWidth;
+		let yTranslation = (ONE_HALF - ny) * this._canvasHeight;
 
-		let xScale = _canvasWidth / _camera.getXDimension();
-		let yScale = _canvasHeight / _camera.getYDimension();
+		let xScale = this._canvasWidth / this._camera.getXDimension();
+		let yScale = this._canvasHeight / this._camera.getYDimension();
 
-		_canvas.translate(xTranslation, yTranslation);
-		_canvas.scale(xScale, yScale);
+		this._canvas.translate(xTranslation, yTranslation);
+		this._canvas.scale(xScale, yScale);
 
 		// render the pool
-		_pool.render(_seconds, _camera);
+		this._pool.render(this._seconds, this._camera);
 
 		// render obstacle
-		_obstacle.render(_camera);
+		this._obstacle.render(this._camera);
 
 		// render food
 		this.renderFoodBits();
 
 		// render swimbots
 		for (let s = 0; s < MAX_SWIMBOTS; s++) {
-			if (_swimbots[s].getAlive()) {
-				if (_camera.getWithinView(_swimbots[s].getPosition(), _swimbots[s].getBoundingRadius())) {
-					_swimbots[s].render(_levelOfDetail);
+			if (this._swimbots[s].getAlive()) {
+				if (this._camera.getWithinView(this._swimbots[s].getPosition(), this._swimbots[s].getBoundingRadius())) {
+					this._swimbots[s].render(this._levelOfDetail);
 
-					if ((s === _mousedOverSwimbot) ||
-						(s === _selectedSwimbot)) {
-						if (s === _selectedSwimbot) {
-							renderSelectCircle(_swimbots[s].getPosition().x, _swimbots[s].getPosition().y, _swimbots[s].getSelectRadius(), false);
+					if ((s === this._mousedOverSwimbot) ||
+						(s === this._selectedSwimbot)) {
+						if (s === this._selectedSwimbot) {
+							this._renderSelectCircle(this._swimbots[s].getPosition().x, this._swimbots[s].getPosition().y, this._swimbots[s].getSelectRadius(), false);
 						} else {
-							renderSelectCircle(_swimbots[s].getPosition().x, _swimbots[s].getPosition().y, _swimbots[s].getSelectRadius(), true);
+							this._renderSelectCircle(this._swimbots[s].getPosition().x, this._swimbots[s].getPosition().y, this._swimbots[s].getSelectRadius(), true);
 						}
 
-						_swimbots[s].setRenderingGoals(true);
+						this._swimbots[s].setRenderingGoals(true);
 
-						if (DEBUG_SHOW_SWIMBOT_TRAIL) {
+						if (false) { // DEBUG_SHOW_SWIMBOT_TRAIL
 							this.showSwimbotTrail(s);
 						}
 					} else {
-						if (!_renderingGoals) {
-							_swimbots[s].setRenderingGoals(false);
+						if (!this._renderingGoals) {
+							this._swimbots[s].setRenderingGoals(false);
 						}
 					}
 				}
@@ -1501,48 +1538,49 @@ function GenePool() {
 		}
 
 		// when view is in mutual love mode, show a line between the lovers...
-		if (_viewTracking.getMode() === ViewTrackingMode.MUTUAL) {
-			if ((_viewTracking.getLover1Index() != NULL_INDEX) &&
-				(_viewTracking.getLover2Index() != NULL_INDEX)) {
-				_canvas.lineCap = "round";
-				_canvas.lineWidth = 5;
-				_canvas.strokeStyle = "rgba(200, 200, 200, 0.06)";
-				_canvas.moveTo(_swimbots[_viewTracking.getLover1Index()].getGenitalPosition().x, _swimbots[_viewTracking.getLover1Index()].getGenitalPosition().y);
-				_canvas.lineTo(_swimbots[_viewTracking.getLover2Index()].getGenitalPosition().x, _swimbots[_viewTracking.getLover2Index()].getGenitalPosition().y);
-				_canvas.stroke();
+		if (this._viewTracking.getMode() === ViewTrackingMode.MUTUAL) {
+			if ((this._viewTracking.getLover1Index() != NULL_INDEX) &&
+				(this._viewTracking.getLover2Index() != NULL_INDEX)) {
+				this._canvas.lineCap = "round";
+				this._canvas.lineWidth = 5;
+				this._canvas.strokeStyle = "rgba(200, 200, 200, 0.06)";
+				this._canvas.moveTo(this._swimbots[this._viewTracking.getLover1Index()].getGenitalPosition().x, this._swimbots[this._viewTracking.getLover1Index()].getGenitalPosition().y);
+				this._canvas.lineTo(this._swimbots[this._viewTracking.getLover2Index()].getGenitalPosition().x, this._swimbots[this._viewTracking.getLover2Index()].getGenitalPosition().y);
+				this._canvas.stroke();
 
-				_canvas.lineWidth = 2;
-				_canvas.strokeStyle = "rgba(255, 255, 200, 0.06)";
-				_canvas.moveTo(_swimbots[_viewTracking.getLover1Index()].getGenitalPosition().x, _swimbots[_viewTracking.getLover1Index()].getGenitalPosition().y);
-				_canvas.lineTo(_swimbots[_viewTracking.getLover2Index()].getGenitalPosition().x, _swimbots[_viewTracking.getLover2Index()].getGenitalPosition().y);
-				_canvas.stroke();
+				this._canvas.lineWidth = 2;
+				this._canvas.strokeStyle = "rgba(255, 255, 200, 0.06)";
+				this._canvas.moveTo(this._swimbots[this._viewTracking.getLover1Index()].getGenitalPosition().x, this._swimbots[this._viewTracking.getLover1Index()].getGenitalPosition().y);
+				this._canvas.lineTo(this._swimbots[this._viewTracking.getLover2Index()].getGenitalPosition().x, this._swimbots[this._viewTracking.getLover2Index()].getGenitalPosition().y);
+				this._canvas.stroke();
 			}
 		}
 
 		// reset transform
-		_canvas.resetTransform();
+		this._canvas.resetTransform();
 
 		// render view tracking info
-		let viewTrackingMode = _viewTracking.getMode();
+		let viewTrackingMode = this._viewTracking.getMode();
 
 		if (viewTrackingMode != NULL_INDEX) {
 			let modeString = "(error)";
 
 			if (viewTrackingMode === ViewTrackingMode.WHOLE_POOL) { modeString = "viewing whole pool" } else if (viewTrackingMode === ViewTrackingMode.AUTOTRACK) { modeString = "autotracking group" } else if (viewTrackingMode === ViewTrackingMode.SELECTED) { modeString = "viewing selected swimbot" } else if (viewTrackingMode === ViewTrackingMode.MUTUAL) { modeString = "viewing mutual love" } else if (viewTrackingMode === ViewTrackingMode.PROLIFIC) { modeString = "viewing most prolific" } else if (viewTrackingMode === ViewTrackingMode.EFFICIENT) { modeString = "viewing most efficient" } else if (viewTrackingMode === ViewTrackingMode.VIRGIN) { modeString = "viewing oldest virgin" } else if (viewTrackingMode === ViewTrackingMode.HUNGRY) { modeString = "viewing glutton" }
 
-			_canvas.font = "14px Arial";
-			_canvas.fillStyle = "rgba(255, 255, 255, 0.5)";
-			_canvas.fillText(modeString, _canvasWidth - 170, _canvasHeight - 30);
+			this._canvas.font = "14px Arial";
+			this._canvas.fillStyle = "rgba(255, 255, 255, 0.5)";
+			this._canvas.fillText(modeString, this._canvasWidth - 170, this._canvasHeight - 30);
 		}
 
 		// render border
-		_canvas.lineWidth = 1;
-		_canvas.strokeStyle = "rgb(0, 0, 0)";
-		_canvas.strokeRect(0, 0, _canvasWidth, _canvasHeight);
+		this._canvas.lineWidth = 1;
+		this._canvas.strokeStyle = "rgb(0, 0, 0)";
+		this._canvas.strokeRect(0, 0, this._canvasWidth, this._canvasHeight);
 	}
 
-	function renderSelectCircle(x, y, r, m) {
-		let lineWidth = 1.6 + 0.005 * _camera.getScale();
+	// previously inner function
+	_renderSelectCircle(x, y, r, m) {
+		let lineWidth = 1.6 + 0.005 * this._camera.getScale();
 		let alpha = 0.07;
 
 		if (m) {
@@ -1564,265 +1602,266 @@ function GenePool() {
 		canvas.closePath();
 	}
 
-	function renderCamera() {
-		_canvas.strokeStyle = "rgb(255, 255, 255)";
-		_canvas.lineWidth = _camera.getScale() * 0.007;
+	// previously inner function (unused by current code, kept for completeness)
+	_renderCamera() {
+		this._canvas.strokeStyle = "rgb(255, 255, 255)";
+		this._canvas.lineWidth = this._camera.getScale() * 0.007;
 
 		let spacing = 15;
 
-		let x = _camera.getPosition().x - _camera.getXDimension() * ONE_HALF;
-		let y = _camera.getPosition().y - _camera.getYDimension() * ONE_HALF;
-		let w = _camera.getXDimension();
-		let h = _camera.getYDimension();
+		let x = this._camera.getPosition().x - this._camera.getXDimension() * ONE_HALF;
+		let y = this._camera.getPosition().y - this._camera.getYDimension() * ONE_HALF;
+		let w = this._camera.getXDimension();
+		let h = this._camera.getYDimension();
 
-		_canvas.strokeRect(x + spacing * ONE_HALF, y + spacing * ONE_HALF, w - spacing, h - spacing);
+		this._canvas.strokeRect(x + spacing * ONE_HALF, y + spacing * ONE_HALF, w - spacing, h - spacing);
 
-		_canvas.fillStyle = "rgb(255, 255, 255)";
-		_canvas.strokeRect(
-			_camera.getPosition().x - _camera.getXDimension() * 0.01,
-			_camera.getPosition().y - _camera.getYDimension() * 0.01, 0.01, 0.01
+		this._canvas.fillStyle = "rgb(255, 255, 255)";
+		this._canvas.strokeRect(
+			this._camera.getPosition().x - this._camera.getXDimension() * 0.01,
+			this._camera.getPosition().y - this._camera.getYDimension() * 0.01, 0.01, 0.01
 		);
 	}
 
-	this.renderFoodBits = function() {
+	renderFoodBits() {
 		for (let f = 0; f < MAX_FOODBITS; f++) {
-			if (_foodBits[f].getAlive()) {
-				if (_camera.getWithinView(_foodBits[f].getPosition(), FOOD_BIT_GRAB_RADIUS)) {
-					_foodBits[f].render(_camera.getScale());
+			if (this._foodBits[f].getAlive()) {
+				if (this._camera.getWithinView(this._foodBits[f].getPosition(), FOOD_BIT_GRAB_RADIUS)) {
+					this._foodBits[f].render(this._camera.getScale());
 
-					if (f === _selectedFoodBit) {
-						_foodBits[f].renderSelectOutline(_camera.getScale());
+					if (f === this._selectedFoodBit) {
+						this._foodBits[f].renderSelectOutline(this._camera.getScale());
 					}
 
-					if (f === _mousedOverFoodBit) {
-						_foodBits[f].renderMousedOverOutline(_camera.getScale());
+					if (f === this._mousedOverFoodBit) {
+						this._foodBits[f].renderMousedOverOutline(this._camera.getScale());
 					}
 				}
 			}
 		}
 	}
 
-	this.initializeDebugTrail = function(s) {
-		for (let t = 0; t < TRAIL_LENGTH; t++) {
-			_debugTrail[t].set(_swimbots[s].getPosition());
+	initializeDebugTrail(s) {
+		for (let t = 0; t < 100; t++) { // TRAIL_LENGTH
+			this._debugTrail[t].set(this._swimbots[s].getPosition());
 		}
 	}
 
-	this.showSwimbotTrail = function(s) {
+	showSwimbotTrail(s) {
 		// update trail
-		if (_clock % 20 == 0) {
-			for (let t = TRAIL_LENGTH - 1; t > 0; t--) {
-				_debugTrail[t].set(_debugTrail[t - 1]);
+		if (this._clock % 20 == 0) {
+			for (let t = 100 - 1; t > 0; t--) { // TRAIL_LENGTH
+				this._debugTrail[t].set(this._debugTrail[t - 1]);
 			}
 
-			_debugTrail[0].set(_swimbots[s].getPosition());
+			this._debugTrail[0].set(this._swimbots[s].getPosition());
 		}
 
 		// render trail
-		_canvas.lineWidth = 2;
-		_canvas.strokeStyle = "rgb(255, 255, 255)";
+		this._canvas.lineWidth = 2;
+		this._canvas.strokeStyle = "rgb(255, 255, 255)";
 
-		for (let t = 1; t < TRAIL_LENGTH; t++) {
-			_canvas.beginPath();
-			_canvas.moveTo(_debugTrail[t - 1].x, _debugTrail[t - 1].y);
-			_canvas.lineTo(_debugTrail[t].x, _debugTrail[t].y);
-			_canvas.closePath();
-			_canvas.stroke();
+		for (let t = 1; t < 100; t++) { // TRAIL_LENGTH
+			this._canvas.beginPath();
+			this._canvas.moveTo(this._debugTrail[t - 1].x, this._debugTrail[t - 1].y);
+			this._canvas.lineTo(this._debugTrail[t].x, this._debugTrail[t].y);
+			this._canvas.closePath();
+			this._canvas.stroke();
 		}
 	}
 
-	this.setGeneTweakCategory = function(swimbotIndex) {
+	setGeneTweakCategory(swimbotIndex) {
 		//console.log("setGeneTweakCategory: swimbotIndex = " + swimbotIndex);
 	}
 
-	this.tweakGene = function(swimbotIndex, geneIndex, geneValue) {
+	tweakGene(swimbotIndex, geneIndex, geneValue) {
 		assert(swimbotIndex != NULL_INDEX, "genepool.js: tweakGene: swimbotIndex != NULL_INDEX");
 		assert(geneIndex >= 0, "genepool.js: tweakGene: geneIndex >= 0");
 		assert(geneIndex < NUM_GENES, "genepool.js: tweakGene: geneIndex    < NUM_GENES");
 		assert(geneValue >= 0, "genepool.js: tweakGene: geneValue    >= 0");
 		assert(geneValue < BYTE_SIZE, "genepool.js: tweakGene: geneValue    < BYTE_SIZE");
 
-		_swimbots[swimbotIndex].setGeneValue(geneIndex, geneValue, _embryology);
+		this._swimbots[swimbotIndex].setGeneValue(geneIndex, geneValue, this._embryology);
 
-		_vectorUtility.x = ZERO;
-		_vectorUtility.y = ZERO;
-		_swimbots[swimbotIndex].setVelocity(_vectorUtility);
+		this._vectorUtility.x = ZERO;
+		this._vectorUtility.y = ZERO;
+		this._swimbots[swimbotIndex].setVelocity(this._vectorUtility);
 	}
 
-	this.touchDown = function(x, y) {
-		_touch.setToDown(x, y);
+	touchDown(x, y) {
+		this._touch.setToDown(x, y);
 		this.handleNonUITouchDownActions(x, y);
 	}
 
-	this.convertScreenCoordinatesToPoolPosition = function(x, y) {
-		_vectorUtility.x = _camera.getPosition().x - _camera.getXDimension() * ONE_HALF + (x / _canvasWidth) * _camera.getXDimension();
-		_vectorUtility.y = _camera.getPosition().y - _camera.getYDimension() * ONE_HALF + (y / _canvasHeight) * _camera.getYDimension();
-		return _vectorUtility;
+	convertScreenCoordinatesToPoolPosition(x, y) {
+		this._vectorUtility.x = this._camera.getPosition().x - this._camera.getXDimension() * ONE_HALF + (x / this._canvasWidth) * this._camera.getXDimension();
+		this._vectorUtility.y = this._camera.getPosition().y - this._camera.getYDimension() * ONE_HALF + (y / this._canvasHeight) * this._camera.getYDimension();
+		return this._vectorUtility;
 	}
 
-	this.touchMove = function(x, y) {
-		if ((x < _canvasWidth) &&
-			(y < _canvasHeight)) {
-			_touch.setToMove(x, y);
+	touchMove(x, y) {
+		if ((x < this._canvasWidth) &&
+			(y < this._canvasHeight)) {
+			this._touch.setToMove(x, y);
 
-			_vectorUtility = this.convertScreenCoordinatesToPoolPosition(x, y);
-			_pool.moveTouch(_vectorUtility, _seconds);
+			this._vectorUtility = this.convertScreenCoordinatesToPoolPosition(x, y);
+			this._pool.moveTouch(this._vectorUtility, this._seconds);
 
-			if ((_touch.getState() === TouchState.JUST_DOWN) ||
-				(_touch.getState() === TouchState.BEEN_DOWN)) {
+			if ((this._touch.getState() === TouchState.JUST_DOWN) ||
+				(this._touch.getState() === TouchState.BEEN_DOWN)) {
 				// dragging a swimbot around
-				if ((_swimbotBeingDragged) &&
-					(_selectedSwimbot != NULL_INDEX)) {
-					_vectorUtility = this.convertScreenCoordinatesToPoolPosition(x, y);
-					_swimbots[_selectedSwimbot].setPosition(_vectorUtility);
+				if ((this._swimbotBeingDragged) &&
+					(this._selectedSwimbot != NULL_INDEX)) {
+					this._vectorUtility = this.convertScreenCoordinatesToPoolPosition(x, y);
+					this._swimbots[this._selectedSwimbot].setPosition(this._vectorUtility);
 
-					_vectorUtility.setXY(ZERO, ZERO);
-					_swimbots[_selectedSwimbot].setVelocity(_vectorUtility);
-				} else if ((_foodBitBeingDragged) &&
-					(_selectedFoodBit != NULL_INDEX)) {
+					this._vectorUtility.setXY(ZERO, ZERO);
+					this._swimbots[this._selectedSwimbot].setVelocity(this._vectorUtility);
+				} else if ((this._foodBitBeingDragged) &&
+					(this._selectedFoodBit != NULL_INDEX)) {
 					// dragging a fodbit around
-					_vectorUtility = this.convertScreenCoordinatesToPoolPosition(x, y);
-					_foodBits[_selectedFoodBit].setPosition(_vectorUtility);
+					this._vectorUtility = this.convertScreenCoordinatesToPoolPosition(x, y);
+					this._foodBits[this._selectedFoodBit].setPosition(this._vectorUtility);
 				} else {
-					if (_obstacle.getBeingMoved()) {
-						// set the new moved position       
-						_vectorUtility = this.convertScreenCoordinatesToPoolPosition(x, y);
-						_obstacle.setMovePosition(_vectorUtility);
+					if (this._obstacle.getBeingMoved()) {
+						// set the new moved position
+						this._vectorUtility = this.convertScreenCoordinatesToPoolPosition(x, y);
+						this._obstacle.setMovePosition(this._vectorUtility);
 
-						// keep food away from obstacle       
-						moveFoodBitsFromObstacle();
+						// keep food away from obstacle
+						this._moveFoodBitsFromObstacle();
 					} else {
-						let x = _touch.getVelocityX();
-						let y = _touch.getVelocityY();
-						_camera.drag(x, y);
+						let x = this._touch.getVelocityX();
+						let y = this._touch.getVelocityY();
+						this._camera.drag(x, y);
 					}
 				}
 			} else {
-				_vectorUtility = this.convertScreenCoordinatesToPoolPosition(x, y);
+				this._vectorUtility = this.convertScreenCoordinatesToPoolPosition(x, y);
 
 				// check to see if the mouse if hovering over a swimbot or food bit
-				_mousedOverSwimbot = this.indexOfClosestSwimbotToScreenPosition(x, y);
-				_mousedOverFoodBit = this.indexOfClosestFoodBitToScreenPosition(x, y);
+				this._mousedOverSwimbot = this.indexOfClosestSwimbotToScreenPosition(x, y);
+				this._mousedOverFoodBit = this.indexOfClosestFoodBitToScreenPosition(x, y);
 
 				// check to see if the mouse if hovering over the obstacle
-				_obstacle.detectHover(_vectorUtility)
+				this._obstacle.detectHover(this._vectorUtility)
 			}
 		}
 	}
 
-	this.touchUp = function(x, y) {
-		_touch.setToUp(x, y);
+	touchUp(x, y) {
+		this._touch.setToUp(x, y);
 
-		_swimbotBeingDragged = false;
-		_foodBitBeingDragged = false;
+		this._swimbotBeingDragged = false;
+		this._foodBitBeingDragged = false;
 
 		// if no button or swimbot or food bit was un-clicked
-		if ((_selectedSwimbot === NULL_INDEX) &&
-			(_selectedFoodBit === NULL_INDEX)) {
-			if (_obstacle.getBeingMoved()) {
-				_obstacle.stopMoving();
+		if ((this._selectedSwimbot === NULL_INDEX) &&
+			(this._selectedFoodBit === NULL_INDEX)) {
+			if (this._obstacle.getBeingMoved()) {
+				this._obstacle.stopMoving();
 			}
 
-			_vectorUtility = this.convertScreenCoordinatesToPoolPosition(x, y);
-			_pool.endTouch(_vectorUtility, _seconds);
+			this._vectorUtility = this.convertScreenCoordinatesToPoolPosition(x, y);
+			this._pool.endTouch(this._vectorUtility, this._seconds);
 		}
 	}
 
-	this.touchOut = function(x, y) {
+	touchOut(x, y) {
 		this.touchUp(x, y);
 	}
 
-	this.touchTwoFingerMove = function(e) {
-		if ((e.x < _canvasWidth) &&
-			(e.y < _canvasHeight)) {
-			_camera.drag(-e.deltaX, -e.deltaY);
+	touchTwoFingerMove(e) {
+		if ((e.x < this._canvasWidth) &&
+			(e.y < this._canvasHeight)) {
+			this._camera.drag(-e.deltaX, -e.deltaY);
 			this.clearViewMode();
 		}
 	}
 
 	// start camera Navigation
-	this.startCameraNavigation = function(action) {
-		_viewTracking.stopTracking();
+	startCameraNavigation(action) {
+		this._viewTracking.stopTracking();
 
-		if (action === CameraNavigationAction.LEFT) { _panningLeft = true; } else if (action === CameraNavigationAction.RIGHT) { _panningRight = true; } else if (action === CameraNavigationAction.DOWN) { _panningDown = true; } else if (action === CameraNavigationAction.UP) { _panningUp = true; } else if (action === CameraNavigationAction.IN) { _zoomingIn = true; } else if (action === CameraNavigationAction.OUT) { _zoomingOut = true; }
+		if (action === CameraNavigationAction.LEFT) { this._panningLeft = true; } else if (action === CameraNavigationAction.RIGHT) { this._panningRight = true; } else if (action === CameraNavigationAction.DOWN) { this._panningDown = true; } else if (action === CameraNavigationAction.UP) { this._panningUp = true; } else if (action === CameraNavigationAction.IN) { this._zoomingIn = true; } else if (action === CameraNavigationAction.OUT) { this._zoomingOut = true; }
 	}
 
 	// stop camera Navigation
-	this.stopCameraNavigation = function(action) {
-		_panningLeft = false;
-		_panningRight = false;
-		_panningUp = false;
-		_panningDown = false;
-		_zoomingIn = false;
-		_zoomingOut = false;
+	stopCameraNavigation(action) {
+		this._panningLeft = false;
+		this._panningRight = false;
+		this._panningUp = false;
+		this._panningDown = false;
+		this._zoomingIn = false;
+		this._zoomingOut = false;
 	}
 
-	this.clearViewMode = function() {
+	clearViewMode() {
 		this.setViewMode(ViewTrackingMode.NULL);
 	}
 
-	this.setViewMode = function(viewMode) {
-		// if the new mode is "selected" but there is no swimbot selected, then bail out...	
+	setViewMode(viewMode) {
+		// if the new mode is "selected" but there is no swimbot selected, then bail out...
 		if ((viewMode === ViewTrackingMode.SELECTED) &&
-			(_selectedSwimbot === NULL_INDEX)) {
+			(this._selectedSwimbot === NULL_INDEX)) {
 			return;
 		}
 
-		let selectedSwimbot = _viewTracking.setMode(viewMode, _camera.getPosition(), _camera.getScale(), _selectedSwimbot);
-		setSelectedSwimbot(selectedSwimbot);
+		let selectedSwimbot = this._viewTracking.setMode(viewMode, this._camera.getPosition(), this._camera.getScale(), this._selectedSwimbot);
+		this._setSelectedSwimbot(selectedSwimbot);
 	}
 
-	this.handleNonUITouchDownActions = function(x, y) {
-		if ((x < _canvasWidth) && (y < _canvasHeight)) {
+	handleNonUITouchDownActions(x, y) {
+		if ((x < this._canvasWidth) && (y < this._canvasHeight)) {
 			// in case view control is tracking, stop it...
-			_viewTracking.stopTracking();
+			this._viewTracking.stopTracking();
 
 			// has a swimmer been clicked?
-			setSelectedSwimbot(this.indexOfClosestSwimbotToScreenPosition(x, y));
+			this._setSelectedSwimbot(this.indexOfClosestSwimbotToScreenPosition(x, y));
 
 			// a swimmer is clicked
-			if (_selectedSwimbot != NULL_INDEX) {
-				_swimbotBeingDragged = true;
-				this.initializeDebugTrail(_selectedSwimbot);
+			if (this._selectedSwimbot != NULL_INDEX) {
+				this._swimbotBeingDragged = true;
+				this.initializeDebugTrail(this._selectedSwimbot);
 			}
 
 			// find out if a foodbit was clicked
-			if (_selectedSwimbot === NULL_INDEX) {
-				_selectedFoodBit = this.indexOfClosestFoodBitToScreenPosition(x, y);
+			if (this._selectedSwimbot === NULL_INDEX) {
+				this._selectedFoodBit = this.indexOfClosestFoodBitToScreenPosition(x, y);
 
-				if (_selectedFoodBit != NULL_INDEX) {
-					_foodBitBeingDragged = true;
+				if (this._selectedFoodBit != NULL_INDEX) {
+					this._foodBitBeingDragged = true;
 				}
 			} else {
-				_mousedOverFoodBit = NULL_INDEX;
+				this._mousedOverFoodBit = NULL_INDEX;
 			}
 
 			// if no swimbot or food bit was clicked
-			if ((_selectedSwimbot == NULL_INDEX) &&
-				(_selectedFoodBit == NULL_INDEX)) {
-				_vectorUtility = this.convertScreenCoordinatesToPoolPosition(x, y);
+			if ((this._selectedSwimbot == NULL_INDEX) &&
+				(this._selectedFoodBit == NULL_INDEX)) {
+				this._vectorUtility = this.convertScreenCoordinatesToPoolPosition(x, y);
 
 				// did the obstacle get touched?
-				if (_obstacle.detectHover(_vectorUtility)) {
-					_obstacle.startMoving(_vectorUtility);
+				if (this._obstacle.detectHover(this._vectorUtility)) {
+					this._obstacle.startMoving(this._vectorUtility);
 				} else {
 					// touch the pool!
-					_pool.startTouch(_vectorUtility, _seconds);
+					this._pool.startTouch(this._vectorUtility, this._seconds);
 				}
 			}
 		}
 	}
 
-	this.indexOfClosestSwimbotToScreenPosition = function(x, y) {
+	indexOfClosestSwimbotToScreenPosition(x, y) {
 		let indexOfClosest = NULL_INDEX;
 		let closestDistance = 1000.0;
 
 		for (let s = 0; s < MAX_SWIMBOTS; s++) {
-			if (_swimbots[s].getAlive()) {
-				_vectorUtility = this.convertScreenCoordinatesToPoolPosition(x, y);
+			if (this._swimbots[s].getAlive()) {
+				this._vectorUtility = this.convertScreenCoordinatesToPoolPosition(x, y);
 
-				let distanceSquared = _swimbots[s].getPosition().getDistanceSquaredTo(_vectorUtility);
-				if (distanceSquared < _swimbots[s].getSelectRadius() * _swimbots[s].getSelectRadius()) {
+				let distanceSquared = this._swimbots[s].getPosition().getDistanceSquaredTo(this._vectorUtility);
+				if (distanceSquared < this._swimbots[s].getSelectRadius() * this._swimbots[s].getSelectRadius()) {
 					if (distanceSquared < closestDistance) {
 						indexOfClosest = s;
 						closestDistance = distanceSquared;
@@ -1834,15 +1873,15 @@ function GenePool() {
 		return indexOfClosest;
 	}
 
-	this.indexOfClosestFoodBitToScreenPosition = function(x, y) {
+	indexOfClosestFoodBitToScreenPosition(x, y) {
 		let indexOfClosest = NULL_INDEX;
 		let closestDistance = 1000.0;
 
 		for (let f = 0; f < MAX_FOODBITS; f++) {
-			if (_foodBits[f].getAlive()) {
-				_vectorUtility = this.convertScreenCoordinatesToPoolPosition(x, y);
+			if (this._foodBits[f].getAlive()) {
+				this._vectorUtility = this.convertScreenCoordinatesToPoolPosition(x, y);
 
-				let distanceSquared = _foodBits[f].getPosition().getDistanceSquaredTo(_vectorUtility);
+				let distanceSquared = this._foodBits[f].getPosition().getDistanceSquaredTo(this._vectorUtility);
 				if (distanceSquared < FOOD_BIT_GRAB_RADIUS * FOOD_BIT_GRAB_RADIUS) {
 					if (distanceSquared < closestDistance) {
 						indexOfClosest = f;
@@ -1857,54 +1896,54 @@ function GenePool() {
 
 
 	// various quickie getters...
-	this.getFoodGrowthDelay = function() { return globalTweakers.foodRegenerationPeriod; }
-	this.getFoodSpread = function() { return globalTweakers.foodSpread; }
-	this.getFoodBitEnergy = function() { return globalTweakers.foodBitEnergy; }
-	this.getHungerThreshold = function() { return globalTweakers.hungerThreshold; }
-	this.getEnergyToOffspring = function() { return globalTweakers.childEnergyRatio; }
-	this.getMaximumSwimbotAge = function() { return globalTweakers.maximumLifeSpan; }
-	this.getTimeStep = function() { return _clock; }
-	this.getRenderingGoals = function() { return _renderingGoals; }
-	this.getSimulationRunning = function() { return _simulationRunning; }
-	this.getRendering = function() { return _rendering; }
-	this.getSelectedSwimbotID = function() { return _selectedSwimbot; }
-	this.getViewMode = function() { return _viewTracking.getMode(); }
+	getFoodGrowthDelay() { return globalTweakers.foodRegenerationPeriod; }
+	getFoodSpread() { return globalTweakers.foodSpread; }
+	getFoodBitEnergy() { return globalTweakers.foodBitEnergy; }
+	getHungerThreshold() { return globalTweakers.hungerThreshold; }
+	getEnergyToOffspring() { return globalTweakers.childEnergyRatio; }
+	getMaximumSwimbotAge() { return globalTweakers.maximumLifeSpan; }
+	getTimeStep() { return this._clock; }
+	getRenderingGoals() { return this._renderingGoals; }
+	getSimulationRunning() { return this._simulationRunning; }
+	getRendering() { return this._rendering; }
+	getSelectedSwimbotID() { return this._selectedSwimbot; }
+	getViewMode() { return this._viewTracking.getMode(); }
 
 	// check to see if the camera navigation is active
-	this.getCameraNavigationActive = function(action) {
+	getCameraNavigationActive(action) {
 		let result = false;
 
-		if ((action === CameraNavigationAction.LEFT) && (_panningLeft)) { result = true; }
-		if ((action === CameraNavigationAction.RIGHT) && (_panningRight)) { result = true; }
-		if ((action === CameraNavigationAction.DOWN) && (_panningDown)) { result = true; }
-		if ((action === CameraNavigationAction.UP) && (_panningUp)) { result = true; }
-		if ((action === CameraNavigationAction.IN) && (_zoomingIn)) { result = true; }
-		if ((action === CameraNavigationAction.OUT) && (_zoomingOut)) { result = true; }
+		if ((action === CameraNavigationAction.LEFT) && (this._panningLeft)) { result = true; }
+		if ((action === CameraNavigationAction.RIGHT) && (this._panningRight)) { result = true; }
+		if ((action === CameraNavigationAction.DOWN) && (this._panningDown)) { result = true; }
+		if ((action === CameraNavigationAction.UP) && (this._panningUp)) { result = true; }
+		if ((action === CameraNavigationAction.IN) && (this._zoomingIn)) { result = true; }
+		if ((action === CameraNavigationAction.OUT) && (this._zoomingOut)) { result = true; }
 
 		return result;
 	}
 
-	this.getASwimbotIsSelected = function() {
-		if (_selectedSwimbot != NULL_INDEX) {
+	getASwimbotIsSelected() {
+		if (this._selectedSwimbot != NULL_INDEX) {
 			return true;
 		}
 
 		return false;
 	}
 
-	this.getPresetGenotype = function(p) {
-		_myGenotype.setToPreset(p);
+	getPresetGenotype(p) {
+		this._myGenotype.setToPreset(p);
 
-		return _myGenotype.getGenes();
+		return this._myGenotype.getGenes();
 	}
 
-	this.getNumFoodBits = function() {
+	getNumFoodBits() {
 		let num = 0;
 
 		for (let f = 0; f < MAX_FOODBITS; f++) {
-			if (_foodBits[f].getAlive()) {
+			if (this._foodBits[f].getAlive()) {
 				if (globalTweakers.numFoodTypes === 2) {
-					if (_foodBits[f].getType() === 0) {
+					if (this._foodBits[f].getType() === 0) {
 						num++;
 					}
 				} else {
@@ -1926,7 +1965,7 @@ function GenePool() {
 		            }
 		        }
 		    }
-		}        
+		}
 		else
 		{
 		    for (let f=0; f<MAX_FOODBITS; f++)
@@ -1936,18 +1975,18 @@ function GenePool() {
 		            num ++;
 		        }
 		    }
-		}       
+		}
 		*/
 
 		return num;
 	}
 
-	this.getNumFoodBits1 = function() {
+	getNumFoodBits1() {
 		let num = 0;
 
 		for (let f = 0; f < MAX_FOODBITS; f++) {
-			if (_foodBits[f].getAlive()) {
-				if (_foodBits[f].getType() === 1) {
+			if (this._foodBits[f].getAlive()) {
+				if (this._foodBits[f].getType() === 1) {
 					num++;
 				}
 			}
@@ -1956,11 +1995,11 @@ function GenePool() {
 		return num;
 	}
 
-	this.getNumSwimbots = function() {
+	getNumSwimbots() {
 		let num = 0;
 
 		for (let s = 0; s < MAX_SWIMBOTS; s++) {
-			if (_swimbots[s].getAlive()) {
+			if (this._swimbots[s].getAlive()) {
 				num++;
 			}
 		}
@@ -1968,7 +2007,7 @@ function GenePool() {
 		return num;
 	}
 
-	this.getPoolData = function() {
+	getPoolData() {
 		// create foodbit array
 		function FoodBitData() {
 			this.id = NULL_INDEX;
@@ -1976,15 +2015,15 @@ function GenePool() {
 			this.y = ZERO;
 		}
 
-		let foodBitDataArray = new Array();
+		let foodBitDataArray = [];
 
 		let numFoodbits = 0;
 		for (let f = 0; f < MAX_FOODBITS; f++) {
-			if (_foodBits[f].getAlive()) {
+			if (this._foodBits[f].getAlive()) {
 				foodBitDataArray[numFoodbits] = new FoodBitData();
 				foodBitDataArray[numFoodbits].id = f;
-				foodBitDataArray[numFoodbits].x = _foodBits[f].getPosition().x;
-				foodBitDataArray[numFoodbits].y = _foodBits[f].getPosition().y;
+				foodBitDataArray[numFoodbits].x = this._foodBits[f].getPosition().x;
+				foodBitDataArray[numFoodbits].y = this._foodBits[f].getPosition().y;
 
 				numFoodbits++;
 			}
@@ -1998,21 +2037,21 @@ function GenePool() {
 			this.energy = ZERO;
 			this.age = 0;
 			this.id = 0;
-			this.genes = new Array();
+			this.genes = [];
 		}
 
-		let swimbotDataArray = new Array();
+		let swimbotDataArray = [];
 
 		let numSwimbots = 0;
 		for (let s = 0; s < MAX_SWIMBOTS; s++) {
-			if (_swimbots[s].getAlive()) {
+			if (this._swimbots[s].getAlive()) {
 				swimbotDataArray[numSwimbots] = new SwimbotData();
 				swimbotDataArray[numSwimbots].id = s;
-				swimbotDataArray[numSwimbots].x = _swimbots[s].getPosition().x;
-				swimbotDataArray[numSwimbots].y = _swimbots[s].getPosition().y;
-				swimbotDataArray[numSwimbots].angle = _swimbots[s].getAngle();
-				swimbotDataArray[numSwimbots].age = _swimbots[s].getAge();
-				swimbotDataArray[numSwimbots].energy = _swimbots[s].getEnergy();
+				swimbotDataArray[numSwimbots].x = this._swimbots[s].getPosition().x;
+				swimbotDataArray[numSwimbots].y = this._swimbots[s].getPosition().y;
+				swimbotDataArray[numSwimbots].angle = this._swimbots[s].getAngle();
+				swimbotDataArray[numSwimbots].age = this._swimbots[s].getAge();
+				swimbotDataArray[numSwimbots].energy = this._swimbots[s].getEnergy();
 				swimbotDataArray[numSwimbots].genes = this.getSwimbotGenes(s);
 
 				numSwimbots++;
@@ -2020,71 +2059,70 @@ function GenePool() {
 		}
 
 		let poolData = {
-			"simulationRunning": _simulationRunning,
+			"simulationRunning": this._simulationRunning,
 			"numFoodBits": numFoodbits,
 			"numSwimbots": numSwimbots,
 			"foodBitArray": foodBitDataArray,
 			"swimbotArray": swimbotDataArray,
-			"cameraX": _camera.getPosition().x,
-			"cameraY": _camera.getPosition().y,
-			"cameraScale": _camera.getScale(),
+			"cameraX": this._camera.getPosition().x,
+			"cameraY": this._camera.getPosition().y,
+			"cameraScale": this._camera.getScale(),
 			"foodRegenerationPeriod": globalTweakers.foodRegenerationPeriod,
 			"foodSpread": globalTweakers.foodSpread,
 			"foodBitEnergy": globalTweakers.foodBitEnergy,
 			"hungerThreshold": globalTweakers.hungerThreshold,
 			"attractionCriterion": globalTweakers.attractionCriterion,
 			"childEnergyRatio": globalTweakers.childEnergyRatio,
-			"renderingGoals": _renderingGoals,
-			"obstacleEnd1X": _obstacle.getEnd1Position().x,
-			"obstacleEnd1Y": _obstacle.getEnd1Position().y,
-			"obstacleEnd2X": _obstacle.getEnd2Position().x,
-			"obstacleEnd2Y": _obstacle.getEnd2Position().y
+			"renderingGoals": this._renderingGoals,
+			"obstacleEnd1X": this._obstacle.getEnd1Position().x,
+			"obstacleEnd1Y": this._obstacle.getEnd1Position().y,
+			"obstacleEnd2X": this._obstacle.getEnd2Position().x,
+			"obstacleEnd2Y": this._obstacle.getEnd2Position().y
 		}
 
 		return poolData;
 	}
 
-	this.getSwimbotGenes = function(ID) {
-		let genotype = _swimbots[ID].getGenotype();
+	getSwimbotGenes(ID) {
+		let genotype = this._swimbots[ID].getGenotype();
 		return genotype.getGenes();
 	}
 
-	this.getFamilyTree = function() {
-		return _familyTree;
+	getFamilyTree() {
+		return this._familyTree;
 	}
 
-	this.getAttraction = function() {
+	getAttraction() {
 		return globalTweakers.attractionCriterion;
 	}
 
-	this.getGeneName = function(g) {
-		return _embryology.getGeneName(g);
+	getGeneName(g) {
+		return this._embryology.getGeneName(g);
 	}
 
-	this.getGeneValue = function(swimbotID, geneIndex) {
-		let genotype = _swimbots[swimbotID].getGenotype();
+	getGeneValue(swimbotID, geneIndex) {
+		let genotype = this._swimbots[swimbotID].getGenotype();
 
 		return genotype.getGeneValue(geneIndex);
 	}
 
-	this.getNumGenesPerCategory = function() {
-		return _embryology.getNumGenesPerCategory();
+	getNumGenesPerCategory() {
+		return this._embryology.getNumGenesPerCategory();
 	}
 
-	this.getNumGeneCategories = function() {
-		return _embryology.getNumGeneCategories();
+	getNumGeneCategories() {
+		return this._embryology.getNumGeneCategories();
 	}
 
 	// swimbot getters...
-	this.getSwimbotIndex = function(ID) { return _swimbots[ID].getIndex(); }
-	this.getSwimbotBrainState = function(ID) { return _swimbots[ID].getBrainState(); }
-	this.getSwimbotChosenMate = function(ID) { return _swimbots[ID].getChosenMateIndex(); }
-	this.getSwimbotAge = function(ID) { return _swimbots[ID].getAge(); }
-	this.getSwimbotEnergy = function(ID) { return _swimbots[ID].getEnergy(); }
-	this.getSwimbotNumFoodBitsEaten = function(ID) { return _swimbots[ID].getNumFoodBitsEaten(); }
-	this.getSwimbotNumOffspring = function(ID) { return _swimbots[ID].getNumOffspring(); }
-	this.getSwimbotAttractionDescription = function(ID) { return _swimbots[ID].getAttractionDescription(); }
-	this.getSwimbotPreferredFoodType = function(ID) { return _swimbots[ID].getPreferredFoodType(); }
-	this.getSwimbotDigestibleFoodType = function(ID) { return _swimbots[ID].getDigestibleFoodType(); }
-
+	getSwimbotIndex(ID) { return this._swimbots[ID].getIndex(); }
+	getSwimbotBrainState(ID) { return this._swimbots[ID].getBrainState(); }
+	getSwimbotChosenMate(ID) { return this._swimbots[ID].getChosenMateIndex(); }
+	getSwimbotAge(ID) { return this._swimbots[ID].getAge(); }
+	getSwimbotEnergy(ID) { return this._swimbots[ID].getEnergy(); }
+	getSwimbotNumFoodBitsEaten(ID) { return this._swimbots[ID].getNumFoodBitsEaten(); }
+	getSwimbotNumOffspring(ID) { return this._swimbots[ID].getNumOffspring(); }
+	getSwimbotAttractionDescription(ID) { return this._swimbots[ID].getAttractionDescription(); }
+	getSwimbotPreferredFoodType(ID) { return this._swimbots[ID].getPreferredFoodType(); }
+	getSwimbotDigestibleFoodType(ID) { return this._swimbots[ID].getDigestibleFoodType(); }
 }

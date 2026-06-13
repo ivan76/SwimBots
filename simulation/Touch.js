@@ -9,60 +9,62 @@ const TouchState = {
 	JUST_UP: 3
 };
 
-function Touch() {
-	let _state = TouchState.BEEN_UP;
-	let _x = ZERO;
-	let _y = ZERO;
-	let _previousX = ZERO;
-	let _previousY = ZERO;
+class Touch {
+	constructor() {
+		this._state = TouchState.BEEN_UP;
+		this._x = ZERO;
+		this._y = ZERO;
+		this._previousX = ZERO;
+		this._previousY = ZERO;
+	}
 
 	// update
-	this.update = function() {
-		_previousX = _x;
-		_previousY = _y;
+	update() {
+		this._previousX = this._x;
+		this._previousY = this._y;
 
-		if (_state === TouchState.JUST_DOWN) {
-			_state = TouchState.BEEN_DOWN;
-		} else if (_state === TouchState.JUST_UP) {
-			_state = TouchState.BEEN_UP;
+		if (this._state === TouchState.JUST_DOWN) {
+			this._state = TouchState.BEEN_DOWN;
+		} else if (this._state === TouchState.JUST_UP) {
+			this._state = TouchState.BEEN_UP;
 		}
 	}
 
 	// set to down
-	this.setToDown = function(x, y) {
-		_x = x;
-		_y = y;
-		_state = TouchState.JUST_DOWN;
+	setToDown(x, y) {
+		this._x = x;
+		this._y = y;
+		this._state = TouchState.JUST_DOWN;
 	}
 
 	// set to up
-	this.setToUp = function(x, y) {
-		_x = x;
-		_y = y;
-		_state = TouchState.JUST_UP;
+	setToUp(x, y) {
+		this._x = x;
+		this._y = y;
+		this._state = TouchState.JUST_UP;
 	}
 
 	// set to move
-	this.setToMove = function(x, y) {
-		_x = x;
-		_y = y;
+	setToMove(x, y) {
+		this._x = x;
+		this._y = y;
 	}
 
 	// render
-	this.render = function() {
-		if (_state === TouchState.BEEN_UP) { canvas.fillStyle = "rgb(   0,   0,   0 )"; }
-		if (_state === TouchState.JUST_DOWN) { canvas.fillStyle = "rgb( 244, 244, 244 )"; }
-		if (_state === TouchState.BEEN_DOWN) { canvas.fillStyle = "rgb(   0, 244,   0 )"; }
-		if (_state === TouchState.JUST_UP) { canvas.fillStyle = "rgb( 244,   0,   0 )"; }
+	render() {
+		if (this._state === TouchState.BEEN_UP) { canvas.fillStyle = "rgb(   0,   0,   0 )"; }
+		if (this._state === TouchState.JUST_DOWN) { canvas.fillStyle = "rgb( 244, 244, 244 )"; }
+		if (this._state === TouchState.BEEN_DOWN) { canvas.fillStyle = "rgb(   0, 244,   0 )"; }
+		if (this._state === TouchState.JUST_UP) { canvas.fillStyle = "rgb( 244,   0,   0 )"; }
 
 		canvas.beginPath();
-		canvas.arc(_x, _y, 10.0, 0, PI2, false);
+		canvas.arc(this._x, this._y, 10.0, 0, PI2, false);
 		canvas.fill();
 		canvas.closePath();
 	}
 
 	// get methods
-	this.getState = function() { return _state; }
-	this.getVelocityX = function() { return _x - _previousX; }
-	this.getVelocityY = function() { return _y - _previousY; }
+	getState() { return this._state; }
+	getVelocityX() { return this._x - this._previousX; }
+	getVelocityY() { return this._y - this._previousY; }
 }

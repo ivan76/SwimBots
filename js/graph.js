@@ -30,22 +30,26 @@ function Graph() {
 	let _graphTop = 0;
 	let _graphWidth = 0;
 	let _graphHeight = 0;
-	let _time = new Array();
-	let _numSwimbots = new Array();
-	//let _numSwimbots1   = new Array(); 
-	let _numFoodBits = new Array();
-	let _numFoodBits1 = new Array();
+	let _time = [];
+	let _numSwimbots = [];
+	//let _numSwimbots1   = []; 
+	let _numFoodBits = [];
+	let _numFoodBits1 = [];
 	let _graphContext = null;
 	let _graphCanvas = null;
+	let _writeIndex = 0;
+	const GRAPH_CAPACITY = 1001; // _maxGraphCount caps at 1000, +1 for the overflow slot
 
 	this.initialize = function() {
 		_currentCount = 0;
 		_maxGraphCount = 20;
+		_writeIndex = 0;
 
-		_time = [];
-		_numSwimbots = [];
-		_numFoodBits = [];
-		_numFoodBits1 = [];
+		// Pre-allocate to maximum capacity — avoids reallocation during warmup
+		_time = new Array(GRAPH_CAPACITY);
+		_numSwimbots = new Array(GRAPH_CAPACITY);
+		_numFoodBits = new Array(GRAPH_CAPACITY);
+		_numFoodBits1 = new Array(GRAPH_CAPACITY);
 
 		_graphCanvas = document.getElementById('graphCanvas');
 		_graphContext = _graphCanvas.getContext('2d');
@@ -56,30 +60,19 @@ function Graph() {
 			_maxGraphCount++;
 		}
 
+		// Write at the current circular index
+		_time[_writeIndex] = time;
+		_numSwimbots[_writeIndex] = numSwimbots;
+		_numFoodBits[_writeIndex] = numFoodBits;
+		_numFoodBits1[_writeIndex] = numFoodBits1;
+
+		// Advance the write pointer (circular)
+		_writeIndex = (_writeIndex + 1) % GRAPH_CAPACITY;
+
+		// Track how many entries we have filled
 		if (_currentCount < _maxGraphCount) {
-			_time[_currentCount] = time;
-			_numSwimbots[_currentCount] = numSwimbots;
-			//_numSwimbots1[ _currentCount ] = numSwimbots + 200;
-			_numFoodBits[_currentCount] = numFoodBits;
-			_numFoodBits1[_currentCount] = numFoodBits1;
-
 			_currentCount++;
-		} else {
-			_time[_maxGraphCount] = time;
-			_numSwimbots[_maxGraphCount] = numSwimbots;
-			//_numSwimbots1[ _maxGraphCount ] = numSwimbots + 200;
-			_numFoodBits[_maxGraphCount] = numFoodBits;
-			_numFoodBits1[_maxGraphCount] = numFoodBits1;
-
-			this.scroll();
 		}
-	}
-
-	this.scroll = function() {
-		_time.splice(0, 1);
-		_numSwimbots.splice(0, 1);
-		_numFoodBits.splice(0, 1);
-		_numFoodBits1.splice(0, 1);
 	}
 
 	this.clear = function() {
@@ -194,6 +187,11 @@ function Graph() {
 		}
 	}
 
+	// Helper: map a logical (oldest-first) index to the circular buffer slot
+	function _idx(logical) {
+		return (_writeIndex - _currentCount + logical + GRAPH_CAPACITY) % GRAPH_CAPACITY;
+	}
+
 	this.renderPopulationLines = function() {
 		let graphCanvas = _graphContext;
 
@@ -206,14 +204,18 @@ function Graph() {
 			let x1 = _graphLeft + xFraction * _graphWidth;
 			let x2 = x1 + xInc;
 
-			let foodY1 = _graphBottom - (_numFoodBits[g - 1] * RECIPROCAL_OF_MAX_POP) * _graphHeight;
-			let foodY2 = _graphBottom - (_numFoodBits[g] * RECIPROCAL_OF_MAX_POP) * _graphHeight;
+			// Resolve circular indices for previous and current data points
+			let iPrev = _idx(g - 1);
+			let iCurr = _idx(g);
 
-			let food1Y1 = _graphBottom - (_numFoodBits1[g - 1] * RECIPROCAL_OF_MAX_POP) * _graphHeight;
-			let food1Y2 = _graphBottom - (_numFoodBits1[g] * RECIPROCAL_OF_MAX_POP) * _graphHeight;
+			let foodY1 = _graphBottom - (_numFoodBits[iPrev] * RECIPROCAL_OF_MAX_POP) * _graphHeight;
+			let foodY2 = _graphBottom - (_numFoodBits[iCurr] * RECIPROCAL_OF_MAX_POP) * _graphHeight;
 
-			let swimbotY1 = _graphBottom - (_numSwimbots[g - 1] * RECIPROCAL_OF_MAX_POP) * _graphHeight;
-			let swimbotY2 = _graphBottom - (_numSwimbots[g] * RECIPROCAL_OF_MAX_POP) * _graphHeight;
+			let food1Y1 = _graphBottom - (_numFoodBits1[iPrev] * RECIPROCAL_OF_MAX_POP) * _graphHeight;
+			let food1Y2 = _graphBottom - (_numFoodBits1[iCurr] * RECIPROCAL_OF_MAX_POP) * _graphHeight;
+
+			let swimbotY1 = _graphBottom - (_numSwimbots[iPrev] * RECIPROCAL_OF_MAX_POP) * _graphHeight;
+			let swimbotY2 = _graphBottom - (_numSwimbots[iCurr] * RECIPROCAL_OF_MAX_POP) * _graphHeight;
 
 			//let swimbot1Y1  = _graphBottom - (_numSwimbots1[g-1] * RECIPROCAL_OF_MAX_POP) * _graphHeight;
 			//let swimbot1Y2  = _graphBottom - (_numSwimbots1[g  ] * RECIPROCAL_OF_MAX_POP) * _graphHeight;

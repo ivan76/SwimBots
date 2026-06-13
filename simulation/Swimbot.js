@@ -1,188 +1,181 @@
 "use strict";
 
-function Swimbot() {
+class Swimbot {
+	constructor() {
+		// variables
+		this._genotype = new Genotype();
+		this._phenotype = new Phenotype();
+		this._brain = new Brain();
+		this._position = new Vector2D();
+		this._velocity = new Vector2D();
+		this._acceleration = new Vector2D();
+		this._heading = new Vector2D();
+		this._directionToGoal = new Vector2D();
+		this._focusDirection = new Vector2D();
+		this._centerOfMass = new Vector2D();
+		this._vectorUtility = new Vector2D();
+		this._chosenFoodBit = new FoodBit();
+		this._swimbotRenderer = new SwimbotRenderer();
+		this._chosenMate = null; // must start as null!
+		this._age = 0;
+		this._numOffspring = 0;
+		this._numFoodBitsEaten = 0;
+		//let _maximumLifeSpan    = 0;
+		this._index = NULL_INDEX;
+		this._chosenMateIndex = NULL_INDEX;
+		this._chosenFoodBitIndex = NULL_INDEX;
+		this._alive = false;
+		this._tryingToMate = false;
+		this._tryingToEat = false;
+		this._growthScale = ZERO;
+		this._torque = ZERO;
+		this._angle = ZERO;
+		this._spin = ZERO;
+		this._energy = ZERO;
+		this._timer = ZERO;
+		this._timerDelta = ZERO;
+		this._colorUtility = new Color();
+		this._energyEfficiency = ZERO;
+		this._selectRadius = ZERO;
+		this._species = NULL_INDEX;
 
-	let flopperX = 0;
-	let flopperY = 0;
-	let flopperXV = 0;
-	let flopperYV = 0;
-
-	//  attraction 
-	const TOO_UGLY_TO_CHOOSE = ZERO;
-
-	// variables
-	let _genotype = new Genotype();
-	let _phenotype = new Phenotype();
-	let _brain = new Brain();
-	let _position = new Vector2D();
-	let _velocity = new Vector2D();
-	let _acceleration = new Vector2D();
-	let _heading = new Vector2D();
-	let _directionToGoal = new Vector2D();
-	let _focusDirection = new Vector2D();
-	let _centerOfMass = new Vector2D();
-	let _vectorUtility = new Vector2D();
-	let _chosenFoodBit = new FoodBit();
-	let _swimbotRenderer = new SwimbotRenderer();
-	let _chosenMate = null; // must start as null!
-	let _age = 0;
-	let _numOffspring = 0;
-	let _numFoodBitsEaten = 0;
-	//let _maximumLifeSpan    = 0;
-	let _index = NULL_INDEX;
-	let _chosenMateIndex = NULL_INDEX;
-	let _chosenFoodBitIndex = NULL_INDEX;
-	let _alive = false;
-	let _tryingToMate = false;
-	let _tryingToEat = false;
-	let _growthScale = ZERO;
-	let _torque = ZERO;
-	let _angle = ZERO;
-	let _spin = ZERO;
-	let _energy = ZERO;
-	let _timer = ZERO;
-	let _timerDelta = ZERO;
-	let _colorUtility = new Color();
-	let _energyEfficiency = ZERO;
-	let _selectRadius = ZERO;
-	let _species = NULL_INDEX;
-
-	let _lastPositionForEfficiencyMeasurement = new Vector2D();
-	let _lastEnergyForEfficiencyMeasurement = ZERO;
-	let _readyforSensoryInputToBrain = false;
+		this._lastPositionForEfficiencyMeasurement = new Vector2D();
+		this._lastEnergyForEfficiencyMeasurement = ZERO;
+		this._readyforSensoryInputToBrain = false;
 
 
-	let _parent = null;
-
-	this.setParent = function(parent) {
-		_parent = parent;
+		this._parent = null;
 	}
 
-	this.computeMomentFactors = function() {
+	setParent(parent) {
+		this._parent = parent;
+	}
+
+	computeMomentFactors() {
 		this.determinePartDecendents();
 
-		let oneOverMass = ONE / _phenotype.mass;
+		let oneOverMass = ONE / this._phenotype.mass;
 
-		for (let p = 2; p < _phenotype.numParts; p++) {
-			let moment = _phenotype.parts[p].mass * oneOverMass;
+		for (let p = 2; p < this._phenotype.numParts; p++) {
+			let moment = this._phenotype.parts[p].mass * oneOverMass;
 
-			for (let d = 1; d <= _phenotype.parts[p].numDecendents; d++) {
-				let decendent = _phenotype.parts[p].decendent[d];
-				moment += _phenotype.parts[decendent].mass * oneOverMass;
+			for (let d = 1; d <= this._phenotype.parts[p].numDecendents; d++) {
+				let decendent = this._phenotype.parts[p].decendent[d];
+				moment += this._phenotype.parts[decendent].mass * oneOverMass;
 			}
 
-			_phenotype.parts[p].momentFactor = moment;
+			this._phenotype.parts[p].momentFactor = moment;
 		}
 	}
 
 	// update body parts
-	this.updateBodyParts = function() {
+	updateBodyParts() {
 		let oldAgeThreshold = globalTweakers.maximumLifeSpan - OLD_AGE_DURATION;
 
 		// swimmer is not old yet
-		if (_age < oldAgeThreshold) {
-			if (_age < YOUNG_AGE_DURATION) {
+		if (this._age < oldAgeThreshold) {
+			if (this._age < YOUNG_AGE_DURATION) {
 				// swimmer is still growing
-				_growthScale = _age / YOUNG_AGE_DURATION;
+				this._growthScale = this._age / YOUNG_AGE_DURATION;
 			} else {
-				_growthScale = ONE;
+				this._growthScale = ONE;
 			}
 
-			assert(_growthScale >= 0.0, "assert swimbot.js:updateBodyParts: _growthScale >= 0.0")
-			assert(_growthScale <= 1.0, "assert swimbot.js:updateBodyParts: _growthScale <= 1.0")
+			assert(this._growthScale >= 0.0, "assert swimbot.js:updateBodyParts: _growthScale >= 0.0")
+			assert(this._growthScale <= 1.0, "assert swimbot.js:updateBodyParts: _growthScale <= 1.0")
 
-			// slowing down because starving, 
+			// slowing down because starving,
 			// but not slowing down to a full stop.
-			if (_energy < STARVING) {
-				_timerDelta = _energy / STARVING;
+			if (this._energy < STARVING) {
+				this._timerDelta = this._energy / STARVING;
 
-				if (_timerDelta < STARVING_TIMER_DELTA) {
-					_timerDelta = STARVING_TIMER_DELTA;
+				if (this._timerDelta < STARVING_TIMER_DELTA) {
+					this._timerDelta = STARVING_TIMER_DELTA;
 				}
 			} else {
-				_timerDelta += TIMER_DELTA_INCREASE_RATE;
+				this._timerDelta += TIMER_DELTA_INCREASE_RATE;
 
-				if (_timerDelta > ONE) {
-					_timerDelta = ONE;
+				if (this._timerDelta > ONE) {
+					this._timerDelta = ONE;
 				}
 			}
 		} else
 		// swimmer is past old age threshold
 		{
 			// dying of old age
-			if (_age > globalTweakers.maximumLifeSpan) {
+			if (this._age > globalTweakers.maximumLifeSpan) {
 				this.die();
 			} else {
 				// slowing down because dying
-				_timerDelta = ONE - (_age - oldAgeThreshold) / OLD_AGE_DURATION;
+				this._timerDelta = ONE - (this._age - oldAgeThreshold) / OLD_AGE_DURATION;
 
-				assert(_timerDelta >= 0.0, "assert swimbot.js:updateBodyParts: _timerDelta >= 0.0")
-				assert(_timerDelta <= 1.0, "assert swimbot.js:updateBodyParts: _timerDelta <= 1.0")
+				assert(this._timerDelta >= 0.0, "assert swimbot.js:updateBodyParts: _timerDelta >= 0.0")
+				assert(this._timerDelta <= 1.0, "assert swimbot.js:updateBodyParts: _timerDelta <= 1.0")
 			}
 		}
 
-		_timer += _timerDelta;
+		this._timer += this._timerDelta;
 
-		// calculate the modulators as a function of the dot between the 
+		// calculate the modulators as a function of the dot between the
 		// heading and the perpendicular of the direction to the goal
-		let radian = _angle * PI_OVER_180;
+		let radian = this._angle * PI_OVER_180;
 
-		_heading.x = Math.sin(radian);
-		_heading.y = Math.cos(radian);
+		this._heading.x = Math.sin(radian);
+		this._heading.y = Math.cos(radian);
 
-		let perpX = _heading.y;
-		let perpY = -_heading.x;
+		let perpX = this._heading.y;
+		let perpY = -this._heading.x;
 
-		let directionDot = _focusDirection.x * perpX + _focusDirection.y * perpY;
+		let directionDot = this._focusDirection.x * perpX + this._focusDirection.y * perpY;
 
 		// set root position and angle
-		_phenotype.parts[ROOT_PART].position.set(_position);
-		_phenotype.parts[ROOT_PART].currentAngle = _angle - this.getMomentAdjustment();
+		this._phenotype.parts[ROOT_PART].position.set(this._position);
+		this._phenotype.parts[ROOT_PART].currentAngle = this._angle - this.getMomentAdjustment();
 
 		// loop through parts to determine angle and position
-		for (let p = 1; p < _phenotype.numParts; p++) {
-			_phenotype.parts[p].position.set(this.getPartParentPosition(p));
+		for (let p = 1; p < this._phenotype.numParts; p++) {
+			this._phenotype.parts[p].position.set(this.getPartParentPosition(p));
 
 			// determine current angle
-			_phenotype.parts[p].currentAngle =
-				_phenotype.parts[_phenotype.parts[p].parent].currentAngle +
-				_phenotype.parts[p].angle;
+			this._phenotype.parts[p].currentAngle =
+				this._phenotype.parts[this._phenotype.parts[p].parent].currentAngle +
+				this._phenotype.parts[p].angle;
 
 			// add motion
-			if (p > 1) // because part 1 has nothing to 'bend' off of 
+			if (p > 1) // because part 1 has nothing to 'bend' off of
 			{
-				let ampModulator = _phenotype.parts[p].turnAmp * directionDot;
-				let phaseModulator = _phenotype.parts[p].turnPhase * directionDot;
+				let ampModulator = this._phenotype.parts[p].turnAmp * directionDot;
+				let phaseModulator = this._phenotype.parts[p].turnPhase * directionDot;
 
-				let radian = _timer * _phenotype.frequency + (_phenotype.parts[p].phase + phaseModulator);
-				_phenotype.parts[p].bendingAngle = (_phenotype.parts[p].amp + ampModulator) * Math.sin(radian);
-				_phenotype.parts[p].currentAngle += _phenotype.parts[p].bendingAngle;
+				let radian = this._timer * this._phenotype.frequency + (this._phenotype.parts[p].phase + phaseModulator);
+				this._phenotype.parts[p].bendingAngle = (this._phenotype.parts[p].amp + ampModulator) * Math.sin(radian);
+				this._phenotype.parts[p].currentAngle += this._phenotype.parts[p].bendingAngle;
 			}
 
 			// determine position
-			let radian = _phenotype.parts[p].currentAngle * PI_OVER_180;
-			let length = _phenotype.parts[p].length;
+			let radian = this._phenotype.parts[p].currentAngle * PI_OVER_180;
+			let length = this._phenotype.parts[p].length;
 
-			if (_age < YOUNG_AGE_DURATION) {
-				length *= _growthScale;
+			if (this._age < YOUNG_AGE_DURATION) {
+				length *= this._growthScale;
 			}
 
 			let x = length * Math.sin(radian);
 			let y = length * Math.cos(radian);
-			_phenotype.parts[p].previousMid.setXY(_phenotype.parts[p].midPosition.x, _phenotype.parts[p].midPosition.y);
-			_phenotype.parts[p].midPosition.setXY(_phenotype.parts[p].position.x, _phenotype.parts[p].position.y);
-			_phenotype.parts[p].position.addXY(x, y);
-			_phenotype.parts[p].midPosition.addXY(x * ONE_HALF, y * ONE_HALF);
+			this._phenotype.parts[p].previousMid.setXY(this._phenotype.parts[p].midPosition.x, this._phenotype.parts[p].midPosition.y);
+			this._phenotype.parts[p].midPosition.setXY(this._phenotype.parts[p].position.x, this._phenotype.parts[p].position.y);
+			this._phenotype.parts[p].position.addXY(x, y);
+			this._phenotype.parts[p].midPosition.addXY(x * ONE_HALF, y * ONE_HALF);
 
 			// get part axis
-			_phenotype.parts[p].axis.x = _phenotype.parts[p].position.x - _phenotype.parts[_phenotype.parts[p].parent].position.x;
-			_phenotype.parts[p].axis.y = _phenotype.parts[p].position.y - _phenotype.parts[_phenotype.parts[p].parent].position.y;
+			this._phenotype.parts[p].axis.x = this._phenotype.parts[p].position.x - this._phenotype.parts[this._phenotype.parts[p].parent].position.x;
+			this._phenotype.parts[p].axis.y = this._phenotype.parts[p].position.y - this._phenotype.parts[this._phenotype.parts[p].parent].position.y;
 
 			// get perpendicular of part axis
-			_phenotype.parts[p].perpendicular.setXY(_phenotype.parts[p].axis.y / length, -_phenotype.parts[p].axis.x / length);
+			this._phenotype.parts[p].perpendicular.setXY(this._phenotype.parts[p].axis.y / length, -this._phenotype.parts[p].axis.x / length);
 
 			// calculate part velocity now
-			_phenotype.parts[p].velocity.setToDifference(_phenotype.parts[p].midPosition, _phenotype.parts[p].previousMid);
+			this._phenotype.parts[p].velocity.setToDifference(this._phenotype.parts[p].midPosition, this._phenotype.parts[p].previousMid);
 		}
 
 		// calculate center of mass
@@ -192,22 +185,22 @@ function Swimbot() {
 		// to keep my center of mass in place...
 		this.adjustToCenterOfMass();
 
-		// I need to do this again because I 
+		// I need to do this again because I
 		// just did an adjustToCenterOfMass
 		this.calculateCenterOfMass();
 
 		// calculate select radius
 		// (this is a weird hacky solution)
-		if (_age % 20 === 0) {
-			for (let p = 1; p < _phenotype.numParts; p++) {
-				for (let o = 1; o < _phenotype.numParts; o++) {
+		if (this._age % 20 === 0) {
+			for (let p = 1; p < this._phenotype.numParts; p++) {
+				for (let o = 1; o < this._phenotype.numParts; o++) {
 					if (o != p) {
-						let distance = _phenotype.parts[p].position.getDistanceTo(_phenotype.parts[o].position);
+						let distance = this._phenotype.parts[p].position.getDistanceTo(this._phenotype.parts[o].position);
 
 						distance = SWIMBOT_SELECT_RADIUS_SCALAR * Math.sqrt(distance);
 
-						if (distance > _selectRadius) {
-							_selectRadius = distance;
+						if (distance > this._selectRadius) {
+							this._selectRadius = distance;
 						}
 					}
 				}
@@ -215,63 +208,63 @@ function Swimbot() {
 		}
 	}
 
-	this.getMomentAdjustment = function() {
+	getMomentAdjustment() {
 		let momentAdjustment = ZERO;
 
-		// part 1 is not involved here.. 
-		for (let p = 2; p < _phenotype.numParts; p++) {
-			momentAdjustment += _phenotype.parts[p].bendingAngle * _phenotype.parts[p].momentFactor;
+		// part 1 is not involved here..
+		for (let p = 2; p < this._phenotype.numParts; p++) {
+			momentAdjustment += this._phenotype.parts[p].bendingAngle * this._phenotype.parts[p].momentFactor;
 		}
 
 		return momentAdjustment;
 	}
 
 	// calculate center of mass
-	this.calculateCenterOfMass = function() {
-		_centerOfMass.clear();
+	calculateCenterOfMass() {
+		this._centerOfMass.clear();
 
-		for (let p = 1; p < _phenotype.numParts; p++) {
-			_centerOfMass.addScaled(_phenotype.parts[p].midPosition, _phenotype.parts[p].mass);
+		for (let p = 1; p < this._phenotype.numParts; p++) {
+			this._centerOfMass.addScaled(this._phenotype.parts[p].midPosition, this._phenotype.parts[p].mass);
 		}
 
-		_centerOfMass.scale(ONE / _phenotype.mass);
+		this._centerOfMass.scale(ONE / this._phenotype.mass);
 	}
 
 	// adjust to center of mass
-	this.adjustToCenterOfMass = function() {
-		let offsetX = _position.x - _centerOfMass.x;
-		let offsetY = _position.y - _centerOfMass.y;
+	adjustToCenterOfMass() {
+		let offsetX = this._position.x - this._centerOfMass.x;
+		let offsetY = this._position.y - this._centerOfMass.y;
 
-		for (let p = 0; p < _phenotype.numParts; p++) {
-			_phenotype.parts[p].position.addXY(offsetX, offsetY);
-			_phenotype.parts[p].midPosition.addXY(offsetX, offsetY);
+		for (let p = 0; p < this._phenotype.numParts; p++) {
+			this._phenotype.parts[p].position.addXY(offsetX, offsetY);
+			this._phenotype.parts[p].midPosition.addXY(offsetX, offsetY);
 		}
 	}
 
 	// determine part decendents
-	this.determinePartDecendents = function() {
-		// The purpose of this function is to determine all 
-		// the "child" parts that descend from each part....   
-		for (let p = 1; p < _phenotype.numParts; p++) {
-			_phenotype.parts[p].numDecendents = 0;
+	determinePartDecendents() {
+		// The purpose of this function is to determine all
+		// the "child" parts that descend from each part....
+		for (let p = 1; p < this._phenotype.numParts; p++) {
+			this._phenotype.parts[p].numDecendents = 0;
 
 			// loop through all parts as potential decendents...
-			for (let potentialDecendent = 1; potentialDecendent < _phenotype.numParts; potentialDecendent++) {
+			for (let potentialDecendent = 1; potentialDecendent < this._phenotype.numParts; potentialDecendent++) {
 				let testing = true;
 				let root = potentialDecendent;
 
-				// for each potential_decendent, see if it traces back to the part in question 
+				// for each potential_decendent, see if it traces back to the part in question
 				while (testing) {
-					root = _phenotype.parts[root].parent; //trickle the root down the ancestral tree...
+					root = this._phenotype.parts[root].parent; //trickle the root down the ancestral tree...
 
-					// we have traced a decendent 
+					// we have traced a decendent
 					if (root == p) {
-						_phenotype.parts[p].numDecendents++;
-						_phenotype.parts[p].decendent[_phenotype.parts[p].numDecendents] = potentialDecendent;
+						this._phenotype.parts[p].numDecendents++;
+						this._phenotype.parts[p].decendent[this._phenotype.parts[p].numDecendents] = potentialDecendent;
 						testing = false;
 					}
 
-					// quit if you have if traced all the way back to ROOT_PART 
+					// quit if you have if traced all the way back to ROOT_PART
 					if (root == ROOT_PART) {
 						testing = false;
 					}
@@ -281,175 +274,175 @@ function Swimbot() {
 	}
 
 	// create
-	this.create = function(index, age, position, angle, energy, genotype, embryology) {
+	create(index, age, position, angle, energy, genotype, embryology) {
 		// clear out everything for starters...
 		this.clear();
 
 		// set some basic properties
-		_position.copyFrom(position);
+		this._position.copyFrom(position);
 
 		//_velocity.clear();
-		_index = index;
-		_angle = angle;
-		_age = age;
-		_energy = energy;
-		_alive = true;
-		_growthScale = ONE;
+		this._index = index;
+		this._angle = angle;
+		this._age = age;
+		this._energy = energy;
+		this._alive = true;
+		this._growthScale = ONE;
 
 		// copy genotype values to this swimbot...
-		_genotype.copyFromGenotype(genotype);
-		assert(_genotype != null, "_genotype != null");
+		this._genotype.copyFromGenotype(genotype);
+		assert(this._genotype != null, "_genotype != null");
 
 		// generate phenotype
-		_phenotype = embryology.generatePhenotypeFromGenotype(_genotype);
+		this._phenotype = embryology.generatePhenotypeFromGenotype(this._genotype);
 
 		// important
 		this.processPhenotype();
 
-		// initialize energy efficiency-related stuff 
-		_lastPositionForEfficiencyMeasurement.set(_position);
-		_lastEnergyForEfficiencyMeasurement = _energy;
+		// initialize energy efficiency-related stuff
+		this._lastPositionForEfficiencyMeasurement.set(this._position);
+		this._lastEnergyForEfficiencyMeasurement = this._energy;
 
 		// initialize brain
-		_brain.initialize();
-		_brain.setHungerThreshold(DEFAULT_SWIMBOT_HUNGER_THRESHOLD);
-		_brain.setEnergyLevel(_energy);
-		_brain.update();
+		this._brain.initialize();
+		this._brain.setHungerThreshold(DEFAULT_SWIMBOT_HUNGER_THRESHOLD);
+		this._brain.setEnergyLevel(this._energy);
+		this._brain.update();
 	}
 
-	this.setHungerThreshold = function(t) {
-		_brain.setHungerThreshold(t);
+	setHungerThreshold(t) {
+		this._brain.setHungerThreshold(t);
 	}
 
 	// should be called after "generatePhenotypeFromGenotype"
-	this.processPhenotype = function() {
+	processPhenotype() {
 		// calculate masses and total part length
-		_phenotype.mass = ZERO;
-		assert(_phenotype.numParts > 0, "_phenotype.numParts > 0");
+		this._phenotype.mass = ZERO;
+		assert(this._phenotype.numParts > 0, "_phenotype.numParts > 0");
 
-		_phenotype.sumPartLengths = ZERO;
+		this._phenotype.sumPartLengths = ZERO;
 
-		for (let p = 1; p < _phenotype.numParts; p++) {
-			_phenotype.sumPartLengths += _phenotype.parts[p].length;
+		for (let p = 1; p < this._phenotype.numParts; p++) {
+			this._phenotype.sumPartLengths += this._phenotype.parts[p].length;
 
-			assert(_phenotype.parts[p].length > ZERO, "_phenotype.parts[p].length > ZERO");
-			assert(_phenotype.parts[p].width > ZERO, "_phenotype.parts[p].width  > ZERO");
+			assert(this._phenotype.parts[p].length > ZERO, "_phenotype.parts[p].length > ZERO");
+			assert(this._phenotype.parts[p].width > ZERO, "_phenotype.parts[p].width  > ZERO");
 
-			_phenotype.parts[p].mass = _phenotype.parts[p].length * _phenotype.parts[p].width;
+			this._phenotype.parts[p].mass = this._phenotype.parts[p].length * this._phenotype.parts[p].width;
 
-			assert(_phenotype.parts[p].mass > ZERO, "_phenotype.parts[p].mass > ZERO");
+			assert(this._phenotype.parts[p].mass > ZERO, "_phenotype.parts[p].mass > ZERO");
 
-			_phenotype.mass += _phenotype.parts[p].mass;
+			this._phenotype.mass += this._phenotype.parts[p].mass;
 		}
 
-		assert(_phenotype.mass > ZERO, "_phenotype.mass > ZERO");
+		assert(this._phenotype.mass > ZERO, "_phenotype.mass > ZERO");
 
-		// compute moment factors 
+		// compute moment factors
 		this.computeMomentFactors();
 
 		// create that body...now
 		this.updateBodyParts();
 
-		_timerDelta = ZERO;
+		this._timerDelta = ZERO;
 	}
 
-	this.zap = function(embryology, amount) {
-		_genotype.zap(amount);
-		assert(_genotype != null, "_genotype != null");
+	zap(embryology, amount) {
+		this._genotype.zap(amount);
+		assert(this._genotype != null, "_genotype != null");
 
 		// generate phenotype
-		_phenotype = embryology.generatePhenotypeFromGenotype(_genotype);
+		this._phenotype = embryology.generatePhenotypeFromGenotype(this._genotype);
 
 		// important
 		this.processPhenotype();
 	}
 
-	this.setGeneValue = function(geneIndex, geneValue, embryology) {
+	setGeneValue(geneIndex, geneValue, embryology) {
 		// set gene value
-		_genotype.setGeneValue(geneIndex, geneValue);
+		this._genotype.setGeneValue(geneIndex, geneValue);
 
 		// generate phenotype
-		_phenotype = embryology.generatePhenotypeFromGenotype(_genotype);
+		this._phenotype = embryology.generatePhenotypeFromGenotype(this._genotype);
 
 		// important
 		this.processPhenotype();
 	}
 
 	// update
-	this.update = function() {
+	update() {
 		// update age
-		_age++;
+		this._age++;
 
-		if (_age % BRAIN_SENSORY_UPDATE_PERIOD == 0) {
-			_readyforSensoryInputToBrain = true;
+		if (this._age % BRAIN_SENSORY_UPDATE_PERIOD == 0) {
+			this._readyforSensoryInputToBrain = true;
 		}
 
 		// update brain
-		_brain.setEnergyLevel(_energy);
-		_brain.update();
+		this._brain.setEnergyLevel(this._energy);
+		this._brain.update();
 
 		// I wanna eat my chosen food bit...
-		if (_brain.getState() === BRAIN_STATE_PURSUING_FOOD) {
-			if ((_chosenFoodBit != null) &&
-				(_chosenFoodBit.getAlive())) {
-				let xx = _chosenFoodBit.getPosition().x - this.getMouthPosition().x;
-				let yy = _chosenFoodBit.getPosition().y - this.getMouthPosition().y;
+		if (this._brain.getState() === BRAIN_STATE_PURSUING_FOOD) {
+			if ((this._chosenFoodBit != null) &&
+				(this._chosenFoodBit.getAlive())) {
+				let xx = this._chosenFoodBit.getPosition().x - this.getMouthPosition().x;
+				let yy = this._chosenFoodBit.getPosition().y - this.getMouthPosition().y;
 				let distance = Math.sqrt(xx * xx + yy * yy);
 
 				if (distance < SWIMBOT_MOUTH_LENGTH) {
-					_tryingToEat = true;
+					this._tryingToEat = true;
 				}
 			}
 		}
 
 		// I wanna have sex with my chosen swimbot
-		else if (_brain.getState() === BRAIN_STATE_PURSUING_MATE) {
-			if ((_chosenMate != null) &&
-				(_chosenMate.getAlive())) {
-				let xx = _chosenMate.getGenitalPosition().x - this.getGenitalPosition().x;
-				let yy = _chosenMate.getGenitalPosition().y - this.getGenitalPosition().y;
+		else if (this._brain.getState() === BRAIN_STATE_PURSUING_MATE) {
+			if ((this._chosenMate != null) &&
+				(this._chosenMate.getAlive())) {
+				let xx = this._chosenMate.getGenitalPosition().x - this.getGenitalPosition().x;
+				let yy = this._chosenMate.getGenitalPosition().y - this.getGenitalPosition().y;
 				let distance = Math.sqrt(xx * xx + yy * yy);
 
 				if (distance < SWIMBOT_GENITAL_LENGTH)
 
 				{
-					_tryingToMate = true;
+					this._tryingToMate = true;
 				}
 			}
 		}
 
 		// determine the direction to the goal...
-		if ((_brain.getState() === BRAIN_STATE_LOOKING_FOR_FOOD) ||
-			(_brain.getState() === BRAIN_STATE_LOOKING_FOR_MATE)) {
+		if ((this._brain.getState() === BRAIN_STATE_LOOKING_FOR_FOOD) ||
+			(this._brain.getState() === BRAIN_STATE_LOOKING_FOR_MATE)) {
 			this.wanderFocus();
-		} else if (_brain.getState() == BRAIN_STATE_PURSUING_MATE) {
-			if (_chosenMate != null) {
-				_directionToGoal.set(_chosenMate.getGenitalPosition());
-				_directionToGoal.subtract(_phenotype.parts[GENITAL_INDEX].position);
-				_directionToGoal.normalize();
+		} else if (this._brain.getState() == BRAIN_STATE_PURSUING_MATE) {
+			if (this._chosenMate != null) {
+				this._directionToGoal.set(this._chosenMate.getGenitalPosition());
+				this._directionToGoal.subtract(this._phenotype.parts[GENITAL_INDEX].position);
+				this._directionToGoal.normalize();
 			}
-		} else if (_brain.getState() === BRAIN_STATE_PURSUING_FOOD) {
-			if (_chosenFoodBit != null) {
-				_directionToGoal.set(_chosenFoodBit.getPosition());
-				_directionToGoal.subtract(_phenotype.parts[MOUTH_INDEX].position);
-				_directionToGoal.normalize();
+		} else if (this._brain.getState() === BRAIN_STATE_PURSUING_FOOD) {
+			if (this._chosenFoodBit != null) {
+				this._directionToGoal.set(this._chosenFoodBit.getPosition());
+				this._directionToGoal.subtract(this._phenotype.parts[MOUTH_INDEX].position);
+				this._directionToGoal.normalize();
 			}
 		}
 
 		// continually push the focus direction towards the goal
 		let previousFocusDirection = new Vector2D();
-		previousFocusDirection.set(_focusDirection);
+		previousFocusDirection.set(this._focusDirection);
 
-		_focusDirection.addScaled(_directionToGoal, BRAIN_FOCUS_TARGET_SHIFT_STRENGTH);
+		this._focusDirection.addScaled(this._directionToGoal, BRAIN_FOCUS_TARGET_SHIFT_STRENGTH);
 
-		_vectorUtility.setToDifference(_focusDirection, previousFocusDirection);
+		this._vectorUtility.setToDifference(this._focusDirection, previousFocusDirection);
 
-		if (_vectorUtility.getMagnitudeSquared() > BRAIN_FOCUS_TARGET_SHIFT_THRESHOLD * BRAIN_FOCUS_TARGET_SHIFT_THRESHOLD) {
-			_focusDirection.set(previousFocusDirection);
-			_focusDirection.addScaled(_directionToGoal, BRAIN_FOCUS_TARGET_SHIFT_THRESHOLD);
+		if (this._vectorUtility.getMagnitudeSquared() > BRAIN_FOCUS_TARGET_SHIFT_THRESHOLD * BRAIN_FOCUS_TARGET_SHIFT_THRESHOLD) {
+			this._focusDirection.set(previousFocusDirection);
+			this._focusDirection.addScaled(this._directionToGoal, BRAIN_FOCUS_TARGET_SHIFT_THRESHOLD);
 		}
 
-		_focusDirection.normalize();
+		this._focusDirection.normalize();
 
 		// update body parts
 		this.updateBodyParts();
@@ -459,37 +452,37 @@ function Swimbot() {
 	}
 
 	// wander focus
-	this.wanderFocus = function() {
-		let length = _directionToGoal.getMagnitude();
+	wanderFocus() {
+		let length = this._directionToGoal.getMagnitude();
 
 		if (length === ZERO) {
-			_directionToGoal.x = -ONE_HALF + Math.random();
-			_directionToGoal.y = -ONE_HALF + Math.random();
-			length = _directionToGoal.getMagnitude();
+			this._directionToGoal.x = -ONE_HALF + Math.random();
+			this._directionToGoal.y = -ONE_HALF + Math.random();
+			length = this._directionToGoal.getMagnitude();
 		}
 
-		_directionToGoal.x += (-BRAIN_WANDER_AMOUNT * ONE_HALF + Math.random() * BRAIN_WANDER_AMOUNT);
-		_directionToGoal.y += (-BRAIN_WANDER_AMOUNT * ONE_HALF + Math.random() * BRAIN_WANDER_AMOUNT);
+		this._directionToGoal.x += (-BRAIN_WANDER_AMOUNT * ONE_HALF + Math.random() * BRAIN_WANDER_AMOUNT);
+		this._directionToGoal.y += (-BRAIN_WANDER_AMOUNT * ONE_HALF + Math.random() * BRAIN_WANDER_AMOUNT);
 
-		_directionToGoal.x /= length;
-		_directionToGoal.y /= length;
+		this._directionToGoal.x /= length;
+		this._directionToGoal.y /= length;
 	}
 
 	// update physics
-	this.updatePhysics = function() {
+	updatePhysics() {
 		// a swimbot creates its own linear and angular forces via moving parts
 		this.calculateFluidForces();
 
-		if (_age % ENERGY_EFFICIENCY_MEASUREMENT_PERIOD === 0) {
+		if (this._age % ENERGY_EFFICIENCY_MEASUREMENT_PERIOD === 0) {
 			this.calculateEnergyEfficiency();
 		}
 
-		// energy is always slowly draining 
-		_energy -= CONTINUAL_ENERGY_DRAIN;
+		// energy is always slowly draining
+		this._energy -= CONTINUAL_ENERGY_DRAIN;
 
-		// when energy hits zero, that means death 
-		if (_energy <= ZERO) {
-			_energy = ZERO;
+		// when energy hits zero, that means death
+		if (this._energy <= ZERO) {
+			this._energy = ZERO;
 			this.die();
 		}
 
@@ -498,39 +491,39 @@ function Swimbot() {
 	}
 
 	// swimbot creates its own linear and angular forces via moving parts
-	this.calculateFluidForces = function() {
+	calculateFluidForces() {
 		// clear these out - they will be filled-in below...
-		_acceleration.clear();
-		_torque = ZERO;
+		this._acceleration.clear();
+		this._torque = ZERO;
 
 		// loop through parts...
-		assert(_phenotype.numParts > 0, "_phenotype.numParts > 0");
+		assert(this._phenotype.numParts > 0, "_phenotype.numParts > 0");
 
-		for (let p = 1; p < _phenotype.numParts; p++) {
+		for (let p = 1; p < this._phenotype.numParts; p++) {
 			// calculate this part's fraction of the total length
-			let fractionOfWhole = _phenotype.parts[p].length / _phenotype.sumPartLengths;
+			let fractionOfWhole = this._phenotype.parts[p].length / this._phenotype.sumPartLengths;
 
 			// calculate velocity
-			_phenotype.parts[p].velocity.setToDifference(_phenotype.parts[p].midPosition, _phenotype.parts[p].previousMid);
+			this._phenotype.parts[p].velocity.setToDifference(this._phenotype.parts[p].midPosition, this._phenotype.parts[p].previousMid);
 
-			// get stroke amplitude 
-			let strokeAmplitude = _phenotype.parts[p].velocity.dotWith(_phenotype.parts[p].perpendicular) * fractionOfWhole;
+			// get stroke amplitude
+			let strokeAmplitude = this._phenotype.parts[p].velocity.dotWith(this._phenotype.parts[p].perpendicular) * fractionOfWhole;
 
-			let strokeForceX = _phenotype.parts[p].perpendicular.x * strokeAmplitude;
-			let strokeForceY = _phenotype.parts[p].perpendicular.y * strokeAmplitude;
+			let strokeForceX = this._phenotype.parts[p].perpendicular.x * strokeAmplitude;
+			let strokeForceY = this._phenotype.parts[p].perpendicular.y * strokeAmplitude;
 
 			// calculate energy lost from stroke
-			// hey: this might be more accurate to nature if 
+			// hey: this might be more accurate to nature if
 			// it were something like angle bend times mass.
-			_energy -= Math.abs(strokeAmplitude) * ENERGY_USED_UP_SWIMMING;
+			this._energy -= Math.abs(strokeAmplitude) * ENERGY_USED_UP_SWIMMING;
 
-			if (_energy < ZERO) {
-				_energy = ZERO;
+			if (this._energy < ZERO) {
+				this._energy = ZERO;
 			}
 
 			// calculate part vector from center
-			let partVectorFromCenterX = _phenotype.parts[p].midPosition.x - _position.x;
-			let partVectorFromCenterY = _phenotype.parts[p].midPosition.y - _position.y;
+			let partVectorFromCenterX = this._phenotype.parts[p].midPosition.x - this._position.x;
+			let partVectorFromCenterY = this._phenotype.parts[p].midPosition.y - this._position.y;
 
 			// calculate part distance from center
 			let xx = partVectorFromCenterX * partVectorFromCenterX;
@@ -545,39 +538,39 @@ function Swimbot() {
 				let partAccelerationX = -strokeForceX;
 				let partAccelerationY = -strokeForceY;
 
-				// accumulate acceleration 
-				_acceleration.x += partAccelerationX;
-				_acceleration.y += partAccelerationY;
+				// accumulate acceleration
+				this._acceleration.x += partAccelerationX;
+				this._acceleration.y += partAccelerationY;
 
-				// calculate perpendicular 
+				// calculate perpendicular
 				let partPerpendicularX = partVectorFromCenterY;
 				let partPerpendicularY = -partVectorFromCenterX;
 
 				// get dot of strokeForce with partPerpendicular
-				let perpDot = (strokeForceX * partPerpendicularX + strokeForceY * partPerpendicularY) / _phenotype.sumPartLengths;
+				let perpDot = (strokeForceX * partPerpendicularX + strokeForceY * partPerpendicularY) / this._phenotype.sumPartLengths;
 
-				// accumulate torque 
-				let previousTorque = _torque;
-				_torque -= perpDot;
+				// accumulate torque
+				let previousTorque = this._torque;
+				this._torque -= perpDot;
 			}
 		}
 
 		// apply linear and angular forces to velocity and spin
-		_velocity.add(_acceleration);
-		_spin += _torque; // * SPIN_SCALAR;
+		this._velocity.add(this._acceleration);
+		this._spin += this._torque; // * SPIN_SCALAR;
 
 		// update position by velocity, and angle by spin
-		_position.add(_velocity);
-		_angle += _spin;
+		this._position.add(this._velocity);
+		this._angle += this._spin;
 	}
 
 	// calculate energy efficiency
-	this.calculateEnergyEfficiency = function() {
-		// measure distance traveled and energy lost       
-		let distanceTraveled = _position.getDistanceTo(_lastPositionForEfficiencyMeasurement);
+	calculateEnergyEfficiency() {
+		// measure distance traveled and energy lost
+		let distanceTraveled = this._position.getDistanceTo(this._lastPositionForEfficiencyMeasurement);
 
 		let averageSpeed = distanceTraveled / ENERGY_EFFICIENCY_MEASUREMENT_PERIOD;
-		let energyLost = _lastEnergyForEfficiencyMeasurement - _energy;
+		let energyLost = this._lastEnergyForEfficiencyMeasurement - this._energy;
 
 		//if swimbot ate food, energy went up, so cancel that....
 		if (energyLost < ZERO) {
@@ -585,150 +578,150 @@ function Swimbot() {
 		}
 
 		// calculate efficiency
-		_energyEfficiency = averageSpeed / (ONE + energyLost);
+		this._energyEfficiency = averageSpeed / (ONE + energyLost);
 
 		// reset these values for the next go-round...
-		_lastPositionForEfficiencyMeasurement.set(_position);
-		_lastEnergyForEfficiencyMeasurement = _energy;
+		this._lastPositionForEfficiencyMeasurement.set(this._position);
+		this._lastEnergyForEfficiencyMeasurement = this._energy;
 	}
 
 	// update wall collisions
-	this.updateWallCollisions = function() {
+	updateWallCollisions() {
 		// left wall
-		if (_position.x < POOL_LEFT + _phenotype.sumPartLengths * ONE_HALF) {
-			for (let p = 1; p < _phenotype.numParts; p++) {
-				let radius = _phenotype.parts[p].length + _phenotype.parts[p].width;
+		if (this._position.x < POOL_LEFT + this._phenotype.sumPartLengths * ONE_HALF) {
+			for (let p = 1; p < this._phenotype.numParts; p++) {
+				let radius = this._phenotype.parts[p].length + this._phenotype.parts[p].width;
 				let limit = POOL_LEFT + radius;
 
-				if (_phenotype.parts[p].position.x < limit) {
-					let penetration = limit - _phenotype.parts[p].position.x;
+				if (this._phenotype.parts[p].position.x < limit) {
+					let penetration = limit - this._phenotype.parts[p].position.x;
 
-					_position.x += penetration * WALL_BOUNCE;
-					_velocity.x += penetration * WALL_BOUNCE;
-					_directionToGoal.x += penetration * WALL_BOUNCE;
-					_directionToGoal.normalize();
+					this._position.x += penetration * WALL_BOUNCE;
+					this._velocity.x += penetration * WALL_BOUNCE;
+					this._directionToGoal.x += penetration * WALL_BOUNCE;
+					this._directionToGoal.normalize();
 				}
 			}
 		}
 		// right wall
-		else if (_position.x > POOL_RIGHT - _phenotype.sumPartLengths * ONE_HALF) {
-			for (let p = 1; p < _phenotype.numParts; p++) {
-				let radius = _phenotype.parts[p].length + _phenotype.parts[p].width;
+		else if (this._position.x > POOL_RIGHT - this._phenotype.sumPartLengths * ONE_HALF) {
+			for (let p = 1; p < this._phenotype.numParts; p++) {
+				let radius = this._phenotype.parts[p].length + this._phenotype.parts[p].width;
 				let limit = POOL_RIGHT - radius;
 
-				if (_phenotype.parts[p].position.x > limit) {
-					let penetration = limit - _phenotype.parts[p].position.x;
+				if (this._phenotype.parts[p].position.x > limit) {
+					let penetration = limit - this._phenotype.parts[p].position.x;
 
-					_position.x += penetration * WALL_BOUNCE;
-					_velocity.x += penetration * WALL_BOUNCE;
-					_directionToGoal.x += penetration * WALL_BOUNCE;
-					_directionToGoal.normalize();
+					this._position.x += penetration * WALL_BOUNCE;
+					this._velocity.x += penetration * WALL_BOUNCE;
+					this._directionToGoal.x += penetration * WALL_BOUNCE;
+					this._directionToGoal.normalize();
 				}
 			}
 		}
 
 		// top wall
-		if (_position.y < POOL_TOP + _phenotype.sumPartLengths * ONE_HALF) {
-			for (let p = 1; p < _phenotype.numParts; p++) {
-				let radius = _phenotype.parts[p].length + _phenotype.parts[p].width;
+		if (this._position.y < POOL_TOP + this._phenotype.sumPartLengths * ONE_HALF) {
+			for (let p = 1; p < this._phenotype.numParts; p++) {
+				let radius = this._phenotype.parts[p].length + this._phenotype.parts[p].width;
 				let limit = POOL_TOP + radius;
 
-				if (_phenotype.parts[p].position.y < limit) {
-					let penetration = limit - _phenotype.parts[p].position.y;
+				if (this._phenotype.parts[p].position.y < limit) {
+					let penetration = limit - this._phenotype.parts[p].position.y;
 
-					_position.y += penetration * WALL_BOUNCE;
-					_velocity.y += penetration * WALL_BOUNCE;
-					_directionToGoal.y += penetration * WALL_BOUNCE;
-					_directionToGoal.normalize();
+					this._position.y += penetration * WALL_BOUNCE;
+					this._velocity.y += penetration * WALL_BOUNCE;
+					this._directionToGoal.y += penetration * WALL_BOUNCE;
+					this._directionToGoal.normalize();
 				}
 			}
 		}
 		// bottom wall
-		else if (_position.y > POOL_BOTTOM - _phenotype.sumPartLengths * ONE_HALF) {
-			for (let p = 1; p < _phenotype.numParts; p++) {
-				let radius = _phenotype.parts[p].length + _phenotype.parts[p].width;
+		else if (this._position.y > POOL_BOTTOM - this._phenotype.sumPartLengths * ONE_HALF) {
+			for (let p = 1; p < this._phenotype.numParts; p++) {
+				let radius = this._phenotype.parts[p].length + this._phenotype.parts[p].width;
 				let limit = POOL_BOTTOM - radius;
 
-				if (_phenotype.parts[p].position.y > limit) {
-					let penetration = limit - _phenotype.parts[p].position.y;
+				if (this._phenotype.parts[p].position.y > limit) {
+					let penetration = limit - this._phenotype.parts[p].position.y;
 
-					_position.y += penetration * WALL_BOUNCE;
-					_velocity.y += penetration * WALL_BOUNCE;
-					_directionToGoal.y += penetration * WALL_BOUNCE;
-					_directionToGoal.normalize();
+					this._position.y += penetration * WALL_BOUNCE;
+					this._velocity.y += penetration * WALL_BOUNCE;
+					this._directionToGoal.y += penetration * WALL_BOUNCE;
+					this._directionToGoal.normalize();
 				}
 			}
 		}
 	}
 
 	// set position
-	this.setPosition = function(p) {
-		_position.set(p);
+	setPosition(p) {
+		this._position.set(p);
 
 		// here is where I shift all my body nodes
 		// to keep my center of mass in place...
 		this.adjustToCenterOfMass();
 
-		// I need to do this again because I 
+		// I need to do this again because I
 		// just did an adjustToCenterOfMass
 		this.calculateCenterOfMass();
 	}
 
 	// set velocity
-	this.setVelocity = function(v) {
-		_velocity.set(v);
+	setVelocity(v) {
+		this._velocity.set(v);
 	}
 
-	// add to velocity 
-	this.addForce = function(force) {
-		_velocity.add(force);
+	// add to velocity
+	addForce(force) {
+		this._velocity.add(force);
 	}
 
 	// set energy
-	this.setEnergy = function(e) {
-		_energy = e;
+	setEnergy(e) {
+		this._energy = e;
 	}
 
 	// set angle
-	this.setAngle = function(a) {
-		_angle = a;
+	setAngle(a) {
+		this._angle = a;
 	}
 
 	// get functions
-	this.getIsTryingToEat = function() { return _tryingToEat; }
-	this.getIsTryingToMate = function() { return _tryingToMate; }
-	this.getIndex = function() { return _index; }
-	this.getAge = function() { return _age; }
-	this.getAlive = function() { return _alive; }
-	this.getEnergy = function() { return _energy; }
-	this.getAngle = function() { return _angle; }
-	this.getEnergyEfficiency = function() { return _energyEfficiency; }
-	this.getPosition = function() { return _position; }
-	this.getBoundingRadius = function() { return _phenotype.sumPartLengths; }
-	this.getNumParts = function() { return _phenotype.numParts; }
-	this.getIsLookingForSensoryInput = function() { return _readyforSensoryInputToBrain; }
-	this.getGenitalPosition = function() { return _phenotype.parts[GENITAL_INDEX].position; }
-	this.getMouthPosition = function() { return _phenotype.parts[MOUTH_INDEX].position; }
-	this.getChosenMateIndex = function() { return _chosenMateIndex; }
-	this.getChosenFoodBitIndex = function() { return _chosenFoodBitIndex; }
-	this.getNumOffspring = function() { return _numOffspring; }
-	this.getNumFoodBitsEaten = function() { return _numFoodBitsEaten; }
-	this.getBrainState = function() { return _brain.getState(); }
-	this.getGenotype = function() { return _genotype; }
-	this.getSelectRadius = function() { return _selectRadius; }
-	this.getPreferredFoodType = function() { return _phenotype.preferredFoodType; }
-	this.getDigestibleFoodType = function() { return _phenotype.digestibleFoodType; }
+	getIsTryingToEat() { return this._tryingToEat; }
+	getIsTryingToMate() { return this._tryingToMate; }
+	getIndex() { return this._index; }
+	getAge() { return this._age; }
+	getAlive() { return this._alive; }
+	getEnergy() { return this._energy; }
+	getAngle() { return this._angle; }
+	getEnergyEfficiency() { return this._energyEfficiency; }
+	getPosition() { return this._position; }
+	getBoundingRadius() { return this._phenotype.sumPartLengths; }
+	getNumParts() { return this._phenotype.numParts; }
+	getIsLookingForSensoryInput() { return this._readyforSensoryInputToBrain; }
+	getGenitalPosition() { return this._phenotype.parts[GENITAL_INDEX].position; }
+	getMouthPosition() { return this._phenotype.parts[MOUTH_INDEX].position; }
+	getChosenMateIndex() { return this._chosenMateIndex; }
+	getChosenFoodBitIndex() { return this._chosenFoodBitIndex; }
+	getNumOffspring() { return this._numOffspring; }
+	getNumFoodBitsEaten() { return this._numFoodBitsEaten; }
+	getBrainState() { return this._brain.getState(); }
+	getGenotype() { return this._genotype; }
+	getSelectRadius() { return this._selectRadius; }
+	getPreferredFoodType() { return this._phenotype.preferredFoodType; }
+	getDigestibleFoodType() { return this._phenotype.digestibleFoodType; }
 
-	this.getGoalDescription = function() {
-		let brainState = _brain.getState();
+	getGoalDescription() {
+		let brainState = this._brain.getState();
 
 		if (brainState === BRAIN_STATE_RESTING) { return "resting"; } else if (brainState === BRAIN_STATE_LOOKING_FOR_MATE) { return "looking for mate"; } else if (brainState === BRAIN_STATE_PURSUING_MATE) { return "pursuing mate"; } else if (brainState === BRAIN_STATE_LOOKING_FOR_FOOD) { return "looking for food bit"; } else if (brainState === BRAIN_STATE_PURSUING_FOOD) { return "pursuing food bit"; }
 
 		return "(no goal identified)";
 	}
 
-	this.getAttractionDescription = function() {
-		let a = _brain.getAttractionCriterion();
+	getAttractionDescription() {
+		let a = this._brain.getAttractionCriterion();
 
 		if (a === ATTRACTION_COLORFUL) { return "colorful"; } else if (a === ATTRACTION_BIG) { return "big"; } else if (a === ATTRACTION_HYPER) { return "hyper"; } else if (a === ATTRACTION_LONG) { return "long"; } else if (a === ATTRACTION_STRAIGHT) { return "straight"; } else if (a === ATTRACTION_NO_COLOR) { return "no color"; } else if (a === ATTRACTION_SMALL) { return "small"; } else if (a === ATTRACTION_STILL) { return "still"; } else if (a === ATTRACTION_SHORT) { return "short"; } else if (a === ATTRACTION_CROOKED) { return "crooked"; } else if (a === ATTRACTION_SIMILAR_COLOR) { return "similar color"; } else if (a === ATTRACTION_SIMILAR_SIZE) { return "similar size"; } else if (a === ATTRACTION_SIMILAR_HYPER) { return "similar hyper"; } else if (a === ATTRACTION_SIMILAR_LENGTH) { return "similar length"; } else if (a === ATTRACTION_SIMILAR_STRAIGHT) { return "similar straight"; } else if (a === ATTRACTION_RANDOM) { return "random"; } else if (a === ATTRACTION_CLOSEST) { return "closest"; }
 
@@ -736,68 +729,70 @@ function Swimbot() {
 	}
 
 	// get part parent position
-	this.getPartParentPosition = function(p) {
-		if (_phenotype.parts[p].parent == NULL_PART) {
-			return _position;
+	getPartParentPosition(p) {
+		if (this._phenotype.parts[p].parent == NULL_PART) {
+			return this._position;
 		}
 
-		return _phenotype.parts[_phenotype.parts[p].parent].position;
+		return this._phenotype.parts[this._phenotype.parts[p].parent].position;
 	}
 
 	// eatChosenFoodBit
-	this.eatChosenFoodBit = function() {
-		assert(_chosenFoodBit != null, "Swimbot:eatChosenFoodBit: _chosenFoodBit != null");
-		assert(_chosenFoodBit.getAlive(), "Swimbot:eatChosenFoodBit: _chosenFoodBit.getAlive()");
+	eatChosenFoodBit() {
+		assert(this._chosenFoodBit != null, "Swimbot:eatChosenFoodBit: _chosenFoodBit != null");
+		assert(this._chosenFoodBit.getAlive(), "Swimbot:eatChosenFoodBit: _chosenFoodBit.getAlive()");
 
-		if ((_chosenFoodBit != null) &&
-			(_chosenFoodBit.getAlive())) {
-			let energyFromFoodBit = _chosenFoodBit.getEnergy();
+		if ((this._chosenFoodBit != null) &&
+			(this._chosenFoodBit.getAlive())) {
+			let energyFromFoodBit = this._chosenFoodBit.getEnergy();
 
 			if (globalTweakers.numFoodTypes > 1) {
-				// If the type of the chosen food bit is not compatible with the 
+				// If the type of the chosen food bit is not compatible with the
 				// digestible type of the swimbot, then it gets less energy...
-				if (_chosenFoodBit.getType() != _phenotype.digestibleFoodType) {
+				if (this._chosenFoodBit.getType() != this._phenotype.digestibleFoodType) {
 					energyFromFoodBit *= FOOD_TYPE_OFFSET;
 				}
 			}
 
-			_energy += energyFromFoodBit;
+			this._energy += energyFromFoodBit;
 
-			_numFoodBitsEaten++;
+			this._numFoodBitsEaten++;
 
-			assert(_chosenFoodBit.getEnergy() >= ZERO, "Swimbot:eatChosenFoodBit: _chosenFoodBit.getEnergy() >= ZERO");
+			assert(this._chosenFoodBit.getEnergy() >= ZERO, "Swimbot:eatChosenFoodBit: _chosenFoodBit.getEnergy() >= ZERO");
 
-			_tryingToEat = false;
+			this._tryingToEat = false;
 
-			_timerDelta = ZERO;
+			this._timerDelta = ZERO;
 
-			assert(_chosenFoodBitIndex != NULL_INDEX, "Swimbot:eatChosenFoodBit: _chosenFoodBitIndex != NULL_INDEX");
+			assert(this._chosenFoodBitIndex != NULL_INDEX, "Swimbot:eatChosenFoodBit: _chosenFoodBitIndex != NULL_INDEX");
 
-			_chosenFoodBit.kill();
+			this._chosenFoodBit.kill();
 		}
 
-		return _chosenFoodBitIndex;
+		return this._chosenFoodBitIndex;
 	}
 
 	// setEnvironmentalStimuli
-	this.setEnvironmentalStimuli = function(numNearbySwimbots, nearbySwimbotArray, foodBitWasFound, theFoodBit) {
-		// if looking for a food bit, choose the one that was found
-		_chosenFoodBit = null;
-		_chosenFoodBitIndex = NULL_INDEX;
+	setEnvironmentalStimuli(numNearbySwimbots, nearbySwimbotArray, foodBitWasFound, theFoodBit) {
+		const TOO_UGLY_TO_CHOOSE = ZERO;
 
-		if ((_brain.getState() == BRAIN_STATE_LOOKING_FOR_FOOD) ||
-			(_brain.getState() == BRAIN_STATE_PURSUING_FOOD)) {
-			_brain.setFoundFoodBit(foodBitWasFound);
+		// if looking for a food bit, choose the one that was found
+		this._chosenFoodBit = null;
+		this._chosenFoodBitIndex = NULL_INDEX;
+
+		if ((this._brain.getState() == BRAIN_STATE_LOOKING_FOR_FOOD) ||
+			(this._brain.getState() == BRAIN_STATE_PURSUING_FOOD)) {
+			this._brain.setFoundFoodBit(foodBitWasFound);
 
 			if (foodBitWasFound) {
 				assert(theFoodBit != null, "swimbot.js: setEnvironmentalStimuli: theFoodBit != null");
-				_chosenFoodBit = theFoodBit;
-				_chosenFoodBitIndex = _chosenFoodBit.getIndex();
+				this._chosenFoodBit = theFoodBit;
+				this._chosenFoodBitIndex = this._chosenFoodBit.getIndex();
 			}
 		}
 
 		// if looking for mate, scan the nearby swimbots and choose the most attractive...
-		if (_brain.getState() === BRAIN_STATE_LOOKING_FOR_MATE) {
+		if (this._brain.getState() === BRAIN_STATE_LOOKING_FOR_MATE) {
 			let mostAttractiveFound = new Swimbot;
 			let atLeastOneBabeIsVisible = false;
 			let highestBabeFactor = -100.0;
@@ -817,51 +812,51 @@ function Swimbot() {
 			}
 
 			if (atLeastOneBabeIsVisible) {
-				_chosenMate = mostAttractiveFound;
-				assert(_chosenMate != null, "_chosenMate != null");
+				this._chosenMate = mostAttractiveFound;
+				assert(this._chosenMate != null, "_chosenMate != null");
 
-				_chosenMateIndex = mostAttractiveFound.getIndex();
-				assert(_chosenMateIndex != NULL_INDEX, "_chosenMateIndex != NULL_INDEX");
+				this._chosenMateIndex = mostAttractiveFound.getIndex();
+				assert(this._chosenMateIndex != NULL_INDEX, "_chosenMateIndex != NULL_INDEX");
 
-				_brain.setFoundSwimbot(true);
+				this._brain.setFoundSwimbot(true);
 			} else {
-				_brain.setFoundSwimbot(false);
+				this._brain.setFoundSwimbot(false);
 			}
-		} else if (_brain.getState() == BRAIN_STATE_PURSUING_MATE) {
+		} else if (this._brain.getState() == BRAIN_STATE_PURSUING_MATE) {
 			let ICanStillSeeYou = false;
 
 			for (let o = 0; o < numNearbySwimbots; o++) {
 				let index = nearbySwimbotArray[o].getIndex();
-				if (index === _chosenMateIndex) {
+				if (index === this._chosenMateIndex) {
 					ICanStillSeeYou = true;
-					_chosenMate = nearbySwimbotArray[o];
+					this._chosenMate = nearbySwimbotArray[o];
 				}
 			}
 
 			if (ICanStillSeeYou) {
 
 			} else {
-				_brain.setFoundSwimbot(false);
-				_chosenMate = null;
-				_chosenMateIndex = NULL_INDEX;
+				this._brain.setFoundSwimbot(false);
+				this._chosenMate = null;
+				this._chosenMateIndex = NULL_INDEX;
 			}
 		}
 
 		// reset this to false for next time around
-		_readyforSensoryInputToBrain = false;
+		this._readyforSensoryInputToBrain = false;
 
 	}
 
 	// set attraction
-	this.setAttraction = function(attraction) {
-		_brain.setAttraction(attraction);
+	setAttraction(attraction) {
+		this._brain.setAttraction(attraction);
 	}
 
 	// get attractiveness
-	this.getAttractiveness = function(judge) {
+	getAttractiveness(judge) {
 		let attractiveness = Math.random();
 
-		let attractionCriterion = _brain.getAttractionCriterion();
+		let attractionCriterion = this._brain.getAttractionCriterion();
 
 		if (attractionCriterion === ATTRACTION_COLORFUL) { attractiveness = this.getColorSaturation(); }
 		if (attractionCriterion === ATTRACTION_BIG) { attractiveness = this.getCurrentBodyBigness(); }
@@ -888,23 +883,23 @@ function Swimbot() {
 	}
 
 	// get color saturation
-	this.getColorSaturation = function() {
+	getColorSaturation() {
 		let saturation = ZERO;
 
 		let accumulatedMass = ZERO;
 
-		for (let p = 1; p < _phenotype.numParts; p++) {
-			accumulatedMass += _phenotype.parts[p].mass;
+		for (let p = 1; p < this._phenotype.numParts; p++) {
+			accumulatedMass += this._phenotype.parts[p].mass;
 
-			let rgDiff = Math.abs(_phenotype.parts[p].red - _phenotype.parts[p].green);
-			let rbDiff = Math.abs(_phenotype.parts[p].red - _phenotype.parts[p].blue);
-			let gbDiff = Math.abs(_phenotype.parts[p].green - _phenotype.parts[p].blue);
+			let rgDiff = Math.abs(this._phenotype.parts[p].red - this._phenotype.parts[p].green);
+			let rbDiff = Math.abs(this._phenotype.parts[p].red - this._phenotype.parts[p].blue);
+			let gbDiff = Math.abs(this._phenotype.parts[p].green - this._phenotype.parts[p].blue);
 
 			let thisPartSaturation = (rgDiff + rbDiff + gbDiff) / 3;
 
 			assert(thisPartSaturation <= ONE, "thisPartSaturation <= ONE");
 
-			thisPartSaturation *= _phenotype.parts[p].mass
+			thisPartSaturation *= this._phenotype.parts[p].mass
 
 			saturation += thisPartSaturation;
 		}
@@ -919,10 +914,10 @@ function Swimbot() {
 	}
 
 	// get closeness
-	this.getCloseness = function(judge) {
+	getCloseness(judge) {
 		let closest = SWIMBOT_VIEW_RADIUS; //maximum
 
-		let distance = _position.getDistanceTo(judge.getPosition());
+		let distance = this._position.getDistanceTo(judge.getPosition());
 
 		if (distance < closest) {
 			closest = distance;
@@ -932,7 +927,7 @@ function Swimbot() {
 	}
 
 	// get similarity
-	this.getSimilarity = function(judge) {
+	getSimilarity(judge) {
 		let amount = this.getColorSimilarity(judge) +
 			this.getBignessSimilarity(judge) +
 			this.getHypernessSimilarity(judge) +
@@ -945,7 +940,7 @@ function Swimbot() {
 	}
 
 	// get color similarity
-	this.getColorSimilarity = function(judge) {
+	getColorSimilarity(judge) {
 		let amount = ZERO;
 
 		let c1 = judge.getAverageColor();
@@ -961,7 +956,7 @@ function Swimbot() {
 	}
 
 	// get bigness similarity
-	this.getBignessSimilarity = function(judge) {
+	getBignessSimilarity(judge) {
 		let amount = ZERO;
 
 		let b1 = judge.getCurrentBodyBigness();
@@ -973,7 +968,7 @@ function Swimbot() {
 	}
 
 	// get hyperness similarity
-	this.getHypernessSimilarity = function(judge) {
+	getHypernessSimilarity(judge) {
 		let amount = ZERO;
 
 		let b1 = judge.getCurrentBodyHyperness();
@@ -985,7 +980,7 @@ function Swimbot() {
 	}
 
 	// get length similarity
-	this.getLengthSimilarity = function(judge) {
+	getLengthSimilarity(judge) {
 		let amount = ZERO;
 
 		let b1 = judge.getCurrentBodyLongness();
@@ -997,7 +992,7 @@ function Swimbot() {
 	}
 
 	// get straightness similarity
-	this.getStraightessSimilarity = function(judge) {
+	getStraightessSimilarity(judge) {
 		let amount = ZERO;
 
 		let b1 = judge.getCurrentBodyStraightness();
@@ -1008,19 +1003,19 @@ function Swimbot() {
 		return amount;
 	}
 
-	this.getCurrentBodyBigness = function() {
-		let amount = _phenotype.mass / GREATEST_POSSIBLE_SWIMBOT_MASS;
+	getCurrentBodyBigness() {
+		let amount = this._phenotype.mass / GREATEST_POSSIBLE_SWIMBOT_MASS;
 
 		return amount;
 	}
 
-	this.getCurrentBodyLongness = function() {
+	getCurrentBodyLongness() {
 		let amount = ZERO;
 
-		for (let p = 1; p < _phenotype.numParts; p++) {
-			for (let pp = 1; pp < _phenotype.numParts; pp++) {
+		for (let p = 1; p < this._phenotype.numParts; p++) {
+			for (let pp = 1; pp < this._phenotype.numParts; pp++) {
 				if (pp != p) {
-					let d = _phenotype.parts[p].midPosition.getDistanceTo(_phenotype.parts[pp].midPosition);
+					let d = this._phenotype.parts[p].midPosition.getDistanceTo(this._phenotype.parts[pp].midPosition);
 
 					if (d > amount) {
 						amount = d;
@@ -1034,23 +1029,23 @@ function Swimbot() {
 		return amount;
 	}
 
-	this.getCurrentBodyStraightness = function() {
+	getCurrentBodyStraightness() {
 		let amount = ZERO;
 
 		// normalized vectors for each part axis
-		let v = new Array();
-		for (let p = 1; p < _phenotype.numParts; p++) {
+		let v = [];
+		for (let p = 1; p < this._phenotype.numParts; p++) {
 			v[p] = new Vector2D();
-			v[p].setXY(_phenotype.parts[p].axis.x / _phenotype.parts[p].length, _phenotype.parts[p].axis.y / _phenotype.parts[p].length);
+			v[p].setXY(this._phenotype.parts[p].axis.x / this._phenotype.parts[p].length, this._phenotype.parts[p].axis.y / this._phenotype.parts[p].length);
 		}
 
 		// finding the dot products between each pair of these vectors...
-		if (_phenotype.numParts < 3) {
+		if (this._phenotype.numParts < 3) {
 			amount = ONE;
 		} else {
 			let numTests = 0;
-			for (let p = 1; p < _phenotype.numParts; p++) {
-				for (let pp = p + 1; pp < _phenotype.numParts; pp++) {
+			for (let p = 1; p < this._phenotype.numParts; p++) {
+				for (let pp = p + 1; pp < this._phenotype.numParts; pp++) {
 					numTests++;
 					assert(p != pp, "Swimbot:getCurrentBodyStraightness: p != pp");
 					amount += Math.abs(v[p].dotWith(v[pp]));
@@ -1062,7 +1057,7 @@ function Swimbot() {
 
 		// let's favor swimbots with more parts....
 		amount *= 0.7;
-		amount += (_phenotype.numParts / MAX_PARTS) * 0.3;
+		amount += (this._phenotype.numParts / MAX_PARTS) * 0.3;
 
 		if (amount > ONE) {
 			amount = ONE;
@@ -1071,11 +1066,11 @@ function Swimbot() {
 		return amount;
 	}
 
-	this.getCurrentBodyHyperness = function() {
+	getCurrentBodyHyperness() {
 		let amount = ZERO;
 
-		for (let p = 1; p < _phenotype.numParts; p++) {
-			amount += _phenotype.parts[p].velocity.getMagnitude();
+		for (let p = 1; p < this._phenotype.numParts; p++) {
+			amount += this._phenotype.parts[p].velocity.getMagnitude();
 		}
 
 		let FugdeFactorToScaleHyperAttraction = 0.4;
@@ -1090,18 +1085,18 @@ function Swimbot() {
 	}
 
 	// get average color
-	this.getAverageColor = function() {
+	getAverageColor() {
 		let r = ZERO;
 		let g = ZERO;
 		let b = ZERO;
 		let accumulatedMass = ZERO;
 
-		for (let p = 1; p < _phenotype.numParts; p++) {
-			accumulatedMass += _phenotype.parts[p].mass;
+		for (let p = 1; p < this._phenotype.numParts; p++) {
+			accumulatedMass += this._phenotype.parts[p].mass;
 
-			r += _phenotype.parts[p].red * _phenotype.parts[p].mass;
-			g += _phenotype.parts[p].green * _phenotype.parts[p].mass;
-			b += _phenotype.parts[p].blue * _phenotype.parts[p].mass;
+			r += this._phenotype.parts[p].red * this._phenotype.parts[p].mass;
+			g += this._phenotype.parts[p].green * this._phenotype.parts[p].mass;
+			b += this._phenotype.parts[p].blue * this._phenotype.parts[p].mass;
 		}
 
 		assert(accumulatedMass > ZERO, "getAverageColor: accumulatedMass > ZERO");
@@ -1123,86 +1118,86 @@ function Swimbot() {
 	}
 
 	// die
-	this.die = function() {
-		_alive = false;
+	die() {
+		this._alive = false;
 
-		if (_index != NULL_INDEX) {
+		if (this._index != NULL_INDEX) {
 			// this is used for updating the FamilyTree
-			_parent.notifySwimbotDeathTime(_index);
+			this._parent.notifySwimbotDeathTime(this._index);
 		}
 	}
 
 	// clear all data
-	this.clear = function() {
-		_lastPositionForEfficiencyMeasurement.clear();
-		_genotype.clear();
-		_position.clear();
-		_velocity.clear();
-		_acceleration.clear();
-		_heading.clear();
-		_directionToGoal.clear();
-		_focusDirection.clear();
-		_centerOfMass.clear();
-		_vectorUtility.clear();
+	clear() {
+		this._lastPositionForEfficiencyMeasurement.clear();
+		this._genotype.clear();
+		this._position.clear();
+		this._velocity.clear();
+		this._acceleration.clear();
+		this._heading.clear();
+		this._directionToGoal.clear();
+		this._focusDirection.clear();
+		this._centerOfMass.clear();
+		this._vectorUtility.clear();
 
-		_chosenFoodBit = null;
-		_chosenMate = null;
-		_age = 0;
-		_numOffspring = 0;
-		_numFoodBitsEaten = 0;
-		_index = NULL_INDEX;
-		_chosenMateIndex = NULL_INDEX;
-		_chosenFoodBitIndex = NULL_INDEX;
-		_alive = false;
-		_tryingToMate = false;
-		_tryingToEat = false;
-		_growthScale = ZERO;
-		_torque = ZERO;
-		_angle = ZERO;
-		_spin = ZERO;
-		_energy = ZERO;
-		_timer = ZERO;
-		_timerDelta = ZERO;
-		_energyEfficiency = ZERO;
-		_selectRadius = ZERO;
-		_lastEnergyForEfficiencyMeasurement = ZERO;
-		_readyforSensoryInputToBrain = false;
+		this._chosenFoodBit = null;
+		this._chosenMate = null;
+		this._age = 0;
+		this._numOffspring = 0;
+		this._numFoodBitsEaten = 0;
+		this._index = NULL_INDEX;
+		this._chosenMateIndex = NULL_INDEX;
+		this._chosenFoodBitIndex = NULL_INDEX;
+		this._alive = false;
+		this._tryingToMate = false;
+		this._tryingToEat = false;
+		this._growthScale = ZERO;
+		this._torque = ZERO;
+		this._angle = ZERO;
+		this._spin = ZERO;
+		this._energy = ZERO;
+		this._timer = ZERO;
+		this._timerDelta = ZERO;
+		this._energyEfficiency = ZERO;
+		this._selectRadius = ZERO;
+		this._lastEnergyForEfficiencyMeasurement = ZERO;
+		this._readyforSensoryInputToBrain = false;
 	}
 
 	// contribute to offspring
-	this.contributeToOffspring = function() {
+	contributeToOffspring() {
 
-		let energyToContribute = _energy * globalTweakers.childEnergyRatio;
+		let energyToContribute = this._energy * globalTweakers.childEnergyRatio;
 
-		_energy -= energyToContribute;
+		this._energy -= energyToContribute;
 
-		assert(_energy >= ZERO, "Swimbot: contributeToOffspring: _energy >= ZERO");
+		assert(this._energy >= ZERO, "Swimbot: contributeToOffspring: _energy >= ZERO");
 
-		_numOffspring++;
+		this._numOffspring++;
 
-		_timerDelta = ZERO;
-		_tryingToMate = false;
-		_chosenMate = null;
-		_chosenMateIndex = NULL_INDEX
-		_brain.setFoundSwimbot(false);
+		this._timerDelta = ZERO;
+		this._tryingToMate = false;
+		this._chosenMate = null;
+		this._chosenMateIndex = NULL_INDEX
+		this._brain.setFoundSwimbot(false);
 
 		return energyToContribute;
 	}
 
 	// set rendering goals
-	this.setRenderingGoals = function(r) {
-		_swimbotRenderer.setRenderingGoals(r);
+	setRenderingGoals(r) {
+		this._swimbotRenderer.setRenderingGoals(r);
 	}
 
 	// render
-	this.render = function(levelOfDetail) {
-		_swimbotRenderer.render(
-			_phenotype,
-			_brain,
-			_age,
-			_energy,
-			_growthScale,
-			_focusDirection,
+	render(levelOfDetail) {
+		this._swimbotRenderer.render(
+			this._phenotype,
+			this._brain,
+			this._age,
+			this._energy,
+			this._growthScale,
+			this._focusDirection,
 			levelOfDetail
 		);
 	}

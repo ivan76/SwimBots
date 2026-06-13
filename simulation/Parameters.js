@@ -74,15 +74,17 @@ const SWIMBOT_SELECT_RADIUS_SCALAR = 7.0;
 const RENDER_SWIMBOT_AS_DOT = false;
 const SWIMBOT_DOT_RENDER_RADIUS = 20;
 
-// I'm trying something new here: these are global variables that are 
+// I'm trying something new here: these are global variables that are
 // meant to be adjustible via the ui (and maybe via other components).
-function GlobalTweakers() {
-	this.childEnergyRatio = DEFAULT_CHILD_ENERGY_RATIO;
-	this.maximumLifeSpan = DEFAULT_MAXIMUM_AGE;
-	this.foodSpread = DEFAULT_FOOD_BIT_MAX_SPAWN_RADIUS;
-	this.foodBitEnergy = DEFAULT_FOOD_BIT_ENERGY;
-	this.foodRegenerationPeriod = DEFAULT_FOOD_REGENERATION_PERIOD;
-	this.hungerThreshold = DEFAULT_SWIMBOT_HUNGER_THRESHOLD;
-	this.numFoodTypes = DEFAULT_NUM_FOOD_TYPES;
-	this.attractionCriterion = ATTRACTION_SIMILAR_COLOR;
+class GlobalTweakers {
+	constructor() {
+		this.childEnergyRatio = DEFAULT_CHILD_ENERGY_RATIO;
+		this.maximumLifeSpan = DEFAULT_MAXIMUM_AGE;
+		this.foodSpread = DEFAULT_FOOD_BIT_MAX_SPAWN_RADIUS;
+		this.foodBitEnergy = DEFAULT_FOOD_BIT_ENERGY;
+		this.foodRegenerationPeriod = DEFAULT_FOOD_REGENERATION_PERIOD;
+		this.hungerThreshold = DEFAULT_SWIMBOT_HUNGER_THRESHOLD;
+		this.numFoodTypes = DEFAULT_NUM_FOOD_TYPES;
+		this.attractionCriterion = ATTRACTION_SIMILAR_COLOR;
+	}
 }

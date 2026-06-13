@@ -33,7 +33,7 @@ const ATTRACTION_CLOSEST = 15;
 const ATTRACTION_RANDOM = 16;
 const NUM_ATTRACTIONS = 17;
 
-//  metrics 
+//  metrics
 const SWIMBOT_MIN_MOUTH_WIDTH = 4.0;
 const SWIMBOT_MIN_MOUTH_LENGTH = 8.0;
 const SWIMBOT_MOUTH_LENGTH = 10.0;
@@ -45,61 +45,65 @@ const SWIMBOT_EGG_RADIUS = 6.0;
 
 const WALL_BOUNCE = 0.1;
 
-//  energy 
+//  energy
 const ENERGY_USED_UP_SWIMMING = 0.01;
 const STARVING = 4.0;
 const CONTINUAL_ENERGY_DRAIN = 0.0001;
 
 const ENERGY_EFFICIENCY_MEASUREMENT_PERIOD = 200;
 
-//  Part 
-function Part() {
-	this.category = 0;
-	this.position = new Vector2D(); //dynamic
-	this.velocity = new Vector2D(); //dynamic
-	this.axis = new Vector2D(); //dynamic
-	this.previousMid = new Vector2D(); //dynamic
-	this.midPosition = new Vector2D(); //dynamic
-	this.perpendicular = new Vector2D(); //dynamic
-	this.bendingAngle = ZERO; //dynamic
-	this.currentAngle = ZERO; //dynamic
-	this.parent = NULL_PART;
-	this.child = NULL_PART; // only valid if it is the continuation of a single-category section
-	this.mass = ZERO;
-	this.length = ZERO;
-	this.width = ZERO;
-	this.angle = ZERO;
-	this.frequency = ZERO;
-	this.phase = ZERO;
-	this.amp = ZERO;
-	this.turnAmp = ZERO;
-	this.turnPhase = ZERO;
-	this.momentFactor = ZERO;
-	this.red = ZERO;
-	this.green = ZERO;
-	this.blue = ZERO;
-	this.endCapSpline = ZERO; // how pointy the splined end-cap is for parts that terminate body sequence
-	this.branch = false; // set to true if this part branches off (not a continuation of a category)
-	this.splined = false;
-	this.numDecendents = 0;
-	this.decendent = new Array(MAX_PARTS);
+//  Part
+class Part {
+    constructor() {
+        this.category = 0;
+        this.position = new Vector2D(); //dynamic
+        this.velocity = new Vector2D(); //dynamic
+        this.axis = new Vector2D(); //dynamic
+        this.previousMid = new Vector2D(); //dynamic
+        this.midPosition = new Vector2D(); //dynamic
+        this.perpendicular = new Vector2D(); //dynamic
+        this.bendingAngle = ZERO; //dynamic
+        this.currentAngle = ZERO; //dynamic
+        this.parent = NULL_PART;
+        this.child = NULL_PART; // only valid if it is the continuation of a single-category section
+        this.mass = ZERO;
+        this.length = ZERO;
+        this.width = ZERO;
+        this.angle = ZERO;
+        this.frequency = ZERO;
+        this.phase = ZERO;
+        this.amp = ZERO;
+        this.turnAmp = ZERO;
+        this.turnPhase = ZERO;
+        this.momentFactor = ZERO;
+        this.red = ZERO;
+        this.green = ZERO;
+        this.blue = ZERO;
+        this.endCapSpline = ZERO; // how pointy the splined end-cap is for parts that terminate body sequence
+        this.branch = false; // set to true if this part branches off (not a continuation of a category)
+        this.splined = false;
+        this.numDecendents = 0;
+        this.decendent = Array(MAX_PARTS);
 
-	for (let p = 0; p < MAX_PARTS; p++) {
-		this.decendent[p] = 0;
-	}
+        for (let p = 0; p < MAX_PARTS; p++) {
+            this.decendent[p] = 0;
+        }
+    }
 }
 
-//  Phenotype 
-function Phenotype() {
-	this.numParts = 0;
-	this.frequency = ZERO;
-	this.parts = new Array(MAX_PARTS);
-	this.sumPartLengths = ZERO;
-	this.mass = ZERO;
-	this.preferredFoodType = 0;
-	this.digestibleFoodType = 0;
+//  Phenotype
+class Phenotype {
+    constructor() {
+        this.numParts = 0;
+        this.frequency = ZERO;
+        this.parts = Array(MAX_PARTS);
+        this.sumPartLengths = ZERO;
+        this.mass = ZERO;
+        this.preferredFoodType = 0;
+        this.digestibleFoodType = 0;
 
-	for (let p = 0; p < MAX_PARTS; p++) {
-		this.parts[p] = new Part();
-	}
+        for (let p = 0; p < MAX_PARTS; p++) {
+            this.parts[p] = new Part();
+        }
+    }
 }

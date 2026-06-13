@@ -1,190 +1,188 @@
 "use strict";
 
-function Camera() {
-	const FRICTION = 8.0;
-	const BUTTON_FORCE = 0.3;
-	const DRAG_FORCE = 0.03;
-	const PAN_OVERSHOOT_PUSH = 0.7;
-	const SCALE_OVERSHOOT_PUSH = 0.7;
-	const MINIMUM_SCALE = 500.0;
+const FRICTION = 8.0;
+const BUTTON_FORCE = 0.3;
+const DRAG_FORCE = 0.03;
+const PAN_OVERSHOOT_PUSH = 0.7;
+const SCALE_OVERSHOOT_PUSH = 0.7;
+const MINIMUM_SCALE = 500.0;
 
-	// members
-	let _position = new Vector2D();
-	let _velocity = new Vector2D();
-	let _vectorUtility = new Vector2D();
-	let _scaleDelta = ZERO;
-	let _scale = ONE;
-	let _aspectRatio = ONE;
-	let _left = ZERO;
-	let _right = ZERO;
-	let _top = ZERO;
-	let _bottom = ZERO;
-	let _seconds = ZERO;
-	let _secondsDelta = ZERO;
+class Camera {
+	constructor() {
+		this._position = new Vector2D();
+		this._velocity = new Vector2D();
+		this._vectorUtility = new Vector2D();
+		this._scaleDelta = ZERO;
+		this._scale = ONE;
+		this._aspectRatio = ONE;
+		this._left = ZERO;
+		this._right = ZERO;
+		this._top = ZERO;
+		this._bottom = ZERO;
+		this._seconds = ZERO;
+		this._secondsDelta = ZERO;
+	}
 
-	this.update = function(seconds) {
+	update(seconds) {
 		// friction
-		let f = ONE - FRICTION * _secondsDelta;
+		let f = ONE - FRICTION * this._secondsDelta;
 
 		if (f < ZERO) {
-			_velocity.clear();
-			_scaleDelta = ZERO;
+			this._velocity.clear();
+			this._scaleDelta = ZERO;
 		} else if (f < ONE) {
-			_velocity.scale(f);
-			_scaleDelta *= (f);
+			this._velocity.scale(f);
+			this._scaleDelta *= (f);
 		}
 
 		// update position and scale
-		_position.add(_velocity);
-		_scale += _scaleDelta;
+		this._position.add(this._velocity);
+		this._scale += this._scaleDelta;
 
 		// calculate frame
-		calculateFrame();
+		this._calculateFrame();
 
 		// apply constraints
-		applyConstraints();
+		this._applyConstraints();
 
 		// update seconds
-		_secondsDelta = seconds - _seconds;
-		_seconds = seconds;
+		this._secondsDelta = seconds - this._seconds;
+		this._seconds = seconds;
 	}
 
-	this.addForce = function(force, scaleForce) {
-		_velocity.x = force.x;
-		_velocity.y = force.y;
-		_scaleDelta = scaleForce;
+	addForce(force, scaleForce) {
+		this._velocity.x = force.x;
+		this._velocity.y = force.y;
+		this._scaleDelta = scaleForce;
 	}
 
-	this.setAspectRatio = function(a) {
-		_aspectRatio = a;
+	setAspectRatio(a) {
+		this._aspectRatio = a;
 
 		// important
-		calculateFrame();
+		this._calculateFrame();
 
 		// apply constraints
-		applyConstraints();
+		this._applyConstraints();
 	}
 
-	function calculateFrame() {
-		_right = _position.x + _scale * ONE_HALF * _aspectRatio;
-		_left = _position.x - _scale * ONE_HALF * _aspectRatio;
+	_calculateFrame() {
+		this._right = this._position.x + this._scale * ONE_HALF * this._aspectRatio;
+		this._left = this._position.x - this._scale * ONE_HALF * this._aspectRatio;
 
-		_top = _position.y + _scale * ONE_HALF;
-		_bottom = _position.y - _scale * ONE_HALF;
+		this._top = this._position.y + this._scale * ONE_HALF;
+		this._bottom = this._position.y - this._scale * ONE_HALF;
 	}
 
-	function applyConstraints() {
-		let scaleOvershoot = _scale - (POOL_RIGHT - POOL_LEFT);
+	_applyConstraints() {
+		let scaleOvershoot = this._scale - (POOL_RIGHT - POOL_LEFT);
 		if (scaleOvershoot > ZERO) {
-			_scale -= scaleOvershoot * SCALE_OVERSHOOT_PUSH;
+			this._scale -= scaleOvershoot * SCALE_OVERSHOOT_PUSH;
 		}
 
-		let scaleUndershoot = _scale - MINIMUM_SCALE;
+		let scaleUndershoot = this._scale - MINIMUM_SCALE;
 		if (scaleUndershoot < ZERO) {
-			_scale -= scaleUndershoot * SCALE_OVERSHOOT_PUSH;
+			this._scale -= scaleUndershoot * SCALE_OVERSHOOT_PUSH;
 		}
 
-		let rightOverShoot = _right - POOL_RIGHT;
-		let leftOverShoot = _left + POOL_LEFT;
-		let topOverShoot = _top - POOL_BOTTOM;
-		let bottomOverShoot = _bottom + POOL_TOP;
+		let rightOverShoot = this._right - POOL_RIGHT;
+		let leftOverShoot = this._left + POOL_LEFT;
+		let topOverShoot = this._top - POOL_BOTTOM;
+		let bottomOverShoot = this._bottom + POOL_TOP;
 
 		if (rightOverShoot > ZERO) {
-			_position.x -= rightOverShoot * PAN_OVERSHOOT_PUSH;
-			calculateFrame();
+			this._position.x -= rightOverShoot * PAN_OVERSHOOT_PUSH;
+			this._calculateFrame();
 		}
 		if (leftOverShoot < ZERO) {
-			_position.x -= leftOverShoot * PAN_OVERSHOOT_PUSH;
-			calculateFrame();
+			this._position.x -= leftOverShoot * PAN_OVERSHOOT_PUSH;
+			this._calculateFrame();
 		}
 
 		if (topOverShoot > ZERO) {
-			_position.y -= topOverShoot * PAN_OVERSHOOT_PUSH;
-			calculateFrame();
+			this._position.y -= topOverShoot * PAN_OVERSHOOT_PUSH;
+			this._calculateFrame();
 		}
 		if (bottomOverShoot < ZERO) {
-			_position.y -= bottomOverShoot * PAN_OVERSHOOT_PUSH;
-			calculateFrame();
+			this._position.y -= bottomOverShoot * PAN_OVERSHOOT_PUSH;
+			this._calculateFrame();
 		}
 	}
 
 	// controls
-	this.panLeft = function() { _velocity.x -= _scale * BUTTON_FORCE * _secondsDelta; }
-	this.panRight = function() { _velocity.x += _scale * BUTTON_FORCE * _secondsDelta; }
-	this.panDown = function() { _velocity.y += _scale * BUTTON_FORCE * _secondsDelta; }
-	this.panUp = function() { _velocity.y -= _scale * BUTTON_FORCE * _secondsDelta; }
-	this.zoomIn = function() { _scaleDelta -= _scale * BUTTON_FORCE * _secondsDelta; }
-	this.zoomOut = function() { _scaleDelta += _scale * BUTTON_FORCE * _secondsDelta; }
+	panLeft() { this._velocity.x -= this._scale * BUTTON_FORCE * this._secondsDelta; }
+	panRight() { this._velocity.x += this._scale * BUTTON_FORCE * this._secondsDelta; }
+	panDown() { this._velocity.y += this._scale * BUTTON_FORCE * this._secondsDelta; }
+	panUp() { this._velocity.y -= this._scale * BUTTON_FORCE * this._secondsDelta; }
+	zoomIn() { this._scaleDelta -= this._scale * BUTTON_FORCE * this._secondsDelta; }
+	zoomOut() { this._scaleDelta += this._scale * BUTTON_FORCE * this._secondsDelta; }
 
-	this.drag = function(x, y) {
-		_velocity.x -= x * _scale * DRAG_FORCE * _secondsDelta;
-		_velocity.y -= y * _scale * DRAG_FORCE * _secondsDelta;
+	drag(x, y) {
+		this._velocity.x -= x * this._scale * DRAG_FORCE * this._secondsDelta;
+		this._velocity.y -= y * this._scale * DRAG_FORCE * this._secondsDelta;
 
-		// as the scale approaches the whole pool, the drag gets 
+		// as the scale approaches the whole pool, the drag gets
 		// more dampened, until it is fully dampened at the limit.
 		let limit = POOL_WIDTH * 0.4;
 
-		if (_scale > limit) {
-			if (_scale > POOL_WIDTH) {
-				_scale = POOL_WIDTH;
+		if (this._scale > limit) {
+			if (this._scale > POOL_WIDTH) {
+				this._scale = POOL_WIDTH;
 			}
-			let dampening = ONE - ((_scale - limit) / (POOL_WIDTH - limit));
+			let dampening = ONE - ((this._scale - limit) / (POOL_WIDTH - limit));
 
-			_velocity.x *= dampening;
-			_velocity.y *= dampening;
+			this._velocity.x *= dampening;
+			this._velocity.y *= dampening;
 		}
 	}
 
-	this.setPosition = function(position) {
-		_position.copyFrom(position);
-		_velocity.clear();
+	setPosition(position) {
+		this._position.copyFrom(position);
+		this._velocity.clear();
 
 		// important
-		calculateFrame();
+		this._calculateFrame();
 	}
 
-	this.setScale = function(scale) {
-		_scale = scale;
-		_scaleDelta = ZERO;
+	setScale(scale) {
+		this._scale = scale;
+		this._scaleDelta = ZERO;
 
 		// important
-		calculateFrame();
+		this._calculateFrame();
 	}
 
-	this.setScaleToMax = function() {
-		_scale = POOL_RIGHT - POOL_LEFT;
-		_scaleDelta = ZERO;
-		_position.setXY(POOL_LEFT + _scale * ONE_HALF, POOL_TOP + _scale * ONE_HALF);
-		_velocity.clear()
+	setScaleToMax() {
+		this._scale = POOL_RIGHT - POOL_LEFT;
+		this._scaleDelta = ZERO;
+		this._position.setXY(POOL_LEFT + this._scale * ONE_HALF, POOL_TOP + this._scale * ONE_HALF);
+		this._velocity.clear()
 
 		// important
-		calculateFrame();
+		this._calculateFrame();
 	}
 
-	this.getPosition = function() {
-		_vectorUtility.x = _position.x;
-		_vectorUtility.y = _position.y;
-
-		return _vectorUtility;
+	getPosition() {
+		return { x: this._position.x, y: this._position.y };
 	}
 
-	this.getScale = function() {
-		return _scale;
+	getScale() {
+		return this._scale;
 	}
 
-	this.getXDimension = function() {
-		return _scale * _aspectRatio;
+	getXDimension() {
+		return this._scale * this._aspectRatio;
 	}
 
-	this.getYDimension = function() {
-		return _scale;
+	getYDimension() {
+		return this._scale;
 	}
 
-	this.getWithinView = function(position, buffer) {
-		if ((position.x < _right + buffer) &&
-			(position.x > _left - buffer) &&
-			(position.y < _top + buffer) &&
-			(position.y > _bottom - buffer)) {
+	getWithinView(position, buffer) {
+		if ((position.x < this._right + buffer) &&
+			(position.x > this._left - buffer) &&
+			(position.y < this._top + buffer) &&
+			(position.y > this._bottom - buffer)) {
 			return true;
 		}
 

@@ -1,54 +1,51 @@
 "use strict";
 
-function SwimbotRenderer() {
+class SwimbotRenderer {
 
-	let flopperX = 0;
-	let flopperY = 0;
-	let flopperXV = 0;
-	let flopperYV = 0;
+	//  colors
+	static COLOR_WHITENESS = 0.4;
+	static DEAD_COLOR_RED = 0.2;
+	static DEAD_COLOR_GREEN = 0.25;
+	static DEAD_COLOR_BLUE = 0.3;
+	static ROLLOVER_COLOR = "rgba( 180, 190, 200, 0.7 )";
+	static SELECT_COLOR = "rgba( 255, 255, 255, 0.8 )";
+	static OUTLINE_COLOR = "rgba( 0, 0, 0, 0.4 )";
 
-	//  colors 
-	const COLOR_WHITENESS = 0.4;
-	const DEAD_COLOR_RED = 0.2;
-	const DEAD_COLOR_GREEN = 0.25;
-	const DEAD_COLOR_BLUE = 0.3;
-	const ROLLOVER_COLOR = "rgba( 180, 190, 200, 0.7 )";
-	const SELECT_COLOR = "rgba( 255, 255, 255, 0.8 )";
-	const OUTLINE_COLOR = "rgba( 0, 0, 0, 0.4 )";
+	//  spline
+	static DEFAULT_SPLINE_FACTOR = 0.4;
 
-	//  spline 
-	const DEFAULT_SPLINE_FACTOR = 0.4;
+	//  egg size
+	static EGG_SIZE = 5.0;
 
-	//  egg size 
-	const EGG_SIZE = 5.0;
-
-	// variables
-	let _colorUtility = new Color();
-	let _phenotype = new Phenotype();
-	let _growthScale = ZERO;
-	let _focusDirection = new Vector2D();
-	let _brain = new Brain();
-	let _age = 1000;
-	let _energy = ZERO;
-	let _splineFactor = ZERO;
-	let _renderingGenitalsAndMouths = false;
+	constructor() {
+		// variables
+		this._colorUtility = new Color();
+		this._phenotype = new Phenotype();
+		this._growthScale = ZERO;
+		this._focusDirection = new Vector2D();
+		this._brain = new Brain();
+		this._age = 1000;
+		this._energy = ZERO;
+		this._splineFactor = ZERO;
+		this._renderingGenitalsAndMouths = false;
+	}
 
 	// get part parent position
-	this.getPartParentPosition = function(p) {
-		if (_phenotype.parts[p].parent == NULL_PART) {
-			return _phenotype.parts[0].position;
+	getPartParentPosition(p) {
+		if (this._phenotype.parts[p].parent == NULL_PART) {
+			return this._phenotype.parts[0].position;
 		}
 
-		return _phenotype.parts[_phenotype.parts[p].parent].position;
+		return this._phenotype.parts[this._phenotype.parts[p].parent].position;
 	}
 
 	// set rendering goals
-	this.setRenderingGoals = function(r) {
-		_renderingGenitalsAndMouths = r;
+	setRenderingGoals(r) {
+		this._renderingGenitalsAndMouths = r;
 	}
 
 	// render
-	this.render = function(
+	render(
 		phenotype,
 		brain,
 		age,
@@ -57,53 +54,53 @@ function SwimbotRenderer() {
 		focusDirection,
 		levelOfDetail
 	) {
-		_phenotype = phenotype;
-		_brain = brain;
-		_age = age;
-		_energy = energy;
-		_growthScale = growthScale;
-		_focusDirection = focusDirection;
+		this._phenotype = phenotype;
+		this._brain = brain;
+		this._age = age;
+		this._energy = energy;
+		this._growthScale = growthScale;
+		this._focusDirection = focusDirection;
 
 		if (levelOfDetail == SWIMBOT_LEVEL_OF_DETAIL_DOT) {
 			let p = 1;
 
-			_colorUtility = this.calculatePartColor(p);
+			this._colorUtility = this.calculatePartColor(p);
 
-			let red = Math.floor(_colorUtility.red * 255);
-			let green = Math.floor(_colorUtility.green * 255);
-			let blue = Math.floor(_colorUtility.blue * 255);
+			let red = Math.floor(this._colorUtility.red * 255);
+			let green = Math.floor(this._colorUtility.green * 255);
+			let blue = Math.floor(this._colorUtility.blue * 255);
 
 			canvas.fillStyle = "rgb( " + red + ", " + green + ", " + blue + " )";
 
 			canvas.beginPath();
-			canvas.arc(_phenotype.parts[p].position.x, _phenotype.parts[p].position.y, SWIMBOT_DOT_RENDER_RADIUS, 0, PI2, false);
+			canvas.arc(this._phenotype.parts[p].position.x, this._phenotype.parts[p].position.y, SWIMBOT_DOT_RENDER_RADIUS, 0, PI2, false);
 			canvas.fill();
 			canvas.closePath();
 		} else if (levelOfDetail == SWIMBOT_LEVEL_OF_DETAIL_LOW) {
-			for (let p = 1; p < _phenotype.numParts; p++) {
+			for (let p = 1; p < this._phenotype.numParts; p++) {
 				let parentPosition = this.getPartParentPosition(p);
 
-				_colorUtility = this.calculatePartColor(p);
-				let red = Math.floor(_colorUtility.red * 255);
-				let green = Math.floor(_colorUtility.green * 255);
-				let blue = Math.floor(_colorUtility.blue * 255);
+				this._colorUtility = this.calculatePartColor(p);
+				let red = Math.floor(this._colorUtility.red * 255);
+				let green = Math.floor(this._colorUtility.green * 255);
+				let blue = Math.floor(this._colorUtility.blue * 255);
 
 				canvas.strokeStyle = "rgb( " + red + ", " + green + ", " + blue + " )";
-				canvas.lineWidth = _phenotype.parts[p].width * 2.0;
+				canvas.lineWidth = this._phenotype.parts[p].width * 2.0;
 
 				canvas.beginPath();
 				canvas.moveTo(parentPosition.x, parentPosition.y);
-				canvas.lineTo(_phenotype.parts[p].position.x, _phenotype.parts[p].position.y);
+				canvas.lineTo(this._phenotype.parts[p].position.x, this._phenotype.parts[p].position.y);
 				canvas.closePath();
 				canvas.stroke();
 			}
 		} else if (levelOfDetail == SWIMBOT_LEVEL_OF_DETAIL_HIGH) {
-			for (let p = 1; p < _phenotype.numParts; p++) {
-				if (_phenotype.parts[p].length > ZERO) {
+			for (let p = 1; p < this._phenotype.numParts; p++) {
+				if (this._phenotype.parts[p].length > ZERO) {
 					// render the part
-					_splineFactor = DEFAULT_SPLINE_FACTOR;
+					this._splineFactor = SwimbotRenderer.DEFAULT_SPLINE_FACTOR;
 
-					if (_phenotype.parts[p].splined) {
+					if (this._phenotype.parts[p].splined) {
 						this.renderPartSplined(p);
 					} else {
 						this.renderPartNormal(p);
@@ -111,9 +108,9 @@ function SwimbotRenderer() {
 
 					// if p is mouth part, render mouth!
 					if (p === 1) {
-						if (_renderingGenitalsAndMouths) {
-							if ((_brain.getState() == BRAIN_STATE_LOOKING_FOR_FOOD) ||
-								(_brain.getState() == BRAIN_STATE_PURSUING_FOOD)) {
+						if (this._renderingGenitalsAndMouths) {
+							if ((this._brain.getState() == BRAIN_STATE_LOOKING_FOR_FOOD) ||
+								(this._brain.getState() == BRAIN_STATE_PURSUING_FOOD)) {
 								this.renderMouth();
 							}
 						}
@@ -122,10 +119,10 @@ function SwimbotRenderer() {
 			}
 		}
 
-		if (_renderingGenitalsAndMouths) {
+		if (this._renderingGenitalsAndMouths) {
 			// render genital!
-			if ((_brain.getState() == BRAIN_STATE_LOOKING_FOR_MATE) ||
-				(_brain.getState() == BRAIN_STATE_PURSUING_MATE)) {
+			if ((this._brain.getState() == BRAIN_STATE_LOOKING_FOR_MATE) ||
+				(this._brain.getState() == BRAIN_STATE_PURSUING_MATE)) {
 				this.renderGenital();
 			}
 		}
@@ -133,38 +130,41 @@ function SwimbotRenderer() {
 	}
 
 	// render part normal (not splined)
-	this.renderPartNormal = function(p) {
-		let width = _phenotype.parts[p].width;
-		let position = _phenotype.parts[p].position;
+	// Sprite cache disabled: original geometry uses a parallelogram with separate
+	// outlines that must align perfectly between adjacent parts.
+	// Pre-rendered sprites bake outlines into the image, causing visible gaps/artifacts.
+	renderPartNormal(p) {
+		this._renderPartNormalFallback(p);
+	}
+
+	// fallback: original vector-based rendering (if sprite cache misses)
+	_renderPartNormalFallback(p) {
+		let width = this._phenotype.parts[p].width;
+		let position = this._phenotype.parts[p].position;
 		let parentPosition = this.getPartParentPosition(p);
 
-		// baby growing...
-		if (_growthScale < ONE) {
-			width = width * _growthScale + EGG_SIZE * (ONE - _growthScale);
+		if (this._growthScale < ONE) {
+			width = width * this._growthScale + SwimbotRenderer.EGG_SIZE * (ONE - this._growthScale);
 		}
 
-		let pp0x = _phenotype.parts[p].perpendicular.x * width;
-		let pp0y = _phenotype.parts[p].perpendicular.y * width;
-
-		let pp1x = _phenotype.parts[p].perpendicular.x * width;
-		let pp1y = _phenotype.parts[p].perpendicular.y * width;
+		let pp0x = this._phenotype.parts[p].perpendicular.x * width;
+		let pp0y = this._phenotype.parts[p].perpendicular.y * width;
+		let pp1x = this._phenotype.parts[p].perpendicular.x * width;
+		let pp1y = this._phenotype.parts[p].perpendicular.y * width;
 
 		let x0 = parentPosition.x - pp1x;
 		let y0 = parentPosition.y - pp1y;
-
 		let x1 = parentPosition.x + pp1x;
 		let y1 = parentPosition.y + pp1y;
-
 		let x2 = position.x + pp0x;
 		let y2 = position.y + pp0y;
-
 		let x3 = position.x - pp0x;
 		let y3 = position.y - pp0y;
 
-		_colorUtility = this.calculatePartColor(p);
-		let red = Math.floor(_colorUtility.red * 255);
-		let green = Math.floor(_colorUtility.green * 255);
-		let blue = Math.floor(_colorUtility.blue * 255);
+		this._colorUtility = this.calculatePartColor(p);
+		let red = Math.floor(this._colorUtility.red * 255);
+		let green = Math.floor(this._colorUtility.green * 255);
+		let blue = Math.floor(this._colorUtility.blue * 255);
 
 		canvas.fillStyle = "rgb( " + red + ", " + green + ", " + blue + " )";
 
@@ -177,28 +177,23 @@ function SwimbotRenderer() {
 		canvas.fill();
 
 		let radius = width;
-
 		canvas.beginPath();
 		canvas.arc(position.x, position.y, radius, 0, PI2, false);
 		canvas.fill();
 		canvas.closePath();
-
 		canvas.beginPath();
 		canvas.arc(parentPosition.x, parentPosition.y, radius, 0, PI2, false);
 		canvas.fill();
 		canvas.closePath();
 
-		// outline
 		canvas.lineWidth = 1.0;
-		canvas.strokeStyle = OUTLINE_COLOR
+		canvas.strokeStyle = SwimbotRenderer.OUTLINE_COLOR;
 
-		let radian = _phenotype.parts[p].currentAngle * PI_OVER_180;
-
+		let radian = this._phenotype.parts[p].currentAngle * PI_OVER_180;
 		canvas.beginPath();
 		canvas.arc(parentPosition.x, parentPosition.y, radius, Math.PI - radian, Math.PI - radian + Math.PI, false);
 		canvas.stroke();
 		canvas.closePath();
-
 		canvas.beginPath();
 		canvas.moveTo(x1, y1);
 		canvas.lineTo(x2, y2);
@@ -209,61 +204,57 @@ function SwimbotRenderer() {
 		canvas.closePath();
 	}
 
-	// render part splined 
-	this.renderPartSplined = function(p) {
-		let parentIndex = _phenotype.parts[p].parent;
-		let position = _phenotype.parts[p].position;
-		let parentPosition = this.getPartParentPosition(p);
-		let width = _phenotype.parts[p].width;
-		let parentWidth = _phenotype.parts[parentIndex].width;
+	// render part splined — always uses vector fallback (geometry depends on neighbor angles)
+	renderPartSplined(p) {
+		this._renderPartSplinedFallback(p);
+	}
 
-		// baby growing...
-		if (_growthScale < ONE) {
-			width = width * _growthScale + EGG_SIZE * (ONE - _growthScale);
-			parentWidth = parentWidth * _growthScale + EGG_SIZE * (ONE - _growthScale);
+	// fallback: original vector-based splined rendering
+	_renderPartSplinedFallback(p) {
+		let parentIndex = this._phenotype.parts[p].parent;
+		let position = this._phenotype.parts[p].position;
+		let parentPosition = this.getPartParentPosition(p);
+		let width = this._phenotype.parts[p].width;
+		let parentWidth = this._phenotype.parts[parentIndex].width;
+
+		if (this._growthScale < ONE) {
+			width = width * this._growthScale + SwimbotRenderer.EGG_SIZE * (ONE - this._growthScale);
+			parentWidth = parentWidth * this._growthScale + SwimbotRenderer.EGG_SIZE * (ONE - this._growthScale);
 		}
 
-		let perpStartX = _phenotype.parts[p].perpendicular.x;
-		let perpStartY = _phenotype.parts[p].perpendicular.y;
-		let perpEndX = _phenotype.parts[p].perpendicular.x;
-		let perpEndY = _phenotype.parts[p].perpendicular.y;
+		let perpStartX = this._phenotype.parts[p].perpendicular.x;
+		let perpStartY = this._phenotype.parts[p].perpendicular.y;
+		let perpEndX = this._phenotype.parts[p].perpendicular.x;
+		let perpEndY = this._phenotype.parts[p].perpendicular.y;
 
-		let controlVectorLength = _phenotype.parts[p].length * _splineFactor;
+		let controlVectorLength = this._phenotype.parts[p].length * this._splineFactor;
 
-		// blend the two perpendiculars to represent the perpendicular of the joint
-		if ((p > 1) && (!_phenotype.parts[p].branch)) {
-			perpStartX += _phenotype.parts[parentIndex].perpendicular.x;
-			perpStartY += _phenotype.parts[parentIndex].perpendicular.y;
-
+		if ((p > 1) && (!this._phenotype.parts[p].branch)) {
+			perpStartX += this._phenotype.parts[parentIndex].perpendicular.x;
+			perpStartY += this._phenotype.parts[parentIndex].perpendicular.y;
 			let length = Math.sqrt(perpStartX * perpStartX + perpStartY * perpStartY);
 			perpStartX /= length;
 			perpStartY /= length;
 		}
 
-
-		if (_phenotype.parts[p].child != NULL_INDEX) {
-			perpEndX += _phenotype.parts[_phenotype.parts[p].child].perpendicular.x;
-			perpEndY += _phenotype.parts[_phenotype.parts[p].child].perpendicular.y;
-
+		if (this._phenotype.parts[p].child != NULL_INDEX) {
+			perpEndX += this._phenotype.parts[this._phenotype.parts[p].child].perpendicular.x;
+			perpEndY += this._phenotype.parts[this._phenotype.parts[p].child].perpendicular.y;
 			let length = Math.sqrt(perpEndX * perpEndX + perpEndY * perpEndY);
 			perpEndX /= length;
 			perpEndY /= length;
 		}
 
-		// determine the two control vectors
 		let control1DirectionX = -perpStartY;
 		let control1DirectionY = perpStartX;
-
 		let control2DirectionX = perpEndY;
 		let control2DirectionY = -perpEndX;
 
 		let control1VectorX = control1DirectionX * controlVectorLength;
 		let control1VectorY = control1DirectionY * controlVectorLength;
-
 		let control2VectorX = control2DirectionX * controlVectorLength;
 		let control2VectorY = control2DirectionY * controlVectorLength;
 
-		// scale the two perpendiculars
 		perpEndX *= width;
 		perpEndY *= width;
 
@@ -275,7 +266,6 @@ function SwimbotRenderer() {
 			perpStartY *= parentWidth;
 		}
 
-		// create the start and end points and the control points for the Bezier curve...
 		let startLeftX = parentPosition.x - perpStartX;
 		let startLeftY = parentPosition.y - perpStartY;
 		let startRightX = parentPosition.x + perpStartX;
@@ -298,47 +288,39 @@ function SwimbotRenderer() {
 		let control2RightX = position.x + perpEndX + control2VectorX;
 		let control2RightY = position.y + perpEndY + control2VectorY;
 
-		// get color
-		_colorUtility = this.calculatePartColor(p);
-		let red = Math.floor(_colorUtility.red * 255);
-		let green = Math.floor(_colorUtility.green * 255);
-		let blue = Math.floor(_colorUtility.blue * 255);
+		this._colorUtility = this.calculatePartColor(p);
+		let red = Math.floor(this._colorUtility.red * 255);
+		let green = Math.floor(this._colorUtility.green * 255);
+		let blue = Math.floor(this._colorUtility.blue * 255);
 
 		canvas.fillStyle = "rgb( " + red + ", " + green + ", " + blue + " )";
-		canvas.strokeStyle = OUTLINE_COLOR;
+		canvas.strokeStyle = SwimbotRenderer.OUTLINE_COLOR;
 
-		// the beginning of a series of parts
 		if (p === 1) {
 			canvas.beginPath();
-			canvas.arc(_phenotype.parts[parentIndex].position.x, _phenotype.parts[parentIndex].position.y, width, 0, PI2, false);
+			canvas.arc(this._phenotype.parts[parentIndex].position.x, this._phenotype.parts[parentIndex].position.y, width, 0, PI2, false);
 			canvas.fill();
 			canvas.closePath();
 
-			let radian = _phenotype.parts[parentIndex].currentAngle * PI_OVER_180;
-
+			let radian = this._phenotype.parts[parentIndex].currentAngle * PI_OVER_180;
 			canvas.beginPath();
 			canvas.arc(
-				_phenotype.parts[parentIndex].position.x,
-				_phenotype.parts[parentIndex].position.y,
+				this._phenotype.parts[parentIndex].position.x,
+				this._phenotype.parts[parentIndex].position.y,
 				width,
-
 				Math.PI - radian,
 				Math.PI - radian + Math.PI,
-
 				false
 			);
-
 			canvas.stroke();
 			canvas.closePath();
 		}
 
-		// a terminating end part
-		if (_phenotype.parts[p].child === NULL_INDEX) {
-			let s = width * _phenotype.parts[p].endCapSpline;
+		if (this._phenotype.parts[p].child === NULL_INDEX) {
+			let s = width * this._phenotype.parts[p].endCapSpline;
 			let f = -1.0;
-
-			let axisNormalX = _phenotype.parts[p].axis.x / _phenotype.parts[p].length;
-			let axisNormalY = _phenotype.parts[p].axis.y / _phenotype.parts[p].length;
+			let axisNormalX = this._phenotype.parts[p].axis.x / this._phenotype.parts[p].length;
+			let axisNormalY = this._phenotype.parts[p].axis.y / this._phenotype.parts[p].length;
 
 			let startx = endLeftX + axisNormalX * f;
 			let starty = endLeftY + axisNormalY * f;
@@ -360,7 +342,6 @@ function SwimbotRenderer() {
 			canvas.stroke();
 		}
 
-		// fill interior
 		canvas.beginPath();
 		canvas.moveTo(startLeftX, startLeftY);
 		canvas.bezierCurveTo(control1LeftX, control1LeftY, control2LeftX, control2LeftY, endLeftX, endLeftY);
@@ -375,7 +356,6 @@ function SwimbotRenderer() {
 		canvas.fill();
 		canvas.closePath();
 
-		// draw outline
 		canvas.lineWidth = 1.0;
 		canvas.beginPath();
 		canvas.moveTo(startLeftX, startLeftY);
@@ -386,33 +366,33 @@ function SwimbotRenderer() {
 		canvas.closePath();
 	}
 
-	// calculate part color 
-	this.calculatePartColor = function(p) {
-		_colorUtility.red = _phenotype.parts[p].red;
-		_colorUtility.green = _phenotype.parts[p].green;
-		_colorUtility.blue = _phenotype.parts[p].blue;
+	// calculate part color
+	calculatePartColor(p) {
+		this._colorUtility.red = this._phenotype.parts[p].red;
+		this._colorUtility.green = this._phenotype.parts[p].green;
+		this._colorUtility.blue = this._phenotype.parts[p].blue;
 
-		if (_age < globalTweakers.maximumLifeSpan - OLD_AGE_DURATION) {
-			if (_age < YOUNG_AGE_DURATION) {
+		if (this._age < globalTweakers.maximumLifeSpan - OLD_AGE_DURATION) {
+			if (this._age < YOUNG_AGE_DURATION) {
 				// newborns start white...
-				_colorUtility.red = (ONE - _growthScale) + (_colorUtility.red * _growthScale);
-				_colorUtility.green = (ONE - _growthScale) + (_colorUtility.green * _growthScale);
-				_colorUtility.blue = (ONE - _growthScale) + (_colorUtility.blue * _growthScale);
+				this._colorUtility.red = (ONE - this._growthScale) + (this._colorUtility.red * this._growthScale);
+				this._colorUtility.green = (ONE - this._growthScale) + (this._colorUtility.green * this._growthScale);
+				this._colorUtility.blue = (ONE - this._growthScale) + (this._colorUtility.blue * this._growthScale);
 			} else {
-				if (_energy < STARVING) {
-					assert(_energy >= ZERO, "_energy >= ZERO");
+				if (this._energy < STARVING) {
+					assert(this._energy >= ZERO, "_energy >= ZERO");
 
-					let f = ONE - (_energy / STARVING);
+					let f = ONE - (this._energy / STARVING);
 
-					_colorUtility.red = DEAD_COLOR_RED * f + _phenotype.parts[p].red * (ONE - f);
-					_colorUtility.green = DEAD_COLOR_GREEN * f + _phenotype.parts[p].green * (ONE - f);
-					_colorUtility.blue = DEAD_COLOR_BLUE * f + _phenotype.parts[p].blue * (ONE - f);
+					this._colorUtility.red = SwimbotRenderer.DEAD_COLOR_RED * f + this._phenotype.parts[p].red * (ONE - f);
+					this._colorUtility.green = SwimbotRenderer.DEAD_COLOR_GREEN * f + this._phenotype.parts[p].green * (ONE - f);
+					this._colorUtility.blue = SwimbotRenderer.DEAD_COLOR_BLUE * f + this._phenotype.parts[p].blue * (ONE - f);
 				}
 			}
 		} else {
 			let oldAgeThreshold = globalTweakers.maximumLifeSpan - OLD_AGE_DURATION;
 
-			let f = (_age - oldAgeThreshold) / OLD_AGE_DURATION;
+			let f = (this._age - oldAgeThreshold) / OLD_AGE_DURATION;
 
 			assert(f >= ZERO, "SwibotRenderer:renderPartSplined: f >= ZERO");
 			assert(f <= ONE, "SwibotRenderer:renderPartSplined: f <= ONE");
@@ -421,47 +401,47 @@ function SwimbotRenderer() {
 				f = ONE;
 			}
 
-			_colorUtility.red = DEAD_COLOR_RED * f + _phenotype.parts[p].red * (ONE - f);
-			_colorUtility.green = DEAD_COLOR_GREEN * f + _phenotype.parts[p].green * (ONE - f);
-			_colorUtility.blue = DEAD_COLOR_BLUE * f + _phenotype.parts[p].blue * (ONE - f);
+			this._colorUtility.red = SwimbotRenderer.DEAD_COLOR_RED * f + this._phenotype.parts[p].red * (ONE - f);
+			this._colorUtility.green = SwimbotRenderer.DEAD_COLOR_GREEN * f + this._phenotype.parts[p].green * (ONE - f);
+			this._colorUtility.blue = SwimbotRenderer.DEAD_COLOR_BLUE * f + this._phenotype.parts[p].blue * (ONE - f);
 		}
 
-		assert(_colorUtility.red >= ZERO, "_colorUtility.red   >= ZERO");
-		assert(_colorUtility.red <= ONE, "_colorUtility.red   <= ONE");
+		assert(this._colorUtility.red >= ZERO, "_colorUtility.red   >= ZERO");
+		assert(this._colorUtility.red <= ONE, "_colorUtility.red   <= ONE");
 
-		assert(_colorUtility.green >= ZERO, "_colorUtility.green >= ZERO");
-		assert(_colorUtility.green <= ONE, "_colorUtility.green <= ONE");
+		assert(this._colorUtility.green >= ZERO, "_colorUtility.green >= ZERO");
+		assert(this._colorUtility.green <= ONE, "_colorUtility.green <= ONE");
 
-		assert(_colorUtility.blue >= ZERO, "_colorUtility.blue  >= ZERO");
-		assert(_colorUtility.blue <= ONE, "_colorUtility.blue  <= ONE");
+		assert(this._colorUtility.blue >= ZERO, "_colorUtility.blue  >= ZERO");
+		assert(this._colorUtility.blue <= ONE, "_colorUtility.blue  <= ONE");
 
-		return _colorUtility;
+		return this._colorUtility;
 	}
 
 	// render genital
-	this.renderGenital = function() {
-		let genitalLength = SWIMBOT_GENITAL_LENGTH * _growthScale;
+	renderGenital() {
+		let genitalLength = SWIMBOT_GENITAL_LENGTH * this._growthScale;
 
-		let x = _phenotype.parts[GENITAL_INDEX].position.x + _focusDirection.x * genitalLength;
-		let y = _phenotype.parts[GENITAL_INDEX].position.y + _focusDirection.y * genitalLength;
+		let x = this._phenotype.parts[GENITAL_INDEX].position.x + this._focusDirection.x * genitalLength;
+		let y = this._phenotype.parts[GENITAL_INDEX].position.y + this._focusDirection.y * genitalLength;
 
 		canvas.lineWidth = 1.0;
 		canvas.strokeStyle = "rgba( 255, 255, 255, 0.7 )";
 		canvas.beginPath();
-		canvas.moveTo(_phenotype.parts[GENITAL_INDEX].position.x, _phenotype.parts[GENITAL_INDEX].position.y);
+		canvas.moveTo(this._phenotype.parts[GENITAL_INDEX].position.x, this._phenotype.parts[GENITAL_INDEX].position.y);
 		canvas.lineTo(x, y);
 		canvas.stroke();
 		canvas.closePath();
 
 		// if pursuing a mate, show arrow head
-		if (_brain.getState() === BRAIN_STATE_PURSUING_MATE) {
+		if (this._brain.getState() === BRAIN_STATE_PURSUING_MATE) {
 			let arrowLength = genitalLength * 0.4;
 			let arrowWidth = genitalLength * 0.25;
-			let xLeft = x - _focusDirection.y * arrowWidth - _focusDirection.x * arrowLength;
-			let yLeft = y + _focusDirection.x * arrowWidth - _focusDirection.y * arrowLength;
+			let xLeft = x - this._focusDirection.y * arrowWidth - this._focusDirection.x * arrowLength;
+			let yLeft = y + this._focusDirection.x * arrowWidth - this._focusDirection.y * arrowLength;
 
-			let xRight = x + _focusDirection.y * arrowWidth - _focusDirection.x * arrowLength;
-			let yRight = y - _focusDirection.x * arrowWidth - _focusDirection.y * arrowLength;
+			let xRight = x + this._focusDirection.y * arrowWidth - this._focusDirection.x * arrowLength;
+			let yRight = y - this._focusDirection.x * arrowWidth - this._focusDirection.y * arrowLength;
 
 			canvas.beginPath();
 			canvas.moveTo(xLeft, yLeft);
@@ -473,34 +453,34 @@ function SwimbotRenderer() {
 	}
 
 	// render mouth
-	this.renderMouth = function() {
-		let mouthLength = _phenotype.parts[1].width * 2.5;
+	renderMouth() {
+		let mouthLength = this._phenotype.parts[1].width * 2.5;
 		if (mouthLength < SWIMBOT_MIN_MOUTH_LENGTH) {
 			mouthLength = SWIMBOT_MIN_MOUTH_LENGTH;
 		}
 
-		let mouthWidth = _phenotype.parts[1].width;
+		let mouthWidth = this._phenotype.parts[1].width;
 		if (mouthWidth < SWIMBOT_MIN_MOUTH_WIDTH) {
 			mouthWidth = SWIMBOT_MIN_MOUTH_WIDTH;
 		}
 
-		mouthLength *= _growthScale;
-		mouthWidth *= _growthScale;
+		mouthLength *= this._growthScale;
+		mouthWidth *= this._growthScale;
 
-		let baseX = _phenotype.parts[MOUTH_INDEX].position.x;
-		let baseY = _phenotype.parts[MOUTH_INDEX].position.y;
+		let baseX = this._phenotype.parts[MOUTH_INDEX].position.x;
+		let baseY = this._phenotype.parts[MOUTH_INDEX].position.y;
 
-		let mouthStartX = baseX + _focusDirection.x * mouthLength * 0.3;
-		let mouthStartY = baseY + _focusDirection.y * mouthLength * 0.3;
+		let mouthStartX = baseX + this._focusDirection.x * mouthLength * 0.3;
+		let mouthStartY = baseY + this._focusDirection.y * mouthLength * 0.3;
 
-		let mouthEndX = baseX + _focusDirection.x * mouthLength;
-		let mouthEndY = baseY + _focusDirection.y * mouthLength;
+		let mouthEndX = baseX + this._focusDirection.x * mouthLength;
+		let mouthEndY = baseY + this._focusDirection.y * mouthLength;
 
-		let basePerpX = _focusDirection.y * _phenotype.parts[1].width * 0.5;
-		let basePerpY = -_focusDirection.x * _phenotype.parts[1].width * 0.5;
+		let basePerpX = this._focusDirection.y * this._phenotype.parts[1].width * 0.5;
+		let basePerpY = -this._focusDirection.x * this._phenotype.parts[1].width * 0.5;
 
-		let endPerpX = _focusDirection.y * mouthWidth;
-		let endPerpY = -_focusDirection.x * mouthWidth;
+		let endPerpX = this._focusDirection.y * mouthWidth;
+		let endPerpY = -this._focusDirection.x * mouthWidth;
 
 		let leftJawX = baseX - basePerpX;
 		let leftJawY = baseY - basePerpY;
@@ -514,15 +494,15 @@ function SwimbotRenderer() {
 
 		canvas.lineWidth = SWIMBOT_MOUTH_WIDTH;
 
-		_colorUtility = this.calculatePartColor(1);
-		let red = Math.floor(_colorUtility.red * 255);
-		let green = Math.floor(_colorUtility.green * 255);
-		let blue = Math.floor(_colorUtility.blue * 255);
+		this._colorUtility = this.calculatePartColor(1);
+		let red = Math.floor(this._colorUtility.red * 255);
+		let green = Math.floor(this._colorUtility.green * 255);
+		let blue = Math.floor(this._colorUtility.blue * 255);
 
 		canvas.fillStyle = "rgb( " + red + ", " + green + ", " + blue + " )";
 
 		// open jaws
-		if (_brain.getState() === BRAIN_STATE_PURSUING_FOOD) {
+		if (this._brain.getState() === BRAIN_STATE_PURSUING_FOOD) {
 			leftEndX -= endPerpX;
 			leftEndY -= endPerpY;
 			rightEndX += endPerpX;
@@ -548,7 +528,7 @@ function SwimbotRenderer() {
 		canvas.stroke();
 		canvas.closePath();
 
-		canvas.strokeStyle = OUTLINE_COLOR;
+		canvas.strokeStyle = SwimbotRenderer.OUTLINE_COLOR;
 		canvas.beginPath();
 		canvas.moveTo(leftJawX, leftJawY);
 		canvas.lineTo(leftEndX, leftEndY);

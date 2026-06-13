@@ -16,7 +16,7 @@ let _tweakGenesCategory = 0;
 let _runningFast = false;
 
 // Global simulation instance (used by inline HTML handlers)
-var genePool;
+var genePool; // alias - will point to SwimbotsApp.genePool
 
 function setupNavigationButtons() {
 	const navButtons = [
@@ -49,10 +49,12 @@ function setupNavigationButtons() {
 
 //----------------------------
 function initGenePool() {
-	genePool = new GenePool();
+	SwimbotsApp.genePool = new GenePool();
+	genePool = SwimbotsApp.genePool; // alias for legacy compatibility
+	genePool.setCanvas(SwimbotsApp.canvas);
+	resize();
+	genePool.setCanvasDimensions(SwimbotsApp.canvasID.width, SwimbotsApp.canvasID.height);
 	genePool.initialize();
-	genePool.setCanvas(canvas);
-	genePool.setCanvasDimensions(canvasID.width, canvasID.height);
 	setupNavigationButtons();
 	initializeUI();
 }
@@ -67,9 +69,12 @@ function initializeUI() {
 
 	_graph.initialize();
 
-	// This starts an update loop that is called 
-	// periodically to adjust UI states and stuff. 
-	setTimeout(updateUI, 1);
+	attachEventListeners();
+
+	// This starts an update loop that is called
+	// periodically to adjust UI states and stuff.
+	_lastUIUpdateTime = 0;
+	updateUI();
 }
 
 function chooseAttraction() {
@@ -669,8 +674,20 @@ function updateUI() {
 		}
 	}
 
-	// trigger next update...
-	setTimeout(updateUI, UI_UPDATE_PERIOD);
+	// trigger next update... (throttled to UI_UPDATE_PERIOD via rAF)
+	_scheduleNextUIUpdate();
+}
+
+let _lastUIUpdateTime = 0;
+function _scheduleNextUIUpdate() {
+	requestAnimationFrame((ts) => {
+		if (ts - _lastUIUpdateTime >= UI_UPDATE_PERIOD) {
+			_lastUIUpdateTime = ts;
+			updateUI();
+		} else {
+			_scheduleNextUIUpdate();
+		}
+	});
 }
 
 function notifyGeneTweakPanelMouseDown() {
@@ -698,6 +715,102 @@ function resize() {
 	if (genePoolIsDefined) {
 		genePool.setCanvasDimensions(canvasID.width, canvasID.height);
 	}
+}
+
+function attachEventListeners() {
+	// View mode buttons
+	document.querySelectorAll('[data-view-mode]').forEach(function(btn) {
+		btn.addEventListener('mousedown', function() {
+			let mode = ViewTrackingMode[this.getAttribute('data-view-mode')];
+			setViewMode(this.id, mode);
+		});
+	});
+
+	// View options
+	document.getElementById('viewGoalButton').addEventListener('click', toggleGoalOverlay);
+	document.getElementById('freezeButton').addEventListener('click', toggleSimulationRunning);
+	document.getElementById('noRenderButton').addEventListener('click', toggleRendering);
+	document.getElementById('fastButton').addEventListener('click', toggleFastRendering);
+
+	// Menu buttons
+	document.querySelectorAll('[data-panel]').forEach(function(btn) {
+		btn.addEventListener('mousedown', function() {
+			openPanel(this.getAttribute('data-panel'));
+		});
+	});
+
+	// Ecosystem sliders
+	document.querySelectorAll('.EcoSlider').forEach(function(slider) {
+		slider.addEventListener('input', function() {
+			setEcosystemValue(this.id);
+		});
+	});
+
+	// Tweak default
+	document.getElementById('tweakDefaultButton').addEventListener('click', setEcosystemToDefaults);
+
+	// Attraction radios
+	document.querySelectorAll('input[name="attractionRadioButton"]').forEach(function(radio) {
+		radio.addEventListener('change', chooseAttraction);
+	});
+
+	// Pool presets
+	document.querySelectorAll('[data-pool-preset]').forEach(function(btn) {
+		btn.addEventListener('click', function() {
+			let mode = SimulationStartMode[this.getAttribute('data-pool-preset')];
+			choosePoolToLoad(mode);
+			requestToLoadPoolFromPreset();
+		});
+	});
+
+	// Family tree
+	document.getElementById('familyTreeButton').addEventListener('click', function() {
+		printFamilyTree();
+	});
+
+	// Swimbot creation
+	document.getElementById('createRandomSwimbotButton').addEventListener('click', function() {
+		genePool.makeNewRandomSwimbot();
+	});
+
+	// Swimbot presets
+	document.querySelectorAll('[data-swimbot-preset]').forEach(function(btn) {
+		btn.addEventListener('click', function() {
+			loadSwimbotFromPreset(parseInt(this.getAttribute('data-swimbot-preset')));
+		});
+	});
+
+	// Selected swimbot actions
+	document.getElementById('zapSwimbotButton').addEventListener('click', function() {
+		genePool.zapSwimbot(genePool.getSelectedSwimbotID(), 0.2);
+	});
+	document.getElementById('randomizeSwimbotButton').addEventListener('click', function() {
+		genePool.randomizeSwimbot(genePool.getSelectedSwimbotID());
+	});
+	document.getElementById('cloneSwimbotButton').addEventListener('click', function() {
+		genePool.cloneSwimbot(genePool.getSelectedSwimbotID());
+	});
+	document.getElementById('killSwimbotButton').addEventListener('click', function() {
+		genePool.killSwimbot(genePool.getSelectedSwimbotID());
+	});
+	document.getElementById('showGenesButton').addEventListener('click', function() {
+		showSwimbotGenes(genePool.getSelectedSwimbotID());
+	});
+	document.getElementById('tweakGenesButton').addEventListener('click', function() {
+		openTweakGenesPanel(genePool.getSelectedSwimbotID());
+		genePool.setViewMode(ViewTrackingMode.SELECTED);
+	});
+
+	// Info panel
+	document.getElementById('prevInfoButton').addEventListener('click', function() { advanceInfoPage(-1); });
+	document.getElementById('nextInfoButton').addEventListener('click', function() { advanceInfoPage(1); });
+
+	// Popup/display
+	document.getElementById('cancelPopUpPanelButton').addEventListener('click', closePopupPanel);
+	document.getElementById('dataDisplayButton').addEventListener('click', displayData);
+	document.getElementById('closeDataDisplay').addEventListener('click', closeDataDisplay);
+	document.getElementById('closeTweakGenesPanel').addEventListener('click', closeTweakGenesPanel);
+	document.getElementById('noRenderPanel').addEventListener('click', function() { setRendering(true); });
 }
 
 document.getElementById('Canvas').onmousedown = function(e) {

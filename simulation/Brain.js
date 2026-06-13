@@ -24,75 +24,77 @@ const BRAIN_WANDER_AMOUNT = 0.2;
 
 
 // Brain!
-function Brain() {
-	let _state = BRAIN_STATE_NULL;
-	let _energy = ZERO;
-	let _foundFoodBit = false;
-	let _foundSwimbot = false;
-	let _hungerThreshold = ZERO;
-	let _attractionCriterion = ATTRACTION_SIMILAR_COLOR;
-
-	this.initialize = function() {
-		_state = BRAIN_STATE_NULL;
+class Brain {
+	constructor() {
+		this._state = BRAIN_STATE_NULL;
+		this._energy = ZERO;
+		this._foundFoodBit = false;
+		this._foundSwimbot = false;
+		this._hungerThreshold = ZERO;
+		this._attractionCriterion = ATTRACTION_SIMILAR_COLOR;
 	}
 
-	this.update = function() {
+	initialize() {
+		this._state = BRAIN_STATE_NULL;
+	}
+
+	update() {
 		// if low energy, look for food, otherwise, look for sex
-		if (_energy < _hungerThreshold) {
-			if ((_state != BRAIN_STATE_PURSUING_FOOD) && (_state != BRAIN_STATE_LOOKING_FOR_FOOD)) {
-				_state = BRAIN_STATE_LOOKING_FOR_FOOD;
+		if (this._energy < this._hungerThreshold) {
+			if ((this._state != BRAIN_STATE_PURSUING_FOOD) && (this._state != BRAIN_STATE_LOOKING_FOR_FOOD)) {
+				this._state = BRAIN_STATE_LOOKING_FOR_FOOD;
 			}
 		} else {
-			if ((_state != BRAIN_STATE_PURSUING_MATE) && (_state != BRAIN_STATE_LOOKING_FOR_MATE)) {
-				_state = BRAIN_STATE_LOOKING_FOR_MATE;
+			if ((this._state != BRAIN_STATE_PURSUING_MATE) && (this._state != BRAIN_STATE_LOOKING_FOR_MATE)) {
+				this._state = BRAIN_STATE_LOOKING_FOR_MATE;
 			}
 		}
 
 		//  looking for food
-		if (_state == BRAIN_STATE_LOOKING_FOR_FOOD) {
-			if (_foundFoodBit) {
-				_state = BRAIN_STATE_PURSUING_FOOD;
+		if (this._state == BRAIN_STATE_LOOKING_FOR_FOOD) {
+			if (this._foundFoodBit) {
+				this._state = BRAIN_STATE_PURSUING_FOOD;
 			}
 		}
 		//  pursuing food
-		else if (_state == BRAIN_STATE_PURSUING_FOOD) {
-			if (!_foundFoodBit) {
-				_state = BRAIN_STATE_LOOKING_FOR_FOOD;
+		else if (this._state == BRAIN_STATE_PURSUING_FOOD) {
+			if (!this._foundFoodBit) {
+				this._state = BRAIN_STATE_LOOKING_FOR_FOOD;
 			}
 		}
 		//  Looking for mate
-		else if (_state == BRAIN_STATE_LOOKING_FOR_MATE) {
-			if (_foundSwimbot) {
-				_state = BRAIN_STATE_PURSUING_MATE;
+		else if (this._state == BRAIN_STATE_LOOKING_FOR_MATE) {
+			if (this._foundSwimbot) {
+				this._state = BRAIN_STATE_PURSUING_MATE;
 			}
 		}
 		//  pursuing mate
-		else if (_state == BRAIN_STATE_PURSUING_MATE) {
-			if (!_foundSwimbot) {
-				_state = BRAIN_STATE_LOOKING_FOR_MATE;
+		else if (this._state == BRAIN_STATE_PURSUING_MATE) {
+			if (!this._foundSwimbot) {
+				this._state = BRAIN_STATE_LOOKING_FOR_MATE;
 			}
 		}
 
-		//  check for bogus brain state 
-		assert(_state < NUM_BRAIN_STATES, "_state < NUM_BRAIN_STATES");
-		assert(_state > BRAIN_STATE_NULL, "_state > BRAIN_STATE_NULL");
+		//  check for bogus brain state
+		assert(this._state < NUM_BRAIN_STATES, "_state < NUM_BRAIN_STATES");
+		assert(this._state > BRAIN_STATE_NULL, "_state > BRAIN_STATE_NULL");
 	}
 
 	// setters
-	this.setEnergyLevel = function(e) { _energy = e; }
-	this.setHungerThreshold = function(h) { _hungerThreshold = h; }
-	this.setFoundFoodBit = function(f) { _foundFoodBit = f; }
-	this.setFoundSwimbot = function(f) { _foundSwimbot = f; }
+	setEnergyLevel(e) { this._energy = e; }
+	setHungerThreshold(h) { this._hungerThreshold = h; }
+	setFoundFoodBit(f) { this._foundFoodBit = f; }
+	setFoundSwimbot(f) { this._foundSwimbot = f; }
 
-	this.setAttraction = function(a) {
-		_attractionCriterion = a;
+	setAttraction(a) {
+		this._attractionCriterion = a;
 
 		// setting _foundSwimbot to false, causes the swimbot to search for a new potential mate
-		_foundSwimbot = false;
+		this._foundSwimbot = false;
 	}
 
 	// getters
-	this.getHungerThreshold = function() { return _hungerThreshold; }
-	this.getAttractionCriterion = function() { return _attractionCriterion; }
-	this.getState = function() { return _state; }
+	getHungerThreshold() { return this._hungerThreshold; }
+	getAttractionCriterion() { return this._attractionCriterion; }
+	getState() { return this._state; }
 }

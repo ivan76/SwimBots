@@ -5,17 +5,23 @@
 		this.blue = ZERO;
 	}
 
+	const DEBUG_MODE = true;
+
 	// assert
 	function assert(assertion, string) {
 		if (!assertion) {
-			alert("assertion failed: " + string);
+			if (DEBUG_MODE) {
+				console.error("assertion failed: " + string);
+			}
 		}
 	}
 
 	// assert integer
 	function assertInteger(value, string) {
 		if (value - Math.floor(value) > 0) {
-			alert("assertInteger: value not an integer! - " + string);
+			if (DEBUG_MODE) {
+				console.error("assertInteger: value not an integer! - " + string);
+			}
 		}
 	}
 

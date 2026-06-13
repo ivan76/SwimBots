@@ -20,42 +20,44 @@ const FOOD_OPACITY_INCREMENT = 0.01;
 //const FOOD_TYPE_BLUE   =  1;
 
 // Food bit
-function FoodBit() {
-	let _position = new Vector2D();
-	let _energy = ZERO;
-	let _type = 0;
-	let _red = ZERO;
-	let _green = ZERO;
-	let _blue = ZERO;
-	let _opacity = ZERO;
-	let _index = NULL_INDEX;
-	let _maxSpawnRadius = DEFAULT_FOOD_BIT_MAX_SPAWN_RADIUS;
-
-	// initialize
-	this.initialize = function(f) {
-		_index = f;
-		_energy = DEFAULT_FOOD_BIT_ENERGY;
-		_opacity = ZERO;
-		_position.x = POOL_LEFT + Math.random() * POOL_WIDTH;
-		_position.y = POOL_TOP + Math.random() * POOL_HEIGHT;
-		_type = 0;
+class FoodBit {
+	constructor() {
+		this._position = new Vector2D();
+		this._energy = ZERO;
+		this._type = 0;
+		this._red = ZERO;
+		this._green = ZERO;
+		this._blue = ZERO;
+		this._opacity = ZERO;
+		this._index = NULL_INDEX;
+		this._maxSpawnRadius = DEFAULT_FOOD_BIT_MAX_SPAWN_RADIUS;
 	}
 
-	this.setType = function(n) {
-		_type = n;
+	// initialize
+	initialize(f) {
+		this._index = f;
+		this._energy = DEFAULT_FOOD_BIT_ENERGY;
+		this._opacity = ZERO;
+		this._position.x = POOL_LEFT + Math.random() * POOL_WIDTH;
+		this._position.y = POOL_TOP + Math.random() * POOL_HEIGHT;
+		this._type = 0;
+	}
+
+	setType(n) {
+		this._type = n;
 		this.setColorAccordingToType();
 	}
 
-	this.setColorAccordingToType = function() {
-		if (_type === 0) { _red = 0.3;
-			_green = 0.8;
-			_blue = 0.2; }
-		if (_type === 1) { _red = 0.3;
-			_green = 0.5;
-			_blue = 0.9; }
+	setColorAccordingToType() {
+		if (this._type === 0) { this._red = 0.3;
+			this._green = 0.8;
+			this._blue = 0.2; }
+		if (this._type === 1) { this._red = 0.3;
+			this._green = 0.5;
+			this._blue = 0.9; }
 	}
 
-	this.spawnFromParent = function(parentFoodBit, childIndex, childType) {
+	spawnFromParent(parentFoodBit, childIndex, childType) {
 		assert(parentFoodBit.getIndex() != NULL_INDEX, "foodbit.js: spawnNearParent: parentFoodBit.index != NULL_INDEX");
 		assert(parentFoodBit.getAlive(), "foodbit.js: spawnNearParent: parentFoodBit.getAlive()");
 		assert(childIndex != NULL_INDEX, "foodbit.js: spawnNearParent: childIndex != NULL_INDEX");
@@ -66,22 +68,22 @@ function FoodBit() {
 
 		//assert( childIndex != parentFoodBit.getIndex(), "foodbit.js: spawnNearParent: childIndex != parentFoodBit.index" );
 
-		_index = childIndex;
-		_opacity = ZERO;
-		_energy = parentFoodBit.getEnergy();
-		_type = childType;
+		this._index = childIndex;
+		this._opacity = ZERO;
+		this._energy = parentFoodBit.getEnergy();
+		this._type = childType;
 
 		this.setColorAccordingToType();
 
-		// set the position     
-		_position.set(parentFoodBit.getPosition());
+		// set the position
+		this._position.set(parentFoodBit.getPosition());
 
-		// randomize position    
+		// randomize position
 		this.randomizeSpawnPosition(parentFoodBit);
 	}
 
-	this.randomizeSpawnPosition = function(parentFoodBit) {
-		_position.set(parentFoodBit.getPosition());
+	randomizeSpawnPosition(parentFoodBit) {
+		this._position.set(parentFoodBit.getPosition());
 
 		let xx = Math.random() * Math.random();
 		let yy = Math.random() * Math.random();
@@ -89,129 +91,128 @@ function FoodBit() {
 		if (Math.random() < ONE_HALF) { xx *= -ONE; }
 		if (Math.random() < ONE_HALF) { yy *= -ONE; }
 
-		_position.x += xx * _maxSpawnRadius;
-		_position.y += yy * _maxSpawnRadius;
+		this._position.x += xx * this._maxSpawnRadius;
+		this._position.y += yy * this._maxSpawnRadius;
 
-		// pool boundary collisions    
+		// pool boundary collisions
 		let pb = POOL_TOP + FOOD_BIT_BOUNDARY_MARGIN;
 		let pt = POOL_BOTTOM - FOOD_BIT_BOUNDARY_MARGIN;
 		let pl = POOL_LEFT + FOOD_BIT_BOUNDARY_MARGIN;
 		let pr = POOL_RIGHT - FOOD_BIT_BOUNDARY_MARGIN;
 
-		if (_position.y < pb) { _position.y += ((pb - _position.y) * 2); } else if (_position.y > pt) { _position.y += ((pt - _position.y) * 2); }
+		if (this._position.y < pb) { this._position.y += ((pb - this._position.y) * 2); } else if (this._position.y > pt) { this._position.y += ((pt - this._position.y) * 2); }
 
-		if (_position.x > pr) { _position.x += ((pr - _position.x) * 2); } else if (_position.x < pl) { _position.x += ((pl - _position.x) * 2); }
+		if (this._position.x > pr) { this._position.x += ((pr - this._position.x) * 2); } else if (this._position.x < pl) { this._position.x += ((pl - this._position.x) * 2); }
 
 		if (SPAWN_FOOD_RANDOMLY_IN_POOL) {
-			_position.x = POOL_LEFT + Math.random() * POOL_WIDTH;
-			_position.y = POOL_TOP + Math.random() * POOL_HEIGHT;
+			this._position.x = POOL_LEFT + Math.random() * POOL_WIDTH;
+			this._position.y = POOL_TOP + Math.random() * POOL_HEIGHT;
 		}
 
-		assert(_position.x < POOL_RIGHT, "foodbit.js: spawnNearParent: _position.x < POOL_RIGHT");
-		assert(_position.x > POOL_LEFT, "foodbit.js: spawnNearParent: _position.x > POOL_LEFT");
-		assert(_position.y > POOL_TOP, "foodbit.js: spawnNearParent: _position.y < POOL_TOP");
-		assert(_position.y < POOL_BOTTOM, "foodbit.js: spawnNearParent: _position.y > POOL_BOTTOM");
+		assert(this._position.x < POOL_RIGHT, "foodbit.js: spawnNearParent: _position.x < POOL_RIGHT");
+		assert(this._position.x > POOL_LEFT, "foodbit.js: spawnNearParent: _position.x > POOL_LEFT");
+		assert(this._position.y > POOL_TOP, "foodbit.js: spawnNearParent: _position.y < POOL_TOP");
+		assert(this._position.y < POOL_BOTTOM, "foodbit.js: spawnNearParent: _position.y > POOL_BOTTOM");
 	}
 
-	this.setPosition = function(p) {
-		_position.set(p);
+	setPosition(p) {
+		this._position.set(p);
 
-		if (_position.y < POOL_TOP) { _position.y = POOL_TOP + FOOD_BIT_SIZE; } else if (_position.y > POOL_BOTTOM) { _position.y = POOL_BOTTOM - FOOD_BIT_SIZE; }
-		if (_position.x > POOL_RIGHT) { _position.x = POOL_RIGHT - FOOD_BIT_SIZE; } else if (_position.x < POOL_LEFT) { _position.x = POOL_LEFT + FOOD_BIT_SIZE; }
+		if (this._position.y < POOL_TOP) { this._position.y = POOL_TOP + FOOD_BIT_SIZE; } else if (this._position.y > POOL_BOTTOM) { this._position.y = POOL_BOTTOM - FOOD_BIT_SIZE; }
+		if (this._position.x > POOL_RIGHT) { this._position.x = POOL_RIGHT - FOOD_BIT_SIZE; } else if (this._position.x < POOL_LEFT) { this._position.x = POOL_LEFT + FOOD_BIT_SIZE; }
 
-		assert(_position.x < POOL_RIGHT, "foodbit.js: setPosition: _position.x < POOL_RIGHT");
-		assert(_position.x > POOL_LEFT, "foodbit.js: setPosition: _position.x > POOL_LEFT");
-		assert(_position.y > POOL_TOP, "foodbit.js: setPosition: _position.y < POOL_TOP");
-		assert(_position.y < POOL_BOTTOM, "foodbit.js: setPosition: _position.y > POOL_BOTTOM");
+		assert(this._position.x < POOL_RIGHT, "foodbit.js: setPosition: _position.x < POOL_RIGHT");
+		assert(this._position.x > POOL_LEFT, "foodbit.js: setPosition: _position.x > POOL_LEFT");
+		assert(this._position.y > POOL_TOP, "foodbit.js: setPosition: _position.y < POOL_TOP");
+		assert(this._position.y < POOL_BOTTOM, "foodbit.js: setPosition: _position.y > POOL_BOTTOM");
 	}
 
-	this.shiftPosition = function(s) {
-		_position.x += s.x;
-		_position.y += s.y;
+	shiftPosition(s) {
+		this._position.x += s.x;
+		this._position.y += s.y;
 	}
 
-	this.setMaxSpawnRadius = function(r) {
-		_maxSpawnRadius = r;
-		assert(_maxSpawnRadius <= MAX_FOOD_BIT_MAX_SPAWN_RADIUS, "FoodBit: setMaxSpawnRadius: _maxSpawnRadius <= MAX_FOOD_BIT_MAX_SPAWN_RADIUS");
-		assert(_maxSpawnRadius >= MIN_FOOD_BIT_MAX_SPAWN_RADIUS, "FoodBit: setMaxSpawnRadius: _maxSpawnRadius >= MIN_FOOD_BIT_MAX_SPAWN_RADIUS");
+	setMaxSpawnRadius(r) {
+		this._maxSpawnRadius = r;
+		assert(this._maxSpawnRadius <= MAX_FOOD_BIT_MAX_SPAWN_RADIUS, "FoodBit: setMaxSpawnRadius: _maxSpawnRadius <= MAX_FOOD_BIT_MAX_SPAWN_RADIUS");
+		assert(this._maxSpawnRadius >= MIN_FOOD_BIT_MAX_SPAWN_RADIUS, "FoodBit: setMaxSpawnRadius: _maxSpawnRadius >= MIN_FOOD_BIT_MAX_SPAWN_RADIUS");
 	}
 
-	this.getMaxSpawnRadius = function() {
-		return _maxSpawnRadius;
+	getMaxSpawnRadius() {
+		return this._maxSpawnRadius;
 	}
 
-	this.setEnergy = function(e) {
-		_energy = e;
+	setEnergy(e) {
+		this._energy = e;
 
-		assert(_energy <= MAX_FOOD_BIT_ENERGY, "FoodBit:getMaxSpawnRadius setEnergy: _energy <= MAX_FOOD_BIT_ENERGY");
-		assert(_energy >= MIN_FOOD_BIT_ENERGY, "FoodBit:getMaxSpawnRadius setEnergy: _energy >= MIN_FOOD_BIT_ENERGY");
+		assert(this._energy <= MAX_FOOD_BIT_ENERGY, "FoodBit:getMaxSpawnRadius setEnergy: _energy <= MAX_FOOD_BIT_ENERGY");
+		assert(this._energy >= MIN_FOOD_BIT_ENERGY, "FoodBit:getMaxSpawnRadius setEnergy: _energy >= MIN_FOOD_BIT_ENERGY");
 	}
 
-	this.kill = function() {
-		_index = NULL_INDEX;
+	kill() {
+		this._index = NULL_INDEX;
 	}
 
 	// getters
-	this.getPosition = function() { return _position; }
-	this.getEnergy = function() { return _energy; }
-	this.getType = function() { return _type; }
-	this.getIndex = function() { return _index; }
-	this.getAlive = function() { return (_index != NULL_INDEX); }
+	getPosition() { return this._position; }
+	getEnergy() { return this._energy; }
+	getType() { return this._type; }
+	getIndex() { return this._index; }
+	getAlive() { return (this._index != NULL_INDEX); }
 
 	// update
-	this.update = function() {
-		// foodbits are born transparent...they become more opaque 
+	update() {
+		// foodbits are born transparent...they become more opaque
 		// and then reach max visability within a few seconds
-		if (_opacity < ONE) {
-			_opacity += FOOD_OPACITY_INCREMENT;
-			if (_opacity > ONE) {
-				_opacity = ONE;
+		if (this._opacity < ONE) {
+			this._opacity += FOOD_OPACITY_INCREMENT;
+			if (this._opacity > ONE) {
+				this._opacity = ONE;
 			}
 		}
 	}
 
 	// render
-	this.render = function(vewScale) {
+	render(vewScale) {
 		canvas.fillStyle = "rgba( " +
-			Math.floor(_red * 255) + ", " +
-			Math.floor(_green * 255) + ", " +
-			Math.floor(_blue * 255) + ", " +
-			_opacity + ")";
+			Math.floor(this._red * 255) + ", " +
+			Math.floor(this._green * 255) + ", " +
+			Math.floor(this._blue * 255) + ", " +
+			this._opacity + ")";
 
 		let radius = FOOD_BIT_SIZE + vewScale * FOOD_BIT_SIZE_VIEW_SCALE * FOOD_BIT_SIZE_VIEW_SCALE;
 
 		canvas.beginPath();
-		canvas.arc(_position.x, _position.y, radius, 0, PI2, false);
+		canvas.arc(this._position.x, this._position.y, radius, 0, PI2, false);
 		canvas.fill();
 		canvas.closePath();
 	}
 
 	// render moused-over outline
-	this.renderMousedOverOutline = function(viewScale) {
+	renderMousedOverOutline(viewScale) {
 		this.showSelectCircle(viewScale, FOOD_BIT_ROLLOVER_COLOR);
 	}
 
 	// render select outline
-	this.renderSelectOutline = function(viewScale) {
+	renderSelectOutline(viewScale) {
 		this.showSelectCircle(viewScale, FOOD_BIT_SELECT_COLOR);
 	}
 
-	this.showSelectCircle = function(viewScale, color) {
+	showSelectCircle(viewScale, color) {
 		let lineWidth = 1.0 + 0.005 * viewScale;
 
 		canvas.lineWidth = lineWidth;
 		canvas.strokeStyle = "rgba( 100, 200, 100, 0.05 )";
 		canvas.beginPath();
-		canvas.arc(_position.x, _position.y, FOOD_BIT_GRAB_RADIUS, 0, PI2, false);
+		canvas.arc(this._position.x, this._position.y, FOOD_BIT_GRAB_RADIUS, 0, PI2, false);
 		canvas.stroke();
 		canvas.closePath();
 
 		canvas.lineWidth = lineWidth * 0.3;
 		canvas.strokeStyle = "rgba( 100, 200, 100, 0.1 )";
 		canvas.beginPath();
-		canvas.arc(_position.x, _position.y, FOOD_BIT_GRAB_RADIUS, 0, PI2, false);
+		canvas.arc(this._position.x, this._position.y, FOOD_BIT_GRAB_RADIUS, 0, PI2, false);
 		canvas.stroke();
 		canvas.closePath();
 	}
-
 }

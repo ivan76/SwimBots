@@ -12,119 +12,129 @@ const ViewTrackingMode = {
 	HUNGRY: 7
 };
 
-function ViewTracking() {
-	const LOVER_TRACKING_SCALE_BASE = 0 //200;
-	const LOVER_TRACKING_SCALE_INC = 2.0;
-	const DEFAULT_INERTIA = 0.4;
-	const EASE_IN_FRACTION = 15.0;
-	const INNER_WINDOW_RATIO = 0.1;
+class ViewTracking {
+	static LOVER_TRACKING_SCALE_BASE = 0; //200
+	static LOVER_TRACKING_SCALE_INC = 2.0;
+	static DEFAULT_INERTIA = 0.4;
+	static EASE_IN_FRACTION = 15.0;
+	static INNER_WINDOW_RATIO = 0.1;
 
-	let _vectorUtility = new Vector2D();
-	let _centroidUtility = new Vector2D();
-	let _isTracking = false;
-	let _trackingEaseIn = ZERO;
-	let _trackingPosition = new Vector2D();
-	let _trackingScale = POOL_WIDTH;
-	let _inertia = DEFAULT_INERTIA;
-	let _cameraForce = new Vector2D();
-	let _cameraScaleForce = ZERO;
-	let _swimbots = new Array();
-	let _mode = ViewTrackingMode.AUTOTRACK;
-	let _lover1Index = NULL_INDEX;
-	let _lover2Index = NULL_INDEX;
+	constructor() {
+		this._vectorUtility = new Vector2D();
+		this._centroidUtility = new Vector2D();
+		this._isTracking = false;
+		this._trackingEaseIn = ZERO;
+		this._trackingPosition = new Vector2D();
+		this._trackingScale = POOL_WIDTH;
+		this._inertia = ViewTracking.DEFAULT_INERTIA;
+		this._cameraForce = new Vector2D();
+		this._cameraScaleForce = ZERO;
+		this._swimbots = [];
+		this._mode = ViewTrackingMode.AUTOTRACK;
+		this._lover1Index = NULL_INDEX;
+		this._lover2Index = NULL_INDEX;
 
-	// set this to the default
-	_vectorUtility.x = POOL_X_CENTER;
-	_vectorUtility.y = POOL_Y_CENTER;
-	_trackingPosition.copyFrom(_vectorUtility);
+		// set this to the default
+		this._vectorUtility.x = POOL_X_CENTER;
+		this._vectorUtility.y = POOL_Y_CENTER;
+		this._trackingPosition.copyFrom(this._vectorUtility);
 
-	// should this use a "copyFrom" function?
-	this.setSwimbots = function(swimbots) {
-		_swimbots = swimbots;
+		// Incremental centroid cache
+		this._cachedCentroid = new Vector2D();
+		this._cachedCentroidValid = false;
+		this._cachedTrackingX = 0;
+		this._cachedTrackingY = 0;
+		this._cachedScale = 0;
+		this._centroidInvalidateDist = 10; // recompute if trackingPosition moved more than this
 	}
 
-	this.setMode = function(mode, currentCameraPosition, currentCameraScale, selectedSwimbot) {
-		_mode = mode;
+	setSwimbots(swimbots) {
+		this._swimbots = swimbots;
+	}
 
-		_isTracking = false;
-		_trackingPosition.copyFrom(currentCameraPosition);
-		_trackingEaseIn = ZERO;
-		_inertia = DEFAULT_INERTIA;
+	setMode(mode, currentCameraPosition, currentCameraScale, selectedSwimbot) {
+		this._mode = mode;
+
+		this._isTracking = false;
+		this._trackingPosition.copyFrom(currentCameraPosition);
+		this._trackingEaseIn = ZERO;
+		this._inertia = ViewTracking.DEFAULT_INERTIA;
+		this._cachedCentroidValid = false; // invalidate centroid cache on mode change
 
 		// whole pool
-		if (_mode === ViewTrackingMode.WHOLE_POOL) {
-			_isTracking = true;
-			_trackingScale = POOL_WIDTH;
-			_inertia = 0.1;
+		if (this._mode === ViewTrackingMode.WHOLE_POOL) {
+			this._isTracking = true;
+			this._trackingScale = POOL_WIDTH;
+			this._inertia = 0.1;
 		}
 		// autotrack
-		else if (_mode === ViewTrackingMode.AUTOTRACK) {
-			_isTracking = true;
-			_trackingScale = 600;
-			_inertia = 0.1;
+		else if (this._mode === ViewTrackingMode.AUTOTRACK) {
+			this._isTracking = true;
+			this._trackingScale = 600;
+			this._inertia = 0.1;
 		}
 		// selected swimbot
-		else if (_mode === ViewTrackingMode.SELECTED) {
+		else if (this._mode === ViewTrackingMode.SELECTED) {
 			if (selectedSwimbot != NULL_INDEX) {
-				_isTracking = true;
-				_trackingScale = 400;
+				this._isTracking = true;
+				this._trackingScale = 400;
 				document.getElementById('swimbotDataPanel').innerHTML = "";
 			}
 		}
 		// mutual love
-		else if (_mode === ViewTrackingMode.MUTUAL) {
-			_trackingPosition.copyFrom(getCentroidOfLovers());
+		else if (this._mode === ViewTrackingMode.MUTUAL) {
+			this._trackingPosition.copyFrom(this._getCentroidOfLovers());
 
-			if ((_lover1Index != NULL_INDEX) &&
-				(_lover2Index != NULL_INDEX)) {
-				_isTracking = true;
+			if ((this._lover1Index != NULL_INDEX) &&
+				(this._lover2Index != NULL_INDEX)) {
+				this._isTracking = true;
 			}
 		}
 		// prolific
-		else if (_mode === ViewTrackingMode.PROLIFIC) {
-			let mostProlific = getMostProlificSwimbot();
+		else if (this._mode === ViewTrackingMode.PROLIFIC) {
+			let mostProlific = this._getMostProlificSwimbot();
 
 			if (mostProlific != NULL_INDEX) {
 				selectedSwimbot = mostProlific;
 
-				_isTracking = true;
-				_trackingScale = 500;
+				this._isTracking = true;
+				this._trackingScale = 500;
 				document.getElementById('swimbotDataPanel').innerHTML = "";
 			}
 		}
 		// most efficient
-		else if (_mode === ViewTrackingMode.EFFICIENT) {
-			let mostEfficient = getMostEfficientSwimbot();
+		else if (this._mode === ViewTrackingMode.EFFICIENT) {
+			let mostEfficient = this._getMostEfficientSwimbot();
 
 			if (mostEfficient != NULL_INDEX) {
 				selectedSwimbot = mostEfficient;
 
-				_isTracking = true;
-				_trackingScale = 500;
+				this._isTracking = true;
+				this._trackingScale = 500;
 				document.getElementById('swimbotDataPanel').innerHTML = "";
 			}
 		}
 		// oldest virgin
-		else if (_mode === ViewTrackingMode.VIRGIN) {
-			let oldestVirgin = getOldestVirgin();
+		else if (this._mode === ViewTrackingMode.VIRGIN) {
+			let oldestVirgin = this._getOldestVirgin();
 
 			if (oldestVirgin != NULL_INDEX) {
 				selectedSwimbot = oldestVirgin;
 
-				_isTracking = true;
-				_trackingScale = 500;
+				this._isTracking = true;
+				this._trackingScale = 500;
 				document.getElementById('swimbotDataPanel').innerHTML = "";
 			}
 		}
 		// hungriest
-		else if (_mode === ViewTrackingMode.HUNGRY) {
-			let biggestEater = getBiggestEater();
+		else if (this._mode === ViewTrackingMode.HUNGRY) {
+			let biggestEater = this._getBiggestEater();
 
 			if (biggestEater != NULL_INDEX) {
 				selectedSwimbot = biggestEater;
 
-				_isTracking = true;
-				_trackingScale = 500;
+				this._isTracking = true;
+				this._trackingScale = 500;
 				document.getElementById('swimbotDataPanel').innerHTML = "";
 			}
 		}
@@ -132,50 +142,50 @@ function ViewTracking() {
 		return selectedSwimbot;
 	}
 
-	this.reset = function() {
-		_lover1Index = NULL_INDEX;
-		_lover2Index = NULL_INDEX;
+	reset() {
+		this._lover1Index = NULL_INDEX;
+		this._lover2Index = NULL_INDEX;
 	}
 
-	this.startTracking = function() {
-		_isTracking = true;
+	startTracking() {
+		this._isTracking = true;
 	}
 
-	this.stopTracking = function() {
-		_isTracking = false;
-		_mode = ViewTrackingMode.NULL;
+	stopTracking() {
+		this._isTracking = false;
+		this._mode = ViewTrackingMode.NULL;
 	}
 
-	this.updateTracking = function(currentCameraPosition, currentCameraScale, selectedSwimbot) {
-		if (_mode === ViewTrackingMode.AUTOTRACK) {
-			_trackingPosition.copyFrom(getCentroidOfVisibleSwimbots());
-		} else if (_mode === ViewTrackingMode.MUTUAL) {
-			if ((_lover1Index != NULL_INDEX) &&
-				(_lover2Index != NULL_INDEX)) {
-				let loverDistance = _swimbots[_lover1Index].getPosition().getDistanceTo(_swimbots[_lover2Index].getPosition());
+	updateTracking(currentCameraPosition, currentCameraScale, selectedSwimbot) {
+		if (this._mode === ViewTrackingMode.AUTOTRACK) {
+			this._trackingPosition.copyFrom(this._getCentroidOfVisibleSwimbots());
+		} else if (this._mode === ViewTrackingMode.MUTUAL) {
+			if ((this._lover1Index != NULL_INDEX) &&
+				(this._lover2Index != NULL_INDEX)) {
+				let loverDistance = this._swimbots[this._lover1Index].getPosition().getDistanceTo(this._swimbots[this._lover2Index].getPosition());
 
-				_trackingScale += ((loverDistance * 2) - _trackingScale) * 0.1;
+				this._trackingScale += ((loverDistance * 2) - this._trackingScale) * 0.1;
 			}
 
-			_trackingPosition.copyFrom(getCentroidOfLovers());
+			this._trackingPosition.copyFrom(this._getCentroidOfLovers());
 		} else {
 			if (selectedSwimbot != NULL_INDEX) {
-				_trackingPosition.copyFrom(_swimbots[selectedSwimbot].getPosition());
+				this._trackingPosition.copyFrom(this._swimbots[selectedSwimbot].getPosition());
 			}
 		}
 
-		// This is where the tracking forces are created......   
-		let xx = _trackingPosition.x - currentCameraPosition.x;
-		let yy = _trackingPosition.y - currentCameraPosition.y;
+		// This is where the tracking forces are created......
+		let xx = this._trackingPosition.x - currentCameraPosition.x;
+		let yy = this._trackingPosition.y - currentCameraPosition.y;
 
 		// this is where we handle the inner-window having no tracking force...
-		let min = currentCameraScale * INNER_WINDOW_RATIO;
+		let min = currentCameraScale * ViewTracking.INNER_WINDOW_RATIO;
 
 		let d = Math.sqrt(xx * xx + yy * yy);
 
 		if (d < min) {
-			_cameraForce.x = ZERO;
-			_cameraForce.y = ZERO;
+			this._cameraForce.x = ZERO;
+			this._cameraForce.y = ZERO;
 		} else {
 			let ramp = (d - min) / currentCameraScale;
 
@@ -183,79 +193,97 @@ function ViewTracking() {
 				ramp = ONE;
 			}
 
-			_cameraForce.x = xx * _inertia * ramp;
-			_cameraForce.y = yy * _inertia * ramp;
+			this._cameraForce.x = xx * this._inertia * ramp;
+			this._cameraForce.y = yy * this._inertia * ramp;
 		}
 
 		// set scale force
-		_cameraScaleForce = (_trackingScale - currentCameraScale) * _inertia;
+		this._cameraScaleForce = (this._trackingScale - currentCameraScale) * this._inertia;
 
 		// handle ease-in effect
-		_trackingEaseIn += EASE_IN_FRACTION;
+		this._trackingEaseIn += ViewTracking.EASE_IN_FRACTION;
 
-		let distance = _cameraForce.getMagnitude();
+		let distance = this._cameraForce.getMagnitude();
 
-		if (distance > _trackingEaseIn) {
+		if (distance > this._trackingEaseIn) {
 			if (distance > ZERO) {
-				_cameraForce.x = (_cameraForce.x / distance) * _trackingEaseIn;
-				_cameraForce.y = (_cameraForce.y / distance) * _trackingEaseIn;
+				this._cameraForce.x = (this._cameraForce.x / distance) * this._trackingEaseIn;
+				this._cameraForce.y = (this._cameraForce.y / distance) * this._trackingEaseIn;
 			}
 		}
 
-		if (_cameraScaleForce < -_trackingEaseIn) { _cameraScaleForce = -_trackingEaseIn; }
-		if (_cameraScaleForce > _trackingEaseIn) { _cameraScaleForce = _trackingEaseIn; }
+		if (this._cameraScaleForce < -this._trackingEaseIn) { this._cameraScaleForce = -this._trackingEaseIn; }
+		if (this._cameraScaleForce > this._trackingEaseIn) { this._cameraScaleForce = this._trackingEaseIn; }
 	}
 
-	// some quickie get functions....  
-	this.getIsTracking = function() { return _isTracking; }
-	this.getMode = function() { return _mode; }
-	this.getLover1Index = function() { return _lover1Index; }
-	this.getLover2Index = function() { return _lover2Index; }
-	this.getCameraForce = function() { return _cameraForce }
-	this.getCameraScaleForce = function() { return _cameraScaleForce }
+	// some quickie get functions....
+	getIsTracking() { return this._isTracking; }
+	getMode() { return this._mode; }
+	getLover1Index() { return this._lover1Index; }
+	getLover2Index() { return this._lover2Index; }
+	getCameraForce() { return this._cameraForce; }
+	getCameraScaleForce() { return this._cameraScaleForce; }
 
-	function getCentroidOfVisibleSwimbots() {
+	_getCentroidOfVisibleSwimbots() {
+		// Check if cached centroid is still valid (tracking position hasn't moved much)
+		let dx = this._trackingPosition.x - this._cachedTrackingX;
+		let dy = this._trackingPosition.y - this._cachedTrackingY;
+		if (this._cachedCentroidValid &&
+			Math.abs(dx) < this._centroidInvalidateDist &&
+			Math.abs(dy) < this._centroidInvalidateDist &&
+			Math.abs(this._trackingScale - this._cachedScale) < 5) {
+			return this._cachedCentroid;
+		}
+
+		// Recompute centroid
 		let totalWeight = ZERO;
-		_centroidUtility.clear();
+		this._centroidUtility.clear();
 
 		for (let s = 0; s < MAX_SWIMBOTS; s++) {
-			let xx = _swimbots[s].getPosition().x - _trackingPosition.x;
-			let yy = _swimbots[s].getPosition().y - _trackingPosition.y;
+			let xx = this._swimbots[s].getPosition().x - this._trackingPosition.x;
+			let yy = this._swimbots[s].getPosition().y - this._trackingPosition.y;
 
 			let distance = Math.sqrt(xx * xx + yy * yy);
 
-			if (distance < _trackingScale) {
-				if (_swimbots[s].getAlive()) {
-					let weight = ONE - (distance / _trackingScale);
+			if (distance < this._trackingScale) {
+				if (this._swimbots[s].getAlive()) {
+					let weight = ONE - (distance / this._trackingScale);
 
-					_centroidUtility.addScaled(_swimbots[s].getPosition(), weight);
+					this._centroidUtility.addScaled(this._swimbots[s].getPosition(), weight);
 					totalWeight += weight;
 				}
 			}
 		}
 
 		if (totalWeight > ZERO) {
-			_centroidUtility.scale(ONE / totalWeight);
+			this._centroidUtility.scale(ONE / totalWeight);
 		} else {
-			let closestSwimbot = getClosestSwimbotToTrackingPosition();
+			let closestSwimbot = this._getClosestSwimbotToTrackingPosition();
 
 			if (closestSwimbot != NULL_INDEX) {
-				_centroidUtility.copyFrom(_swimbots[closestSwimbot].getPosition());
+				this._centroidUtility.copyFrom(this._swimbots[closestSwimbot].getPosition());
 			} else {
-				_centroidUtility.copyFrom(_trackingPosition);
+				this._centroidUtility.copyFrom(this._trackingPosition);
 			}
 		}
 
-		return _centroidUtility;
+		// Cache the result
+		this._cachedCentroid.copyFrom(this._centroidUtility);
+		this._cachedTrackingX = this._trackingPosition.x;
+		this._cachedTrackingY = this._trackingPosition.y;
+		this._cachedScale = this._trackingScale;
+		this._cachedCentroidValid = true;
+
+		return this._cachedCentroid;
 	}
 
-	function getClosestSwimbotToTrackingPosition() {
+	_getClosestSwimbotToTrackingPosition() {
 		let closest = NULL_INDEX;
 		let smallestDistance = POOL_WIDTH;
 
 		for (let s = 0; s < MAX_SWIMBOTS; s++) {
-			if (_swimbots[s].getAlive()) {
-				let distance = _swimbots[s].getPosition().getDistanceTo(_trackingPosition);
+			if (this._swimbots[s].getAlive()) {
+				let distance = this._swimbots[s].getPosition().getDistanceTo(this._trackingPosition);
 
 				if (distance < smallestDistance) {
 					smallestDistance = distance;
@@ -264,16 +292,16 @@ function ViewTracking() {
 			}
 		}
 
-		return closest
+		return closest;
 	}
 
-	function getMostProlificSwimbot() {
+	_getMostProlificSwimbot() {
 		let mostNumOffspring = 0;
 		let mostProlific = 0;
 
 		for (let s = 0; s < MAX_SWIMBOTS; s++) {
-			if (_swimbots[s].getAlive()) {
-				let numOffspring = _swimbots[s].getNumOffspring();
+			if (this._swimbots[s].getAlive()) {
+				let numOffspring = this._swimbots[s].getNumOffspring();
 
 				if (numOffspring > mostNumOffspring) {
 					mostNumOffspring = numOffspring;
@@ -285,14 +313,14 @@ function ViewTracking() {
 		return mostProlific;
 	}
 
-	function getMostEfficientSwimbot() {
+	_getMostEfficientSwimbot() {
 		let highestEfficiency = 0;
 		let mostEfficient = NULL_INDEX;
 
 		for (let s = 0; s < MAX_SWIMBOTS; s++) {
-			if (_swimbots[s].getAlive()) {
-				if (_swimbots[s].getNumOffspring() === 0) {
-					let efficiency = _swimbots[s].getEnergyEfficiency();
+			if (this._swimbots[s].getAlive()) {
+				if (this._swimbots[s].getNumOffspring() === 0) {
+					let efficiency = this._swimbots[s].getEnergyEfficiency();
 
 					if (efficiency > highestEfficiency) {
 						highestEfficiency = efficiency;
@@ -305,14 +333,14 @@ function ViewTracking() {
 		return mostEfficient;
 	}
 
-	function getOldestVirgin() {
+	_getOldestVirgin() {
 		let highestAge = 0;
 		let oldestVirgin = NULL_INDEX;
 
 		for (let s = 0; s < MAX_SWIMBOTS; s++) {
-			if (_swimbots[s].getAlive()) {
-				if (_swimbots[s].getNumOffspring() === 0) {
-					let age = _swimbots[s].getAge();
+			if (this._swimbots[s].getAlive()) {
+				if (this._swimbots[s].getNumOffspring() === 0) {
+					let age = this._swimbots[s].getAge();
 
 					if (age > highestAge) {
 						highestAge = age;
@@ -325,13 +353,13 @@ function ViewTracking() {
 		return oldestVirgin;
 	}
 
-	function getBiggestEater() {
+	_getBiggestEater() {
 		let mostEaten = 0;
 		let biggestEater = NULL_INDEX;
 
 		for (let s = 0; s < MAX_SWIMBOTS; s++) {
-			if (_swimbots[s].getAlive()) {
-				let numEaten = _swimbots[s].getNumFoodBitsEaten();
+			if (this._swimbots[s].getAlive()) {
+				let numEaten = this._swimbots[s].getNumFoodBitsEaten();
 
 				if (numEaten > mostEaten) {
 					mostEaten = numEaten;
@@ -343,18 +371,18 @@ function ViewTracking() {
 		return biggestEater;
 	}
 
-	function getCentroidOfLovers() {
+	_getCentroidOfLovers() {
 		let centroid = new Vector2D();
 
 		// set the centroid to the tracking position as the default
-		centroid.copyFrom(_trackingPosition);
+		centroid.copyFrom(this._trackingPosition);
 
 		// start by assuming they are still in love
 		let stillInLove = true;
 
 		// check if either of the lovers has NULL_INDEX
-		if ((_lover1Index === NULL_INDEX) ||
-			(_lover2Index === NULL_INDEX)) {
+		if ((this._lover1Index === NULL_INDEX) ||
+			(this._lover2Index === NULL_INDEX)) {
 			stillInLove = false;
 		}
 
@@ -363,10 +391,10 @@ function ViewTracking() {
 			// Check to see if the lovers have broken up
 			for (let s = 0; s < MAX_SWIMBOTS; s++) {
 				// is lover 1 still in love with lover 2?
-				if (s === _lover1Index) {
-					if (_swimbots[s].getAlive()) {
-						if ((_swimbots[s].getBrainState() != BRAIN_STATE_PURSUING_MATE) ||
-							(_swimbots[s].getChosenMateIndex() != _lover2Index)) {
+				if (s === this._lover1Index) {
+					if (this._swimbots[s].getAlive()) {
+						if ((this._swimbots[s].getBrainState() != BRAIN_STATE_PURSUING_MATE) ||
+							(this._swimbots[s].getChosenMateIndex() != this._lover2Index)) {
 							stillInLove = false;
 						}
 					} else {
@@ -376,10 +404,10 @@ function ViewTracking() {
 
 				// if yes, then...is lover 2 still in love with lover 1?
 				if (stillInLove) {
-					if (s === _lover2Index) {
-						if (_swimbots[s].getAlive()) {
-							if ((_swimbots[s].getBrainState() != BRAIN_STATE_PURSUING_MATE) ||
-								(_swimbots[s].getChosenMateIndex() != _lover1Index)) {
+					if (s === this._lover2Index) {
+						if (this._swimbots[s].getAlive()) {
+							if ((this._swimbots[s].getBrainState() != BRAIN_STATE_PURSUING_MATE) ||
+								(this._swimbots[s].getChosenMateIndex() != this._lover1Index)) {
 								stillInLove = false;
 							}
 						} else {
@@ -393,19 +421,19 @@ function ViewTracking() {
 		// okay, they parted ways - find two new lovers!
 		if (!stillInLove) {
 			for (let s = 0; s < MAX_SWIMBOTS; s++) {
-				if (_swimbots[s].getAlive()) {
-					if (_swimbots[s].getBrainState() === BRAIN_STATE_PURSUING_MATE) {
-						let chosenMate = _swimbots[s].getChosenMateIndex();
+				if (this._swimbots[s].getAlive()) {
+					if (this._swimbots[s].getBrainState() === BRAIN_STATE_PURSUING_MATE) {
+						let chosenMate = this._swimbots[s].getChosenMateIndex();
 
 						for (let o = 0; o < MAX_SWIMBOTS; o++) {
 							if (o === chosenMate) {
-								if (_swimbots[o].getAlive()) {
-									if (_swimbots[o].getBrainState() === BRAIN_STATE_PURSUING_MATE) {
-										if (_swimbots[o].getChosenMateIndex() === s) {
-											_lover1Index = s;
-											_lover2Index = o;
+								if (this._swimbots[o].getAlive()) {
+									if (this._swimbots[o].getBrainState() === BRAIN_STATE_PURSUING_MATE) {
+										if (this._swimbots[o].getChosenMateIndex() === s) {
+											this._lover1Index = s;
+											this._lover2Index = o;
 
-											assert(_lover1Index != _lover2Index, "getCentroidOfLovers: _lover1Index != _lover2Index");
+											assert(this._lover1Index != this._lover2Index, "getCentroidOfLovers: _lover1Index != _lover2Index");
 										}
 									}
 								}
@@ -417,10 +445,10 @@ function ViewTracking() {
 		}
 
 		// get the centroid of the two lovers and send it off
-		if ((_lover1Index != NULL_INDEX) &&
-			(_lover2Index != NULL_INDEX)) {
-			centroid.x = (_swimbots[_lover1Index].getPosition().x + _swimbots[_lover2Index].getPosition().x) * ONE_HALF;
-			centroid.y = (_swimbots[_lover1Index].getPosition().y + _swimbots[_lover2Index].getPosition().y) * ONE_HALF;
+		if ((this._lover1Index != NULL_INDEX) &&
+			(this._lover2Index != NULL_INDEX)) {
+			centroid.x = (this._swimbots[this._lover1Index].getPosition().x + this._swimbots[this._lover2Index].getPosition().x) * ONE_HALF;
+			centroid.y = (this._swimbots[this._lover1Index].getPosition().y + this._swimbots[this._lover2Index].getPosition().y) * ONE_HALF;
 		}
 
 		return centroid;
