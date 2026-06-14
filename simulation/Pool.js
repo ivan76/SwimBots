@@ -137,9 +137,6 @@ class Pool {
 		// reset this!
 		this._touch.moving = false;
 
-		// show watery effects
-		//this._showWateryEffects( _seconds, viewport );
-
 		// show boundary
 		canvas.fillStyle = this._BOUNDARY_MARGIN_COLOR;
 		canvas.fillRect(POOL_LEFT, POOL_TOP - this._POOL_BOUNDARY_MARGIN, POOL_WIDTH, this._POOL_BOUNDARY_MARGIN);

@@ -33,9 +33,6 @@ var globalTweakers = SwimbotsApp.globalTweakers; // alias for legacy compatibili
 class GenePool {
 	constructor() {
 		// count-related constants
-		//const MAX_FOODBITS          = 2000;
-		//const INITIAL_NUM_SWIMBOTS  = 200;
-		//const INITIAL_NUM_FOODBITS  = 800;
 		const TRAIL_LENGTH = 100;
 
 		const NUM_NEIGHBORHOOD_SWIMBOTS = 14 * 14;
@@ -53,7 +50,6 @@ class GenePool {
 		const NEIGHBORHOOD_VIEW_SCALE = POOL_WIDTH * 0.4;
 		const NEIGHBORHOOD_FREQ = 5.0;
 		const DEBUG_SHOW_SWIMBOT_TRAIL = false;
-		//const SWIMBOT_DATA_UPDATE_PERIOD        = 30;
 		const CAMERA_TRACKING_UPDATE_PERIOD = 10;
 		const CLONE_SEPARATION = 10.0;
 		const FOOD_RACE_SIZE = 1000;
@@ -2004,6 +2000,22 @@ class GenePool {
 			}
 		}
 
+		return num;
+	}
+
+	/**
+	 * Count alive swimbots whose preferred food type matches the given type (0 or 1).
+	 * Only meaningful when globalTweakers.numFoodTypes === 2.
+	 */
+	getNumSwimbotsPreferringType(type) {
+		let num = 0;
+		for (let s = 0; s < MAX_SWIMBOTS; s++) {
+			if (this._swimbots[s].getAlive()) {
+				if (this._swimbots[s].getPreferredFoodType() === type) {
+					num++;
+				}
+			}
+		}
 		return num;
 	}
 

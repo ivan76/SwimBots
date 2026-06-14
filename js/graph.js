@@ -1,4 +1,4 @@
-"use strict";
+﻿"use strict";
 
 function Graph() {
 	const GRAPH_LEFT_MARGIN = 20;
@@ -10,9 +10,8 @@ function Graph() {
 	const GRAPH_FOODBIT_COLOR = "rgb(20,  100,  20)";
 	const GRAPH_FOODBIT_1_COLOR = "rgb(20,  100, 200)";
 	const GRAPH_SWIMBOT_COLOR = "rgb(200, 60,  20)";
-	//const GRAPH_SWIMBOT_1_COLOR = "rgb(200,  20, 200)";
+	const GRAPH_SWIMBOT_1_COLOR = "rgb(200,  20, 200)";
 
-	//let _maxPopulationValue = 0;
 	let _currentCount = 0;
 	let _left = 0;
 	let _top = 0;
@@ -32,7 +31,7 @@ function Graph() {
 	let _graphHeight = 0;
 	let _time = [];
 	let _numSwimbots = [];
-	//let _numSwimbots1   = []; 
+	let _numSwimbots1 = [];
 	let _numFoodBits = [];
 	let _numFoodBits1 = [];
 	let _graphContext = null;
@@ -48,6 +47,7 @@ function Graph() {
 		// Pre-allocate to maximum capacity — avoids reallocation during warmup
 		_time = new Array(GRAPH_CAPACITY);
 		_numSwimbots = new Array(GRAPH_CAPACITY);
+		_numSwimbots1 = new Array(GRAPH_CAPACITY);
 		_numFoodBits = new Array(GRAPH_CAPACITY);
 		_numFoodBits1 = new Array(GRAPH_CAPACITY);
 
@@ -55,7 +55,7 @@ function Graph() {
 		_graphContext = _graphCanvas.getContext('2d');
 	}
 
-	this.update = function(time, numSwimbots, numFoodBits, numFoodBits1) {
+	this.update = function(time, numSwimbots, numSwimbots1, numFoodBits, numFoodBits1) {
 		if (_maxGraphCount < 1000) {
 			_maxGraphCount++;
 		}
@@ -63,6 +63,7 @@ function Graph() {
 		// Write at the current circular index
 		_time[_writeIndex] = time;
 		_numSwimbots[_writeIndex] = numSwimbots;
+		_numSwimbots1[_writeIndex] = numSwimbots1;
 		_numFoodBits[_writeIndex] = numFoodBits;
 		_numFoodBits1[_writeIndex] = numFoodBits1;
 
@@ -109,7 +110,7 @@ function Graph() {
 		graphCanvas.fillRect(_graphLeft, _graphTop, _graphWidth, _graphHeight);
 		graphCanvas.strokeRect(_graphLeft, _graphTop, _graphWidth, _graphHeight);
 
-		// render the horizontal lines 
+		// render the horizontal lines
 		graphCanvas.lineWidth = 1.0;
 		graphCanvas.strokeStyle = "rgba(100, 100, 100, 0.5)";
 		graphCanvas.beginPath();
@@ -129,16 +130,11 @@ function Graph() {
 
 		// show data
 		if (_currentCount > 1) {
-			//let timeStepString = _time       [ _currentCount -1 ].toString();
-			//let swimbotString  = _numSwimbots[ _currentCount -1 ].toString();
-			//let foodbitString  = _numFoodBits[ _currentCount -1 ].toString();
-			//let foodbit1String = _numFoodBits1[ _currentCount -1 ].toString();
-
 			let timeStep = _bottom - GRAPH_BOTTOM_MARGIN + 30;
 			let swimbotY = _bottom - GRAPH_BOTTOM_MARGIN + 50;
-			//let swimbot1  = _bottom - GRAPH_BOTTOM_MARGIN +  70;
-			let foodbitY = _bottom - GRAPH_BOTTOM_MARGIN + 67;
-			let foodbit1Y = _bottom - GRAPH_BOTTOM_MARGIN + 84;
+			let swimbot1Y = _bottom - GRAPH_BOTTOM_MARGIN + 67;
+			let foodbitY = _bottom - GRAPH_BOTTOM_MARGIN + 84;
+			let foodbit1Y = _bottom - GRAPH_BOTTOM_MARGIN + 101;
 
 			let left = _graphLeft + 30;
 
@@ -151,6 +147,7 @@ function Graph() {
 			graphCanvas.fillText("500", left, _level0500 + 8);
 			graphCanvas.fillText("1000", left, _level1000 + 18);
 
+			// legend — food bits (green)
 			graphCanvas.lineWidth = 2;
 			graphCanvas.strokeStyle = GRAPH_FOODBIT_COLOR;
 			graphCanvas.beginPath();
@@ -159,6 +156,7 @@ function Graph() {
 			graphCanvas.stroke();
 			graphCanvas.closePath();
 
+			// legend — food bits (blue)
 			graphCanvas.lineWidth = 2;
 			graphCanvas.strokeStyle = GRAPH_FOODBIT_1_COLOR;
 			graphCanvas.beginPath();
@@ -167,6 +165,7 @@ function Graph() {
 			graphCanvas.stroke();
 			graphCanvas.closePath();
 
+			// legend — swimbots (green pref)
 			graphCanvas.lineWidth = 2;
 			graphCanvas.strokeStyle = GRAPH_SWIMBOT_COLOR;
 			graphCanvas.beginPath();
@@ -175,15 +174,14 @@ function Graph() {
 			graphCanvas.stroke();
 			graphCanvas.closePath();
 
-			/*
-			graphCanvas.lineWidth = 2; 
+			// legend — swimbots (blue pref)
+			graphCanvas.lineWidth = 2;
 			graphCanvas.strokeStyle = GRAPH_SWIMBOT_1_COLOR;
 			graphCanvas.beginPath();
-			graphCanvas.moveTo(left + 120, swimbot1 - 6);
-			graphCanvas.lineTo(left + 180, swimbot1 - 6);
+			graphCanvas.moveTo(left + 140, swimbot1Y);
+			graphCanvas.lineTo(left + 250, swimbot1Y);
 			graphCanvas.stroke();
 			graphCanvas.closePath();
-			*/
 		}
 	}
 
@@ -217,8 +215,8 @@ function Graph() {
 			let swimbotY1 = _graphBottom - (_numSwimbots[iPrev] * RECIPROCAL_OF_MAX_POP) * _graphHeight;
 			let swimbotY2 = _graphBottom - (_numSwimbots[iCurr] * RECIPROCAL_OF_MAX_POP) * _graphHeight;
 
-			//let swimbot1Y1  = _graphBottom - (_numSwimbots1[g-1] * RECIPROCAL_OF_MAX_POP) * _graphHeight;
-			//let swimbot1Y2  = _graphBottom - (_numSwimbots1[g  ] * RECIPROCAL_OF_MAX_POP) * _graphHeight;
+			let swimbot1Y1 = _graphBottom - (_numSwimbots1[iPrev] * RECIPROCAL_OF_MAX_POP) * _graphHeight;
+			let swimbot1Y2 = _graphBottom - (_numSwimbots1[iCurr] * RECIPROCAL_OF_MAX_POP) * _graphHeight;
 
 			if (foodY2 > _graphBottom - _graphHeight) {
 				graphCanvas.strokeStyle = GRAPH_FOODBIT_COLOR;
@@ -247,22 +245,14 @@ function Graph() {
 				graphCanvas.closePath();
 			}
 
-			/*
-			if (swimbot1Y2 > _graphBottom - _graphHeight)
-			{
+			if (swimbot1Y2 > _graphBottom - _graphHeight) {
 				graphCanvas.strokeStyle = GRAPH_SWIMBOT_1_COLOR;
 				graphCanvas.beginPath();
-
-				//graphCanvas.moveTo(x1, swimbot1Y1);
-				//graphCanvas.lineTo(x2, swimbot1Y2);
-
 				graphCanvas.moveTo(x1, swimbot1Y1);
 				graphCanvas.lineTo(x2, swimbot1Y2);
-
 				graphCanvas.stroke();
 				graphCanvas.closePath();
 			}
-			*/
 		}
 	}
 }

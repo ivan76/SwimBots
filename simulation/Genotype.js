@@ -2,16 +2,7 @@
 
 const NUM_GENES = 256;
 
-//const MUTATION_RATE   = 0.0;
-//const MUTATION_RATE	= 0.01; // original
-//const MUTATION_RATE	= 0.05;
-//const MUTATION_RATE	= 0.2;
-//const MUTATION_RATE   = 1.0;
-//const CROSSOVER_RATE	= 0.2;
-
 const MIN_GENE_VALUE = 0;
-
-//const NON_REPRODUCING_JUNK_DNA_LIMIT = 0.9; 
 
 const PRESET_GENOTYPE_DARWIN = 0;
 const PRESET_GENOTYPE_WALLACE = 1;
@@ -21,16 +12,6 @@ const PRESET_GENOTYPE_MARGULIS = 4;
 const PRESET_GENOTYPE_WILSON = 5;
 const PRESET_GENOTYPE_DAWKINS = 6;
 const PRESET_GENOTYPE_DENNETT = 7;
-
-/*
-const PRESET_GENOTYPE_THING     =  8;
-const PRESET_GENOTYPE_CRAZY     =  9;
-const PRESET_GENOTYPE_OTTO      = 10;
-const PRESET_GENOTYPE_SQUIRM    = 11;
-const PRESET_GENOTYPE_WHIPPER   = 12;
-const PRESET_GENOTYPE_FAST      = 13;
-const PRESET_GENOTYPE_BLIP      = 14;
-*/
 
 	class Genotype {
 		constructor() {

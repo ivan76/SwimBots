@@ -3,10 +3,8 @@
 const InputMode = {
 	NULL: -1,
 	LOAD_SWIMBOT_FROM_PRESET: 0,
-	LOAD_SWIMBOT_FROM_FILE: 1,
 	SAVE_SWIMBOT: 2,
 	LOAD_POOL_FROM_PRESET: 3,
-	LOAD_POOL_FROM_FILE: 4,
 	SAVE_POOL: 5
 };
 
@@ -23,148 +21,9 @@ function addToFilenameInputString(e) {
 }
 
 function submitFilenameInput() {
-	if (_savedBeforeLoad) {
-		loadPool();
-		_savedBeforeLoad = false;
-
-		_inputMode = InputMode.LOAD_POOL_FROM_FILE;
-	} else {
-		// load swimbot
-		if (_inputMode === InputMode.LOAD_SWIMBOT_FROM_FILE) {
-
-			let swimbotLookup = _database.getLookupTable('swimbots');
-
-			let userOfSwimbot = "";
-
-			let swimbotToLoad = swimbotLookup.find(
-				function(swimbot) {
-					userOfSwimbot = swimbot.user;
-					return swimbot.name === _inputFilenameString;
-				}
-			);
-
-			if ((swimbotToLoad) &&
-				(userOfSwimbot === _username)) {
-				document.getElementById('PopUpPanelError').style.visibility = "visible";
-				document.getElementById('PopUpPanelError').style.borderWidth = 2;
-				document.getElementById('PopUpPanelError').style.borderColor = "#555555";
-				document.getElementById('PopUpPanelError').innerHTML = "<br>" +
-					"&nbsp&nbsp loading data for swimbot '" + _inputFilenameString + "'";
-
-				_database.loadObject(
-					'swimbots',
-					swimbotToLoad.key,
-
-					function(data) {
-						if (data) {
-							genePool.createNewSwimbotWithGenes(data.genes);
-							closePopupPanel();
-							_inputFilenameString = "";
-						}
-					}
-				);
-			} else {
-				document.getElementById('cancelErrorButton').style.visibility = "visible";
-
-				document.getElementById('PopUpPanelError').style.visibility = "visible";
-				document.getElementById('PopUpPanelError').style.borderWidth = 5;
-				document.getElementById('PopUpPanelError').style.borderColor = "#883300";
-				document.getElementById('PopUpPanelError').innerHTML = "<br>" +
-					"&nbsp&nbsp ERROR:" +
-					"<br>" +
-					"&nbsp&nbsp Could not find swimbot file '" + _inputFilenameString + "'" +
-					"<br>" +
-					"&nbsp&nbsp Try a different name";
-			}
-		}
-
-		// save swimbot
-		else if (_inputMode === InputMode.SAVE_SWIMBOT) {
-			let selectedSwimbot = genePool.getSelectedSwimbotID();
-
-			if (selectedSwimbot != -1) {
-
-				let date = new Date();
-				let dateInSeconds = date.getTime();
-
-				let genes = genePool.getSwimbotGenes(selectedSwimbot);
-				let swimbotWithMetaData = ({ 'name': _inputFilenameString, 'date': dateInSeconds, 'user': _username, 'genes': genes });
-
-				_database.add('swimbots', swimbotWithMetaData);
-				closePopupPanel();
-				_inputFilenameString = "";
-			}
-		}
-
-		// load pool
-		else if (_inputMode === InputMode.LOAD_POOL_FROM_FILE) {
-
-			let poolLookup = _database.getLookupTable('pools');
-
-			let poolToLoad = poolLookup.find(
-				function(pool) {
-					return pool.name === _inputFilenameString;
-				}
-			);
-
-			if (poolToLoad) {
-				document.getElementById('PopUpPanelError').style.visibility = "visible";
-				document.getElementById('PopUpPanelError').style.borderWidth = 2;
-				document.getElementById('PopUpPanelError').style.borderColor = "#555555";
-				document.getElementById('PopUpPanelError').innerHTML = "<br>" +
-					"&nbsp&nbsp loading data for pool '" + _inputFilenameString + "'";
-
-				_database.loadObject(
-					'pools',
-					poolToLoad.key,
-
-					function(data) {
-						if (data) {
-							genePool.setPoolData(data.pool);
-							closePopupPanel();
-							_inputFilenameString = "";
-						}
-					}
-				);
-			} else {
-				document.getElementById('PopUpPanelError').style.visibility = "visible";
-				document.getElementById('PopUpPanelError').style.borderWidth = 5;
-				document.getElementById('PopUpPanelError').style.borderColor = "#883300";
-				document.getElementById('PopUpPanelError').innerHTML = "<br>" +
-					"&nbsp&nbsp ERROR:" +
-					"<br>" +
-					"&nbsp&nbsp Could not find pool file '" + _inputFilenameString + "'" +
-					"<br>" +
-					"&nbsp&nbsp Try a different name";
-			}
-		}
-
-		// save pool
-		else if (_inputMode === InputMode.SAVE_POOL) {
-
-			let date = new Date();
-			let dateInSeconds = date.getTime();
-			let pool = genePool.getPoolData();
-
-			let poolWithMetaData = ({ 'name': _inputFilenameString, 'date': dateInSeconds, 'user': _username, 'pool': pool });
-
-			_database.add('pools', poolWithMetaData);
-			closePopupPanel();
-			_inputFilenameString = "";
-		}
-
-		// cancel input mode
-		_inputMode = InputMode.NULL;
-	}
-}
-
-// these four save/load calls are made from html...
-function readLocalFile(event) {
-	let fileList = event.target.files;
-
-	let file = fileList[0];
-
-	let reader = new FileReader();
+	// File-based save/load is handled through the data display panel.
+	// Firebase backend was removed — presets and JSON export/import remain.
+	_inputMode = InputMode.NULL;
 }
 
 function printFamilyTree() {
@@ -175,7 +34,6 @@ function printFamilyTree() {
 		"swimbot data",
 		"left=400, top=100, width=600, height=700, status=0, resizable=0, channelmode=0, menubar=0, toolbar=0, location=0, titlebar=0"
 	);
-
 
 	w.document.title = "Swimbot Data (copy and paste into a text file, then load into Gene Pool Lab)";
 
@@ -216,28 +74,24 @@ function printFamilyTree() {
 }
 
 function loadPool() {
-	if (_chosenPoolToLoad === SimulationStartMode.FILE) {
-		openPopupPanelForInput("Load a new pool from a file", InputMode.LOAD_POOL_FROM_FILE);
-	} else {
-		switchToChosenPresetPool();
-	}
+	switchToChosenPresetPool();
 }
 
 function openPopupPanelForInput(text, mode) {
 	_inputMode = mode;
 
-	// make sure these are turned off  
+	// make sure these are turned off
 	document.getElementById('noSavePopUpPanelButton').style.visibility = "hidden";
 	document.getElementById('savePopUpPanelButton').style.visibility = "hidden";
 	document.getElementById('dataDisplayButton').style.visibility = "hidden";
 
-	// turn these on  
+	// turn these on
 	document.getElementById('popUpPanel').style.visibility = "visible";
 	document.getElementById('cancelPopUpPanelButton').style.visibility = "visible";
 	document.getElementById('popUpPanelInput').style.visibility = "visible";
 	document.getElementById('submitFilenameButton').style.visibility = "visible";
 
-	// give focus to the input  
+	// give focus to the input
 	document.getElementById("popUpPanelInput").focus();
 
 	// default case...
@@ -253,44 +107,11 @@ function openPopupPanelForInput(text, mode) {
 			"<br>" +
 			"Name this swimbot...";
 
-		// give user option to display data...  
+		// give user option to display data...
 		document.getElementById('dataDisplayButton').style.visibility = "visible";
-	} else if (_inputMode === InputMode.LOAD_SWIMBOT_FROM_FILE) {
-		document.getElementById("PopupText").style.visibility = "visible";
-		document.getElementById("PopupText").innerHTML = text +
-			"<br>" +
-			"<br>" +
-			"choose from the list of saved swimbots:" +
-			"<br>" +
-			"<br>";
-
-		document.getElementById("popUpPanelInput").style.top = "290px";
-		document.getElementById("submitFilenameButton").style.top = "290px";
-
-		document.getElementById("loadedList").style.visibility = "visible";
-		document.getElementById("loadedList").innerHTML = "";
-
-		let swimbotLookup = _database.getLookupTable('swimbots');
-
-		for (let s = 0; s < swimbotLookup.length; s++) {
-			if (swimbotLookup[s].user === _username) {
-				let loadSwimbotButton = document.createElement("BUTTON");
-
-				loadSwimbotButton.id = "swimbotLoadButton_" + s.toString();
-
-				loadSwimbotButton.innerHTML = swimbotLookup[s].name
-
-				document.getElementById("loadedList").appendChild(loadSwimbotButton);
-
-				loadSwimbotButton.onmousedown = function(e) {
-					_inputFilenameString = swimbotLookup[s].name;
-					document.getElementById('popUpPanelInput').value = swimbotLookup[s].name;
-				}
-			}
-		}
 	}
 
-	// clear-out input string...  
+	// clear-out input string...
 	_inputFilenameString = "";
 	document.getElementById('popUpPanelInput').value = '';
 }

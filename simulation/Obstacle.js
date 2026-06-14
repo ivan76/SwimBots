@@ -157,7 +157,7 @@ class Obstacle {
 			let dot = this._testVector.dotWith(this._perp);
 
 			if (Math.abs(dot) < radius) {
-				let penetration = (ONE - (dot / radius)) /* * COLLISION_FORCE */ ;
+				let penetration = (ONE - (dot / radius));
 
 				if (dot < ZERO) {
 					penetration *= -ONE;

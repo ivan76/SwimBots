@@ -20,7 +20,6 @@ class Swimbot {
 		this._age = 0;
 		this._numOffspring = 0;
 		this._numFoodBitsEaten = 0;
-		//let _maximumLifeSpan    = 0;
 		this._index = NULL_INDEX;
 		this._chosenMateIndex = NULL_INDEX;
 		this._chosenFoodBitIndex = NULL_INDEX;

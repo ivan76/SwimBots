@@ -1,5 +1,3 @@
-const INVISIBLE = false;
-const VISIBLE = true;
 const NULL_INDEX = -1;
 const BYTE_SIZE = 256;
 const ZERO = 0.0;

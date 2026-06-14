@@ -657,7 +657,14 @@ function updateUI() {
 
 		// always update the graph....
 		if (genePoolIsDefined) {
-			_graph.update(genePool.getTimeStep(), genePool.getNumSwimbots(), genePool.getNumFoodBits(), genePool.getNumFoodBits1());
+			_graph.update(
+				genePool.getTimeStep(),
+				genePool.getNumSwimbots(),
+				genePool.getNumSwimbotsPreferringType(0),
+				genePool.getNumSwimbotsPreferringType(1),
+				genePool.getNumFoodBits(),
+				genePool.getNumFoodBits1()
+			);
 		}
 
 		// render the graph....
@@ -665,6 +672,10 @@ function updateUI() {
 			document.getElementById('graphData').innerHTML = "time step: " + genePool.getTimeStep() +
 				"<br>" +
 				"swimbots: " + genePool.getNumSwimbots() +
+				"<br>" +
+				"green pref: " + genePool.getNumSwimbotsPreferringType(0) +
+				"<br>" +
+				"blue pref: " + genePool.getNumSwimbotsPreferringType(1) +
 				"<br>" +
 				"food bits: " + genePool.getNumFoodBits() +
 				"<br>" +

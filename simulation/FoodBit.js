@@ -15,9 +15,9 @@ const FOOD_BIT_ROLLOVER_COLOR = "rgba( 100, 200, 100, 0.5 )";
 const FOOD_BIT_SELECT_COLOR = "rgba( 200, 200, 200, 1.0 )";
 const FOOD_OPACITY_INCREMENT = 0.01;
 
-//const FOOD_TYPE_NULL   = -1;
-//const FOOD_TYPE_GREEN  =  0;
-//const FOOD_TYPE_BLUE   =  1;
+const FOOD_TYPE_NULL   = -1;
+const FOOD_TYPE_GREEN  =  0;
+const FOOD_TYPE_BLUE   =  1;
 
 // Food bit
 class FoodBit {
