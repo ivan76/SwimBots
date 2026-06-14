@@ -115,6 +115,9 @@ class GenePool {
 		this._frameAccumulator = 0;
 		this._animationFrameId = null;
 
+		// food speciation toggle — when true, all presets spawn 50/50 food + swimbot preferences
+		this._foodSpeciationEnabled = false;
+
 		// create fixed-sized swimbot array
 		for (let s = 0; s < MAX_SWIMBOTS; s++) {
 			this._swimbots[s] = new Swimbot();
@@ -215,7 +218,11 @@ class GenePool {
 		this._numFoodBits = INITIAL_NUM_FOODBITS;
 
 		// default
-		globalTweakers.numFoodTypes = 1;
+		if (this._foodSpeciationEnabled || mode === SimulationStartMode.SPECIES) {
+			globalTweakers.numFoodTypes = 2;
+		} else {
+			globalTweakers.numFoodTypes = 1;
+		}
 		this.randomizeFood();
 
 		// initialize various parameters according to simulation start mode
@@ -400,9 +407,18 @@ class GenePool {
 			    if (i === 5) { initialPosition.setXY(_poolCenter.x + s *  1,  _poolCenter.y + s *  1); }
 			}
 			*/
-			// normal
+			// normal random
 			else {
 				this._myGenotype.randomize();
+			}
+
+			// food speciation toggle — applies to all presets when enabled
+			if (this._foodSpeciationEnabled) {
+				let foodType = (i < this._numSwimbots / 2) ? 0 : 1;
+				let prefGene = this._embryology.getPreferredFoodTypeGene();
+				let digGene = this._embryology.getDigestibleFoodTypeGene();
+				this._myGenotype.setGeneValue(prefGene, foodType === 0 ? 0 : 200);
+				this._myGenotype.setGeneValue(digGene, foodType === 0 ? 0 : 200);
 			}
 
 			// This sets all junk DNA to a value of 0!!!
@@ -485,19 +501,12 @@ class GenePool {
 			let n = 0;
 
 			if (globalTweakers.numFoodTypes === 2) {
-				n = Math.floor(Math.random() * 2);
-
-				/*
-				//first half is one type, the other half is the other type...
-				if (f < _numFoodBits * ONE_HALF )
-				{
-				    n = 0;
+				if (this._foodSpeciationEnabled) {
+					// first half green, second half blue
+					n = f < this._numFoodBits * ONE_HALF ? 0 : 1;
+				} else {
+					n = Math.floor(Math.random() * 2);
 				}
-				else
-				{
-				    n = 1;
-				}
-				*/
 			}
 
 			this._foodBits[f].setType(n);
@@ -1453,6 +1462,14 @@ class GenePool {
 
 	setMillisecondsPerUpdate(m) {
 		this._millisecondsPerUpdate = m;
+	}
+
+	setFoodSpeciationEnabled(enabled) {
+		this._foodSpeciationEnabled = enabled;
+	}
+
+	getFoodSpeciationEnabled() {
+		return this._foodSpeciationEnabled;
 	}
 
 	toggleGoalOverlay() {

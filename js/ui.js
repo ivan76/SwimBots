@@ -774,6 +774,11 @@ function attachEventListeners() {
 		});
 	});
 
+	// Food speciation toggle
+	document.getElementById('foodSpeciationCheckbox').addEventListener('change', function() {
+		genePool.setFoodSpeciationEnabled(this.checked);
+	});
+
 	// Family tree
 	document.getElementById('familyTreeButton').addEventListener('click', function() {
 		printFamilyTree();
