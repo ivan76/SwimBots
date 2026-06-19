@@ -27,7 +27,7 @@ function submitFilenameInput() {
 }
 
 function printFamilyTree() {
-	genePool.generatePhyloTree();
+	SwimbotsApp.genePool.generatePhyloTree();
 
 	let w = window.open(
 		"",
@@ -37,7 +37,7 @@ function printFamilyTree() {
 
 	w.document.title = "Swimbot Data (copy and paste into a text file, then load into Gene Pool Lab)";
 
-	let familyTree = genePool.getFamilyTree();
+	let familyTree = SwimbotsApp.genePool.getFamilyTree();
 
 	let f = "";
 
@@ -118,10 +118,10 @@ function openPopupPanelForInput(text, mode) {
 
 function displayData(filename) {
 	if (_inputMode === InputMode.SAVE_SWIMBOT) {
-		showSwimbotGenes(genePool.getSelectedSwimbotID());
+		showSwimbotGenes(SwimbotsApp.genePool.getSelectedSwimbotID());
 	} else if (_inputMode === InputMode.SAVE_POOL) {
 
-		let pool = genePool.getPoolData();
+		let pool = SwimbotsApp.genePool.getPoolData();
 		let json = JSON.stringify({ pool });
 
 		document.getElementById('dataDisplay').style.visibility = "visible";
@@ -140,7 +140,7 @@ function displayData(filename) {
 
 function showSwimbotGenes(s) {
 	if (s != -1) {
-		let genes = genePool.getSwimbotGenes(s);
+		let genes = SwimbotsApp.genePool.getSwimbotGenes(s);
 		let json = JSON.stringify({ genes });
 
 		document.getElementById('dataDisplay').style.visibility = "visible";

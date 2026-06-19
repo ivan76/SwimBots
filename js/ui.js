@@ -15,8 +15,60 @@ let _graph = new Graph();
 let _tweakGenesCategory = 0;
 let _runningFast = false;
 
-// Global simulation instance (used by inline HTML handlers)
-var genePool; // alias - will point to SwimbotsApp.genePool
+// Cached simulation state, populated by SIM_STATE_UPDATED events from GenePool.
+// This eliminates the need for the UI to call getters on the simulation directly.
+let _simState = {};
+
+//----------------------------
+function initGenePool() {
+	SwimbotsApp.genePool = new GenePool();
+	SwimbotsApp.genePool.setCanvas(SwimbotsApp.canvas);
+	resize();
+	SwimbotsApp.genePool.setCanvasDimensions(SwimbotsApp.canvasID.width, SwimbotsApp.canvasID.height);
+	SwimbotsApp.genePool.initialize();
+	setupNavigationButtons();
+	_setupStateSubscription();
+	initializeUI();
+}
+
+document.addEventListener("DOMContentLoaded", initGenePool);
+window.addEventListener("resize", resize);
+
+
+//----------------------------
+/**
+ * Subscribe to simulation state events.
+ * Replaces the old pattern of calling getters on genePool.
+ */
+function _setupStateSubscription() {
+	eventBus.on(SIM_STATE_UPDATED, function(state) {
+		_simState = state;
+	});
+}
+
+//----------------------------
+function _getSimState() {
+	return _simState;
+}
+
+//----------------------------
+function _getSwimbotState() {
+	return _simState.selectedSwimbot || null;
+}
+
+//----------------------------
+function initializeUI() {
+	initializeEcosystemUI();
+
+	_graph.initialize();
+
+	attachEventListeners();
+
+	// This starts an update loop that is called
+	// periodically to adjust UI states and stuff.
+	_lastUIUpdateTime = 0;
+	updateUI();
+}
 
 function setupNavigationButtons() {
 	const navButtons = [
@@ -33,63 +85,49 @@ function setupNavigationButtons() {
 		if (!btn) continue;
 
 		btn.addEventListener("mousedown", function() {
-			genePool.startCameraNavigation(navButtons[i].action);
+			eventBus.emit(UI_CMD_START_CAMERA_NAV, navButtons[i].action);
 			clearViewModeButtons();
 		});
 
 		btn.addEventListener("mouseup", function() {
-			genePool.stopCameraNavigation(navButtons[i].action);
+			eventBus.emit(UI_CMD_STOP_CAMERA_NAV, navButtons[i].action);
 		});
 
 		btn.addEventListener("mouseleave", function() {
-			genePool.stopCameraNavigation(navButtons[i].action);
+			eventBus.emit(UI_CMD_STOP_CAMERA_NAV, navButtons[i].action);
 		});
 	}
 }
 
 //----------------------------
-function initGenePool() {
-	SwimbotsApp.genePool = new GenePool();
-	genePool = SwimbotsApp.genePool; // alias for legacy compatibility
-	genePool.setCanvas(SwimbotsApp.canvas);
-	resize();
-	genePool.setCanvasDimensions(SwimbotsApp.canvasID.width, SwimbotsApp.canvasID.height);
-	genePool.initialize();
-	setupNavigationButtons();
-	initializeUI();
-}
-
-document.addEventListener("DOMContentLoaded", initGenePool);
-window.addEventListener("resize", resize);
-
-
-//----------------------------
-function initializeUI() {
-	initializeEcosystemUI();
-
-	_graph.initialize();
-
-	attachEventListeners();
-
-	// This starts an update loop that is called
-	// periodically to adjust UI states and stuff.
-	_lastUIUpdateTime = 0;
-	updateUI();
+function _attractionValueToConstant(value) {
+	if (value === "colorful") return ATTRACTION_COLORFUL;
+	if (value === "big") return ATTRACTION_BIG;
+	if (value === "hyper") return ATTRACTION_HYPER;
+	if (value === "long") return ATTRACTION_LONG;
+	if (value === "straight") return ATTRACTION_STRAIGHT;
+	if (value === "noColor") return ATTRACTION_NO_COLOR;
+	if (value === "small") return ATTRACTION_SMALL;
+	if (value === "still") return ATTRACTION_STILL;
+	if (value === "short") return ATTRACTION_SHORT;
+	if (value === "crooked") return ATTRACTION_CROOKED;
+	if (value === "similarColor") return ATTRACTION_SIMILAR_COLOR;
+	if (value === "similarSize") return ATTRACTION_SIMILAR_SIZE;
+	if (value === "similarHyper") return ATTRACTION_SIMILAR_HYPER;
+	if (value === "similarLength") return ATTRACTION_SIMILAR_LENGTH;
+	if (value === "similarStraight") return ATTRACTION_SIMILAR_STRAIGHT;
+	if (value === "random") return ATTRACTION_RANDOM;
+	if (value === "closest") return ATTRACTION_CLOSEST;
+	return ATTRACTION_SIMILAR_COLOR; // default
 }
 
 function chooseAttraction() {
 	let radioButtons = document.getElementsByName('attractionRadioButton');
 
 	for (let i = 0; i < radioButtons.length; i++) {
-		if (radioButtons[i].type === 'radio') {
-			if (radioButtons[i].checked) {
-				let value = radioButtons[i].value;
-				let attraction = ATTRACTION_SIMILAR_COLOR;
-
-				if (value === "colorful") { attraction = ATTRACTION_COLORFUL; } else if (value === "big") { attraction = ATTRACTION_BIG; } else if (value === "hyper") { attraction = ATTRACTION_HYPER; } else if (value === "long") { attraction = ATTRACTION_LONG; } else if (value === "straight") { attraction = ATTRACTION_STRAIGHT; } else if (value === "noColor") { attraction = ATTRACTION_NO_COLOR; } else if (value === "small") { attraction = ATTRACTION_SMALL; } else if (value === "still") { attraction = ATTRACTION_STILL; } else if (value === "short") { attraction = ATTRACTION_SHORT; } else if (value === "crooked") { attraction = ATTRACTION_CROOKED; } else if (value === "similarColor") { attraction = ATTRACTION_SIMILAR_COLOR; } else if (value === "similarSize") { attraction = ATTRACTION_SIMILAR_SIZE; } else if (value === "similarHyper") { attraction = ATTRACTION_SIMILAR_HYPER; } else if (value === "similarLength") { attraction = ATTRACTION_SIMILAR_LENGTH; } else if (value === "similarStraight") { attraction = ATTRACTION_SIMILAR_STRAIGHT; } else if (value === "random") { attraction = ATTRACTION_RANDOM; } else if (value === "closest") { attraction = ATTRACTION_CLOSEST; }
-
-				genePool.setAttraction(attraction);
-			}
+		if (radioButtons[i].type === 'radio' && radioButtons[i].checked) {
+			let attraction = _attractionValueToConstant(radioButtons[i].value);
+			eventBus.emit(UI_CMD_SET_ATTRACTION, attraction);
 		}
 	}
 }
@@ -103,19 +141,18 @@ function openTweakPanel() {
 function setEcosystemValue(id) {
 	let input = document.getElementById(id);
 
-	if (id === "foodGrowthDelaySlider") { genePool.setFoodGrowthDelay(input.value); } else if (id === "foodSpreadSlider") { genePool.setFoodSpread(input.value); } else if (id === "foodBitEnergySlider") { genePool.setFoodBitEnergy(input.value); } else if (id === "hungerThresholdSlider") { genePool.setHungerThreshold(input.value); } else if (id === "energyToOffspringSlider") { genePool.setOffspringEnergyRatio(input.value); } else if (id === "maxAgeSlider") { genePool.setMaximumSwimbotAge(input.value); }
+	if (id === "foodGrowthDelaySlider") { eventBus.emit(UI_CMD_SET_FOOD_DELAY, input.value); }
+	else if (id === "foodSpreadSlider") { eventBus.emit(UI_CMD_SET_FOOD_SPREAD, input.value); }
+	else if (id === "foodBitEnergySlider") { eventBus.emit(UI_CMD_SET_FOOD_ENERGY, input.value); }
+	else if (id === "hungerThresholdSlider") { eventBus.emit(UI_CMD_SET_HUNGER_THRESHOLD, input.value); }
+	else if (id === "energyToOffspringSlider") { eventBus.emit(UI_CMD_SET_OFFSPRING_RATIO, input.value); }
+	else if (id === "maxAgeSlider") { eventBus.emit(UI_CMD_SET_MAX_AGE, input.value); }
 
 	updateEcosystemUI();
 }
 
 function setEcosystemToDefaults() {
-	genePool.setFoodGrowthDelay(DEFAULT_FOOD_REGENERATION_PERIOD);
-	genePool.setFoodSpread(DEFAULT_FOOD_BIT_MAX_SPAWN_RADIUS);
-	genePool.setFoodBitEnergy(DEFAULT_FOOD_BIT_ENERGY);
-	genePool.setHungerThreshold(DEFAULT_SWIMBOT_HUNGER_THRESHOLD);
-	genePool.setOffspringEnergyRatio(DEFAULT_CHILD_ENERGY_RATIO);
-	genePool.setMaximumSwimbotAge(DEFAULT_MAXIMUM_LIFESPAN);
-
+	eventBus.emit(UI_CMD_SET_ECOSYSTEM_DEFAULTS);
 	updateEcosystemUI();
 }
 
@@ -142,38 +179,41 @@ function initializeEcosystemUI() {
 }
 
 function updateEcosystemUI() {
-	if (typeof genePool != "undefined") {
-		document.getElementById("foodGrowthDelaySlider").value = genePool.getFoodGrowthDelay();
-		document.getElementById("foodGrowthDelayValue").innerHTML = genePool.getFoodGrowthDelay();
+	let state = _getSimState();
+	if (!state || !state.foodGrowthDelay && state.foodGrowthDelay !== 0) {
+		// State not yet populated; skip this frame
+		return;
+	}
 
-		document.getElementById("foodSpreadSlider").value = genePool.getFoodSpread();
-		document.getElementById("foodSpreadValue").innerHTML = genePool.getFoodSpread();
+	document.getElementById("foodGrowthDelaySlider").value = state.foodGrowthDelay;
+	document.getElementById("foodGrowthDelayValue").innerHTML = state.foodGrowthDelay;
 
-		document.getElementById("foodBitEnergySlider").value = genePool.getFoodBitEnergy();
-		document.getElementById("foodBitEnergyValue").innerHTML = genePool.getFoodBitEnergy();
+	document.getElementById("foodSpreadSlider").value = state.foodSpread;
+	document.getElementById("foodSpreadValue").innerHTML = state.foodSpread;
 
-		document.getElementById("hungerThresholdSlider").value = genePool.getHungerThreshold();
-		document.getElementById("hungerThresholdValue").innerHTML = genePool.getHungerThreshold();
+	document.getElementById("foodBitEnergySlider").value = state.foodBitEnergy;
+	document.getElementById("foodBitEnergyValue").innerHTML = state.foodBitEnergy;
 
-		document.getElementById("energyToOffspringSlider").value = genePool.getEnergyToOffspring();
-		document.getElementById("energyToOffspringValue").innerHTML = genePool.getEnergyToOffspring();
+	document.getElementById("hungerThresholdSlider").value = state.hungerThreshold;
+	document.getElementById("hungerThresholdValue").innerHTML = state.hungerThreshold;
 
-		document.getElementById("maxAgeSlider").value = genePool.getMaximumSwimbotAge();
-		document.getElementById("maxAgeValue").innerHTML = genePool.getMaximumSwimbotAge();
+	document.getElementById("energyToOffspringSlider").value = state.energyToOffspring;
+	document.getElementById("energyToOffspringValue").innerHTML = state.energyToOffspring;
 
+	document.getElementById("maxAgeSlider").value = state.maximumSwimbotAge;
+	document.getElementById("maxAgeValue").innerHTML = state.maximumSwimbotAge;
 
-		// the radio buttons need to be reset to reflect any changes in attraction       
-		let radioButtons = document.getElementsByName('attractionRadioButton');
+	// the radio buttons need to be reset to reflect any changes in attraction
+	let radioButtons = document.getElementsByName('attractionRadioButton');
 
-		for (let i = 0; i < radioButtons.length; i++) {
-			assert(i < NUM_ATTRACTIONS, "ui.js: updateEcosystemUI: i < NUM_ATTRACTIONS");
+	for (let i = 0; i < radioButtons.length; i++) {
+		assert(i < NUM_ATTRACTIONS, "ui.js: updateEcosystemUI: i < NUM_ATTRACTIONS");
 
-			if (radioButtons[i].type === 'radio') {
-				if (genePool.getAttraction() === i) {
-					radioButtons[i].checked = true;
-				} else {
-					radioButtons[i].checked = false;
-				}
+		if (radioButtons[i].type === 'radio') {
+			if (state.attraction === i) {
+				radioButtons[i].checked = true;
+			} else {
+				radioButtons[i].checked = false;
 			}
 		}
 	}
@@ -226,8 +266,6 @@ function openPanel(buttonID) {
 	if (buttonID === 'menuGraphButton') { panelID = 'graphPanel';
 		openGraphPanel() }
 
-	document.getElementById(buttonID).style = "border-bottom-width: 0; border-bottom-left-radius: 0px; border-bottom-right-radius: 0px;"
-
 	document.getElementById(buttonID).style.backgroundColor = DEFAULT_BASIC_PANEL_COLOR;
 
 	document.getElementById(buttonID).style.top = 3;
@@ -244,7 +282,8 @@ function openGraphPanel() {
 function openSwimbotPanel() {
 	document.getElementById('swimbotPanel').style.visibility = 'visible';
 
-	if (genePool.getASwimbotIsSelected()) {
+	let state = _getSimState();
+	if (state && state.aSwimbotIsSelected) {
 		document.getElementById('selectedSwimbotPanel').style.visibility = 'visible';
 		document.getElementById('noSelectedSwimbotPanel').style.visibility = 'hidden';
 	} else {
@@ -261,7 +300,7 @@ function openTweakGenesPanel(selectedSwimbotID) {
 		document.getElementById('tweakGenesPanel').innerHTML = "<div id = 'tweakGenesTitle' >Tweak the genes of swimbot " + selectedSwimbotID + "</div>";
 		document.getElementById('tweakGenesPanel').innerHTML += "<div id = 'tweakGenesCategoryNote' >(choose which limb type to tweak)</div>";
 
-		let numCategories = genePool.getNumGeneCategories();
+		let numCategories = SwimbotsApp.genePool.getNumGeneCategories();
 		for (let c = 0; c < numCategories; c++) {
 			document.getElementById('tweakGenesPanel').innerHTML += "<div id = 'category" + (c + 1) + "' >" + (c + 1) +
 				"<input " +
@@ -273,14 +312,14 @@ function openTweakGenesPanel(selectedSwimbotID) {
 				"></div>";
 		}
 
-		let num = genePool.getNumGenesPerCategory();
+		let num = SwimbotsApp.genePool.getNumGenesPerCategory();
 		num += 2; //add the two first (global: non-category) genes
 
 		let width = 150;
 
 		for (let g = 0; g < num; g++) {
-			let geneTweakerName = genePool.getGeneName(g);
-			let geneTweakerValue = genePool.getGeneValue(selectedSwimbotID, g);
+			let geneTweakerName = SwimbotsApp.genePool.getGeneName(g);
+			let geneTweakerValue = SwimbotsApp.genePool.getGeneValue(selectedSwimbotID, g);
 
 			let top = 60 + g * 20;
 			if (g > 1) //skip the two first (global: non-category) genes
@@ -335,17 +374,17 @@ function closeTweakGenesPanel() {
 }
 
 function updateGeneSliders(selectedSwimbotID) {
-	let num = genePool.getNumGenesPerCategory();
+	let num = SwimbotsApp.genePool.getNumGenesPerCategory();
 	num += 2; //add the two first (global: non-category) genes
 
 	for (let g = 0; g < num; g++) {
 		let geneIndex = g;
 
 		if (g > 1) {
-			geneIndex += genePool.getNumGenesPerCategory() * _tweakGenesCategory;
+			geneIndex += SwimbotsApp.genePool.getNumGenesPerCategory() * _tweakGenesCategory;
 		}
 
-		let geneTweakerValue = genePool.getGeneValue(selectedSwimbotID, geneIndex);
+		let geneTweakerValue = SwimbotsApp.genePool.getGeneValue(selectedSwimbotID, geneIndex);
 
 		let id = "geneTweaker" + g;
 		let slider = document.getElementById(id);
@@ -360,7 +399,7 @@ function closePopupPanel() {
 	document.getElementById('popUpPanel').style.visibility = 'hidden';
 	document.getElementById('cancelPopUpPanelButton').style.visibility = 'hidden';
 	//document.getElementById('PopUpPanelError'        ).style.visibility = 'hidden';
-	//document.getElementById('cancelErrorButton'      ).style.visibility = 'hidden';  
+	//document.getElementById('cancelErrorButton'      ).style.visibility = 'hidden';
 	//document.getElementById('popUpPanelInput'        ).style.visibility = 'hidden';
 	//document.getElementById('savePopUpPanelButton'   ).style.visibility = 'hidden';
 	//document.getElementById('noSavePopUpPanelButton' ).style.visibility = 'hidden';
@@ -368,11 +407,11 @@ function closePopupPanel() {
 	//document.getElementById('submitFilenameButton'   ).style.visibility = 'hidden';
 	document.getElementById('dataDisplayButton').style.visibility = "hidden";
 
-	// I don't know why these are popping an error that they don't exist.... ??     
-	//document.getElementById("PopupText"              ).style.visibility = "hidden";   
-	//document.getElementById("loadedList"             ).style.visibility = "hidden";   
+	// I don't know why these are popping an error that they don't exist.... ??
+	//document.getElementById("PopupText"              ).style.visibility = "hidden";
+	//document.getElementById("loadedList"             ).style.visibility = "hidden";
 
-	// move focus to the canvas in case it had been on the popup input   
+	// move focus to the canvas in case it had been on the popup input
 	document.getElementById("Canvas").focus();
 }
 
@@ -392,12 +431,13 @@ function closeErrorPanel() {
 }
 
 function toggleSimulationRunning() {
-	if (genePool.getSimulationRunning()) {
-		genePool.setSimulationRunning(false);
+	eventBus.emit(UI_CMD_TOGGLE_SIMULATION);
+
+	let state = _getSimState();
+	if (state && !state.simulationRunning) {
 		document.getElementById("freezeButton").style.borderColor = ACTIVE_BORDER_COLOR;
 		document.getElementById("freezeButton").style.borderWidth = "3px";
 	} else {
-		genePool.setSimulationRunning(true);
 		document.getElementById("freezeButton").style = "border-color: " + DEFAULT_BASIC_BUTTON_BORDER_COLOR;
 	}
 }
@@ -405,18 +445,19 @@ function toggleSimulationRunning() {
 function toggleFastRendering() {
 	if (_runningFast) {
 		_runningFast = false;
-		genePool.setMillisecondsPerUpdate(20);
+		eventBus.emit(UI_CMD_SET_FAST_RENDERING, false);
 		document.getElementById("fastButton").style = "border-color: " + DEFAULT_BASIC_BUTTON_BORDER_COLOR
 	} else {
 		_runningFast = true;
-		genePool.setMillisecondsPerUpdate(0);
+		eventBus.emit(UI_CMD_SET_FAST_RENDERING, true);
 		document.getElementById("fastButton").style.borderColor = ACTIVE_BORDER_COLOR;
 		document.getElementById("fastButton").style.borderWidth = "3px";
 	}
 }
 
 function toggleRendering() {
-	if (genePool.getRendering()) {
+	let state = _getSimState();
+	if (state && state.rendering) {
 		setRendering(false);
 	} else {
 		setRendering(true);
@@ -425,21 +466,22 @@ function toggleRendering() {
 
 function setRendering(r) {
 	if (r) {
-		genePool.setRendering(true);
+		eventBus.emit(UI_CMD_SET_RENDERING, true);
 
 		canvasID.style.visibility = 'visible';
 		document.getElementById("noRenderPanel").style.visibility = 'hidden';
 	} else {
-		genePool.setRendering(false);
+		eventBus.emit(UI_CMD_SET_RENDERING, false);
 		canvasID.style.visibility = 'hidden';
 		document.getElementById("noRenderPanel").style.visibility = 'visible';
 	}
 }
 
 function toggleGoalOverlay() {
-	genePool.toggleGoalOverlay();
+	eventBus.emit(UI_CMD_TOGGLE_GOAL_OVERLAY);
 
-	if (genePool.getRenderingGoals()) {
+	let state = _getSimState();
+	if (state && state.renderingGoals) {
 		document.getElementById("viewGoalButton").style = "border-color: " + ACTIVE_BORDER_COLOR
 		document.getElementById("viewGoalButton").style.borderWidth = "3px";
 	} else {
@@ -448,7 +490,7 @@ function toggleGoalOverlay() {
 }
 
 function clearViewMode() {
-	genePool.clearViewMode();
+	eventBus.emit(UI_CMD_CLEAR_VIEW_MODE);
 	clearViewModeButtons();
 }
 
@@ -485,12 +527,13 @@ function setViewMode(buttonID, viewMode) {
 	// clear out the buttons...
 	clearViewModeButtons();
 
-	genePool.setViewMode(viewMode);
+	eventBus.emit(UI_CMD_SET_VIEW_MODE, viewMode);
 
 	closePopupPanel();
 
 	if (buttonID === 'viewSelectedButton') {
-		if (genePool.getSelectedSwimbotID() != -1) {
+		let state = _getSimState();
+		if (state && state.selectedSwimbotID != -1) {
 			document.getElementById(buttonID).style = "border-color: " + ACTIVE_BORDER_COLOR
 			document.getElementById(buttonID).style.borderWidth = "3px";
 		}
@@ -519,7 +562,7 @@ function requestToLoadPoolFromPreset() {
 
 function switchToChosenPresetPool() {
 	closePopupPanel();
-	genePool.startSimulation(_chosenPoolToLoad);
+	eventBus.emit(UI_CMD_START_SIMULATION, _chosenPoolToLoad);
 	clearViewMode();
 	updateEcosystemUI();
 	_graph.initialize();
@@ -527,8 +570,8 @@ function switchToChosenPresetPool() {
 }
 
 function loadSwimbotFromPreset(p) {
-	let genes = genePool.getPresetGenotype(p);
-	genePool.createNewSwimbotWithGenes(genes);
+	let genes = SwimbotsApp.genePool.getPresetGenotype(p);
+	eventBus.emit(UI_CMD_CREATE_WITH_GENES, genes);
 }
 
 function setGeneTweakCategory(selectedSwimbotID, c) {
@@ -540,7 +583,7 @@ function tweakGene(swimbotIndex, sliderIndex) {
 	let geneIndex = sliderIndex;
 
 	if (sliderIndex > 1) {
-		geneIndex += genePool.getNumGenesPerCategory() * _tweakGenesCategory;
+		geneIndex += SwimbotsApp.genePool.getNumGenesPerCategory() * _tweakGenesCategory;
 	}
 
 	// get the gene value...
@@ -551,7 +594,11 @@ function tweakGene(swimbotIndex, sliderIndex) {
 	let geneValue = input.value;
 
 	// update the gene value in the simulation...
-	genePool.tweakGene(swimbotIndex, geneIndex, geneValue);
+	eventBus.emit(UI_CMD_TWEAK_GENE, {
+		swimbotIndex: swimbotIndex,
+		geneIndex: geneIndex,
+		geneValue: geneValue
+	});
 
 	// update the html that displays the value...
 	id = "gene" + sliderIndex + "Value";
@@ -597,45 +644,52 @@ function setInfoPage(pageNumber) {
 	}
 }
 
+function _brainStateDescription(state, mateIndex) {
+	if (state === BRAIN_STATE_RESTING) return "resting";
+	if (state === BRAIN_STATE_LOOKING_FOR_MATE) return "looking for mate";
+	if (state === BRAIN_STATE_PURSUING_MATE) return "pursuing mate " + mateIndex.toString();
+	if (state === BRAIN_STATE_LOOKING_FOR_FOOD) return "looking for food bit";
+	if (state === BRAIN_STATE_PURSUING_FOOD) return "pursuing food bit";
+	return "unknown";
+}
+
 function updateUI() {
-	// check that we have a genePool......
-	let genePoolIsDefined = typeof genePool != 'undefined';
+	let state = _getSimState();
+	if (!state || !state.clock && state.clock !== 0) {
+		// State not yet populated; schedule next check
+		_scheduleNextUIUpdate();
+		return;
+	}
 
-	if (genePoolIsDefined) {
-		// update the view buttons...
-		if (genePool.getViewMode() === ViewTrackingMode.NULL) {
-			clearViewModeButtons();
-		}
+	// update the view buttons...
+	if (state.viewMode === ViewTrackingMode.NULL) {
+		clearViewModeButtons();
+	}
 
-		// update the swimbot panel....
-		if (document.getElementById('swimbotPanel').style.visibility === 'visible') {
-			let selectedSwimbot = genePool.getSelectedSwimbotID();
+	// update the swimbot panel....
+	if (document.getElementById('swimbotPanel').style.visibility === 'visible') {
+		let selectedSwimbot = state.selectedSwimbotID;
 
-			if (selectedSwimbot === NULL_INDEX) {
-				document.getElementById('selectedSwimbotPanel').style.visibility = 'hidden';
-				document.getElementById('noSelectedSwimbotPanel').style.visibility = 'visible';
-			} else {
-				document.getElementById('selectedSwimbotPanel').style.visibility = 'visible';
-				document.getElementById('noSelectedSwimbotPanel').style.visibility = 'hidden';
+		if (selectedSwimbot === NULL_INDEX) {
+			document.getElementById('selectedSwimbotPanel').style.visibility = 'hidden';
+			document.getElementById('noSelectedSwimbotPanel').style.visibility = 'visible';
+		} else {
+			document.getElementById('selectedSwimbotPanel').style.visibility = 'visible';
+			document.getElementById('noSelectedSwimbotPanel').style.visibility = 'hidden';
 
-				let brainState = genePool.getSwimbotBrainState(selectedSwimbot);
-				let mateString = genePool.getSwimbotChosenMate(selectedSwimbot).toString();
-				let goalDescription = "";
+			let sb = _getSwimbotState();
+			if (sb) {
+				let goalDescription = _brainStateDescription(sb.brainState, sb.chosenMateIndex);
 
-				if (brainState === BRAIN_STATE_RESTING) { goalDescription = "resting"; } else if (brainState === BRAIN_STATE_LOOKING_FOR_MATE) { goalDescription = "looking for mate"; } else if (brainState === BRAIN_STATE_PURSUING_MATE) { goalDescription = "pursuing mate " + mateString; } else if (brainState === BRAIN_STATE_LOOKING_FOR_FOOD) { goalDescription = "looking for food bit"; } else if (brainState === BRAIN_STATE_PURSUING_FOOD) { goalDescription = "pursuing food bit"; }
-
-				let foodPreferenceText = "green";
-				let foodTypeText = "green";
-
-				if (genePool.getSwimbotPreferredFoodType(selectedSwimbot) === 1) { foodPreferenceText = "blue"; }
-				if (genePool.getSwimbotDigestibleFoodType(selectedSwimbot) === 1) { foodTypeText = "blue"; }
+				let foodPreferenceText = sb.preferredFoodType === 1 ? "blue" : "green";
+				let foodTypeText = sb.digestibleFoodType === 1 ? "blue" : "green";
 
 				document.getElementById('swimbotDataPanel').innerHTML = "<b>Info about the selected swimbot:</b>" +
 					"<br>" +
 					"<br>" +
-					"ID = " + genePool.getSwimbotIndex(selectedSwimbot).toString() +
+					"ID = " + sb.index.toString() +
 					"<br>" +
-					"age = " + genePool.getSwimbotAge(selectedSwimbot).toString() +
+					"age = " + sb.age.toString() +
 					"<br>" +
 					"goal = " + goalDescription +
 					"<br>" +
@@ -644,45 +698,43 @@ function updateUI() {
 					"<br>" +
 					"best-digested food type = " + foodTypeText +
 					"<br>" +
-					"number of food bits eaten = " + Math.floor(genePool.getSwimbotNumFoodBitsEaten(selectedSwimbot).toString()) +
+					"number of food bits eaten = " + Math.floor(sb.numFoodBitsEaten.toString()) +
 					"<br>" +
-					"energy = " + Math.floor(genePool.getSwimbotEnergy(selectedSwimbot).toString()) +
+					"energy = " + Math.floor(sb.energy.toString()) +
 					"<br>" +
 					"<br>" +
-					"sexual attraction = " + genePool.getSwimbotAttractionDescription(selectedSwimbot) +
+					"sexual attraction = " + sb.attractionDescription +
 					"<br>" +
-					"number of offspring = " + Math.floor(genePool.getSwimbotNumOffspring(selectedSwimbot).toString());
+					"number of offspring = " + Math.floor(sb.numOffspring.toString());
 			}
 		}
+	}
 
-		// always update the graph....
-		if (genePoolIsDefined) {
-			_graph.update(
-				genePool.getTimeStep(),
-				genePool.getNumSwimbots(),
-				genePool.getNumSwimbotsPreferringType(0),
-				genePool.getNumSwimbotsPreferringType(1),
-				genePool.getNumFoodBits(),
-				genePool.getNumFoodBits1()
-			);
-		}
+	// always update the graph....
+	_graph.update(
+		state.clock,
+		state.numSwimbots,
+		state.numSwimbotsPreferringType0,
+		state.numSwimbotsPreferringType1,
+		state.numFoodBits,
+		state.numFoodBits1
+	);
 
-		// render the graph....
-		if (document.getElementById('graphPanel').style.visibility === 'visible') {
-			document.getElementById('graphData').innerHTML = "time step: " + genePool.getTimeStep() +
-				"<br>" +
-				"swimbots: " + genePool.getNumSwimbots() +
-				"<br>" +
-				"green pref: " + genePool.getNumSwimbotsPreferringType(0) +
-				"<br>" +
-				"blue pref: " + genePool.getNumSwimbotsPreferringType(1) +
-				"<br>" +
-				"food bits: " + genePool.getNumFoodBits() +
-				"<br>" +
-				"food bits 1: " + genePool.getNumFoodBits1();
+	// render the graph....
+	if (document.getElementById('graphPanel').style.visibility === 'visible') {
+		document.getElementById('graphData').innerHTML = "time step: " + state.clock +
+			"<br>" +
+			"swimbots: " + state.numSwimbots +
+			"<br>" +
+			"green pref: " + state.numSwimbotsPreferringType0 +
+			"<br>" +
+			"blue pref: " + state.numSwimbotsPreferringType1 +
+			"<br>" +
+			"food bits: " + state.numFoodBits +
+			"<br>" +
+			"food bits 1: " + state.numFoodBits1;
 
-			_graph.render();
-		}
+		_graph.render();
 	}
 
 	// trigger next update... (throttled to UI_UPDATE_PERIOD via rAF)
@@ -702,7 +754,8 @@ function _scheduleNextUIUpdate() {
 }
 
 function notifyGeneTweakPanelMouseDown() {
-	let selectedSwimbotID = genePool.getSelectedSwimbotID();
+	let state = _getSimState();
+	let selectedSwimbotID = state ? state.selectedSwimbotID : -1;
 
 	if (selectedSwimbotID === -1) {
 		closeTweakGenesPanel();
@@ -722,9 +775,11 @@ function resize() {
 	canvasID.width = width;
 	canvasID.height = height - 15;
 
-	let genePoolIsDefined = typeof genePool != 'undefined';
-	if (genePoolIsDefined) {
-		genePool.setCanvasDimensions(canvasID.width, canvasID.height);
+	if (SwimbotsApp.genePool) {
+		eventBus.emit(UI_CMD_SET_CANVAS_DIMENSIONS, {
+			width: canvasID.width,
+			height: canvasID.height
+		});
 	}
 }
 
@@ -776,7 +831,7 @@ function attachEventListeners() {
 
 	// Food speciation toggle
 	document.getElementById('foodSpeciationCheckbox').addEventListener('change', function() {
-		genePool.setFoodSpeciationEnabled(this.checked);
+		eventBus.emit(UI_CMD_SET_FOOD_SPECIATION, this.checked);
 	});
 
 	// Family tree
@@ -786,7 +841,7 @@ function attachEventListeners() {
 
 	// Swimbot creation
 	document.getElementById('createRandomSwimbotButton').addEventListener('click', function() {
-		genePool.makeNewRandomSwimbot();
+		eventBus.emit(UI_CMD_MAKE_RANDOM_SWIMBOT);
 	});
 
 	// Swimbot presets
@@ -798,23 +853,41 @@ function attachEventListeners() {
 
 	// Selected swimbot actions
 	document.getElementById('zapSwimbotButton').addEventListener('click', function() {
-		genePool.zapSwimbot(genePool.getSelectedSwimbotID(), 0.2);
+		let state = _getSimState();
+		if (state) {
+			eventBus.emit(UI_CMD_ZAP_SWIMBOT, { id: state.selectedSwimbotID, amount: 0.2 });
+		}
 	});
 	document.getElementById('randomizeSwimbotButton').addEventListener('click', function() {
-		genePool.randomizeSwimbot(genePool.getSelectedSwimbotID());
+		let state = _getSimState();
+		if (state) {
+			eventBus.emit(UI_CMD_RANDOMIZE_SWIMBOT, state.selectedSwimbotID);
+		}
 	});
 	document.getElementById('cloneSwimbotButton').addEventListener('click', function() {
-		genePool.cloneSwimbot(genePool.getSelectedSwimbotID());
+		let state = _getSimState();
+		if (state) {
+			eventBus.emit(UI_CMD_CLONE_SWIMBOT, state.selectedSwimbotID);
+		}
 	});
 	document.getElementById('killSwimbotButton').addEventListener('click', function() {
-		genePool.killSwimbot(genePool.getSelectedSwimbotID());
+		let state = _getSimState();
+		if (state) {
+			eventBus.emit(UI_CMD_KILL_SWIMBOT, state.selectedSwimbotID);
+		}
 	});
 	document.getElementById('showGenesButton').addEventListener('click', function() {
-		showSwimbotGenes(genePool.getSelectedSwimbotID());
+		let state = _getSimState();
+		if (state) {
+			showSwimbotGenes(state.selectedSwimbotID);
+		}
 	});
 	document.getElementById('tweakGenesButton').addEventListener('click', function() {
-		openTweakGenesPanel(genePool.getSelectedSwimbotID());
-		genePool.setViewMode(ViewTrackingMode.SELECTED);
+		let state = _getSimState();
+		if (state) {
+			openTweakGenesPanel(state.selectedSwimbotID);
+			eventBus.emit(UI_CMD_SET_VIEW_MODE, ViewTrackingMode.SELECTED);
+		}
 	});
 
 	// Info panel
@@ -832,29 +905,33 @@ function attachEventListeners() {
 document.getElementById('Canvas').onmousedown = function(e) {
 	clearViewMode();
 
-	if (typeof genePool != "undefined") {
-		genePool.touchDown(e.pageX - document.getElementById('Canvas').offsetLeft, e.pageY - document.getElementById('Canvas').offsetTop);
-	}
+	eventBus.emit(UI_CMD_TOUCH_DOWN, {
+		x: e.pageX - document.getElementById('Canvas').offsetLeft,
+		y: e.pageY - document.getElementById('Canvas').offsetTop
+	});
 
 	notifyGeneTweakPanelMouseDown();
 }
 
 document.getElementById('Canvas').onmousemove = function(e) {
-	if (typeof genePool != "undefined") {
-		genePool.touchMove(e.pageX - document.getElementById('Canvas').offsetLeft, e.pageY - document.getElementById('Canvas').offsetTop);
-	}
+	eventBus.emit(UI_CMD_TOUCH_MOVE, {
+		x: e.pageX - document.getElementById('Canvas').offsetLeft,
+		y: e.pageY - document.getElementById('Canvas').offsetTop
+	});
 }
 
 document.getElementById('Canvas').onmouseup = function(e) {
-	if (typeof genePool != "undefined") {
-		genePool.touchUp(e.pageX - document.getElementById('Canvas').offsetLeft, e.pageY - document.getElementById('Canvas').offsetTop);
-	}
+	eventBus.emit(UI_CMD_TOUCH_UP, {
+		x: e.pageX - document.getElementById('Canvas').offsetLeft,
+		y: e.pageY - document.getElementById('Canvas').offsetTop
+	});
 }
 
 document.getElementById('Canvas').onmouseout = function(e) {
-	if (typeof genePool != "undefined") {
-		genePool.touchOut(e.pageX - document.getElementById('Canvas').offsetLeft, e.pageY - document.getElementById('Canvas').offsetTop);
-	}
+	eventBus.emit(UI_CMD_TOUCH_OUT, {
+		x: e.pageX - document.getElementById('Canvas').offsetLeft,
+		y: e.pageY - document.getElementById('Canvas').offsetTop
+	});
 }
 
 // key down
@@ -878,19 +955,17 @@ document.onkeydown = function(e) {
 	if (e.keyCode === 189) { cameraNavAction = CameraNavigationAction.OUT; } // minus key
 
 	if (cameraNavAction != -1) {
-		if (!genePool.getCameraNavigationActive(cameraNavAction)) {
-			genePool.startCameraNavigation(cameraNavAction);
-			clearViewMode();
-		}
+		eventBus.emit(UI_CMD_START_CAMERA_NAV, cameraNavAction);
+		clearViewMode();
 	}
 }
 
 //------------------------------
 document.onkeyup = function(e) {
-	genePool.stopCameraNavigation(CameraNavigationAction.LEFT);
-	genePool.stopCameraNavigation(CameraNavigationAction.RIGHT);
-	genePool.stopCameraNavigation(CameraNavigationAction.UP);
-	genePool.stopCameraNavigation(CameraNavigationAction.DOWN);
-	genePool.stopCameraNavigation(CameraNavigationAction.IN);
-	genePool.stopCameraNavigation(CameraNavigationAction.LEFT);
+	eventBus.emit(UI_CMD_STOP_CAMERA_NAV, CameraNavigationAction.LEFT);
+	eventBus.emit(UI_CMD_STOP_CAMERA_NAV, CameraNavigationAction.RIGHT);
+	eventBus.emit(UI_CMD_STOP_CAMERA_NAV, CameraNavigationAction.UP);
+	eventBus.emit(UI_CMD_STOP_CAMERA_NAV, CameraNavigationAction.DOWN);
+	eventBus.emit(UI_CMD_STOP_CAMERA_NAV, CameraNavigationAction.IN);
+	eventBus.emit(UI_CMD_STOP_CAMERA_NAV, CameraNavigationAction.LEFT);
 };

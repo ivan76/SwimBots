@@ -138,6 +138,76 @@ class GenePool {
 		for (let t = 0; t < TRAIL_LENGTH; t++) {
 			this._debugTrail[t] = new Vector2D();
 		}
+
+		// Subscribe to UI commands via EventBus (Phase 1 decoupling)
+		this._setupUICommandHandlers();
+	}
+
+	/**
+	 * Register all EventBus listeners for UI_CMD_* events.
+	 * This replaces direct calls from ui.js to GenePool setter/action methods.
+	 */
+	_setupUICommandHandlers() {
+		const self = this;
+
+		// Ecosystem setters
+		eventBus.on(UI_CMD_SET_FOOD_DELAY,        (d) => self.setFoodGrowthDelay(d));
+		eventBus.on(UI_CMD_SET_FOOD_SPREAD,       (s) => self.setFoodSpread(s));
+		eventBus.on(UI_CMD_SET_FOOD_ENERGY,       (e) => self.setFoodBitEnergy(e));
+		eventBus.on(UI_CMD_SET_HUNGER_THRESHOLD,  (h) => self.setHungerThreshold(h));
+		eventBus.on(UI_CMD_SET_OFFSPRING_RATIO,   (e) => self.setOffspringEnergyRatio(e));
+		eventBus.on(UI_CMD_SET_MAX_AGE,           (m) => self.setMaximumSwimbotAge(m));
+		eventBus.on(UI_CMD_SET_ATTRACTION,        (a) => self.setAttraction(a));
+		eventBus.on(UI_CMD_SET_ECOSYSTEM_DEFAULTS, () => {
+			self.setFoodGrowthDelay(DEFAULT_FOOD_REGENERATION_PERIOD);
+			self.setFoodSpread(DEFAULT_FOOD_BIT_MAX_SPAWN_RADIUS);
+			self.setFoodBitEnergy(DEFAULT_FOOD_BIT_ENERGY);
+			self.setHungerThreshold(DEFAULT_SWIMBOT_HUNGER_THRESHOLD);
+			self.setOffspringEnergyRatio(DEFAULT_CHILD_ENERGY_RATIO);
+			self.setMaximumSwimbotAge(DEFAULT_MAXIMUM_AGE);
+		});
+
+		// Simulation control
+		eventBus.on(UI_CMD_TOGGLE_SIMULATION, () => {
+			if (self._simulationRunning) {
+				self._simulationRunning = false;
+			} else {
+				self._simulationRunning = true;
+			}
+		});
+		eventBus.on(UI_CMD_SET_FAST_RENDERING, (fast) => {
+			self._millisecondsPerUpdate = fast ? 0 : 20;
+		});
+		eventBus.on(UI_CMD_SET_RENDERING, (r) => self.setRendering(r));
+		eventBus.on(UI_CMD_TOGGLE_GOAL_OVERLAY, () => self.toggleGoalOverlay());
+
+		// View / camera
+		eventBus.on(UI_CMD_SET_VIEW_MODE,       (m) => self.setViewMode(m));
+		eventBus.on(UI_CMD_CLEAR_VIEW_MODE,     () => self.clearViewMode());
+		eventBus.on(UI_CMD_START_CAMERA_NAV,    (a) => self.startCameraNavigation(a));
+		eventBus.on(UI_CMD_STOP_CAMERA_NAV,     (a) => self.stopCameraNavigation(a));
+
+		// Food speciation
+		eventBus.on(UI_CMD_SET_FOOD_SPECIATION, (enabled) => self.setFoodSpeciationEnabled(enabled));
+
+		// Swimbot actions
+		eventBus.on(UI_CMD_MAKE_RANDOM_SWIMBOT, () => self.makeNewRandomSwimbot());
+		eventBus.on(UI_CMD_ZAP_SWIMBOT,         (data) => self.zapSwimbot(data.id, data.amount));
+		eventBus.on(UI_CMD_RANDOMIZE_SWIMBOT,   (id) => self.randomizeSwimbot(id));
+		eventBus.on(UI_CMD_CLONE_SWIMBOT,       (id) => self.cloneSwimbot(id));
+		eventBus.on(UI_CMD_KILL_SWIMBOT,        (id) => self.killSwimbot(id));
+		eventBus.on(UI_CMD_CREATE_WITH_GENES,   (genes) => self.createNewSwimbotWithGenes(genes));
+		eventBus.on(UI_CMD_TWEAK_GENE,          (data) => self.tweakGene(data.swimbotIndex, data.geneIndex, data.geneValue));
+		eventBus.on(UI_CMD_START_SIMULATION,    (mode) => self.startSimulation(mode));
+
+		// Touch input
+		eventBus.on(UI_CMD_TOUCH_DOWN, (data) => self.touchDown(data.x, data.y));
+		eventBus.on(UI_CMD_TOUCH_MOVE, (data) => self.touchMove(data.x, data.y));
+		eventBus.on(UI_CMD_TOUCH_UP,   (data) => self.touchUp(data.x, data.y));
+		eventBus.on(UI_CMD_TOUCH_OUT,  (data) => self.touchOut(data.x, data.y));
+
+		// Canvas dimensions
+		eventBus.on(UI_CMD_SET_CANVAS_DIMENSIONS, (data) => self.setCanvasDimensions(data.width, data.height));
 	}
 
 	setCanvas(c) {
@@ -168,7 +238,7 @@ class GenePool {
 		this._lastFrameTime = 0;
 		this._lastSimTime = 0;
 		this._frameAccumulator = 0;
-		this.timer = requestAnimationFrame((timestamp) => genePool.update(timestamp));
+		this.timer = requestAnimationFrame((timestamp) => this.update(timestamp));
 	}
 
 	startSimulation(mode) {
@@ -789,9 +859,74 @@ class GenePool {
 		// also, important to call this after updateCameraNavigation
 		this._touch.update();
 
+		// Emit simulation state for UI consumers (Phase 1 decoupling)
+		this._emitSimState();
+
 		// trigger next frame via rAF
 		this._lastFrameTime = timestamp;
-		this.timer = requestAnimationFrame((ts) => genePool.update(ts));
+		this.timer = requestAnimationFrame((ts) => this.update(ts));
+	}
+
+	/**
+	 * Emit a snapshot of the simulation state via EventBus.
+	 * The UI subscribes to this event instead of calling getters on genePool.
+	 */
+	_emitSimState() {
+		eventBus.emit(SIM_STATE_UPDATED, {
+			// Ecosystem parameters
+			foodGrowthDelay: globalTweakers.foodRegenerationPeriod,
+			foodSpread: globalTweakers.foodSpread,
+			foodBitEnergy: globalTweakers.foodBitEnergy,
+			hungerThreshold: globalTweakers.hungerThreshold,
+			energyToOffspring: globalTweakers.childEnergyRatio,
+			maximumSwimbotAge: globalTweakers.maximumLifeSpan,
+			attraction: globalTweakers.attractionCriterion,
+
+			// Simulation flags
+			simulationRunning: this._simulationRunning,
+			rendering: this._rendering,
+			renderingGoals: this._renderingGoals,
+			clock: this._clock,
+
+			// Counts
+			numSwimbots: this.getNumSwimbots(),
+			numSwimbotsPreferringType0: this.getNumSwimbotsPreferringType(0),
+			numSwimbotsPreferringType1: this.getNumSwimbotsPreferringType(1),
+			numFoodBits: this.getNumFoodBits(),
+			numFoodBits1: this.getNumFoodBits1(),
+
+			// Selection
+			selectedSwimbotID: this._selectedSwimbot,
+			aSwimbotIsSelected: this._selectedSwimbot != NULL_INDEX,
+
+			// View
+			viewMode: this._viewTracking.getMode(),
+
+			// Gene metadata
+			numGeneCategories: this._embryology.getNumGeneCategories(),
+			numGenesPerCategory: this._embryology.getNumGenesPerCategory(),
+
+			// Selected swimbot details (if any)
+			selectedSwimbot: this._buildSelectedSwimbotData()
+		});
+	}
+
+	_buildSelectedSwimbotData() {
+		if (this._selectedSwimbot === NULL_INDEX) return null;
+		const sb = this._swimbots[this._selectedSwimbot];
+		if (!sb.getAlive()) return null;
+		return {
+			index: sb.getIndex(),
+			brainState: sb.getBrainState(),
+			chosenMateIndex: sb.getChosenMateIndex(),
+			age: sb.getAge(),
+			energy: sb.getEnergy(),
+			numFoodBitsEaten: sb.getNumFoodBitsEaten(),
+			numOffspring: sb.getNumOffspring(),
+			attractionDescription: sb.getAttractionDescription(),
+			preferredFoodType: sb.getPreferredFoodType(),
+			digestibleFoodType: sb.getDigestibleFoodType()
+		};
 	}
 
 	_rebuildSpatialGrid() {
@@ -1964,32 +2099,6 @@ class GenePool {
 				}
 			}
 		}
-
-		/*
-		if (globalTweakers.numFoodTypes === 2 )
-		{
-		    for (let f=0; f<MAX_FOODBITS; f++)
-		    {
-		        if (_foodBits[f].getAlive())
-		        {
-		            if (_foodBits[f].getType() === 0)
-		            {
-		                num ++;
-		            }
-		        }
-		    }
-		}
-		else
-		{
-		    for (let f=0; f<MAX_FOODBITS; f++)
-		    {
-		        if (_foodBits[f].getAlive())
-		        {
-		            num ++;
-		        }
-		    }
-		}
-		*/
 
 		return num;
 	}
