@@ -67,10 +67,14 @@
 	<script type = "text/javascript" src = "js/ui.js"></script>
 	
 	<div id="masterPanel">
-		<div id="mainTitle">Gene Pool</div>
-		<div id="swimbots_url">
-			<a href='http://www.swimbots.com' target="_blank" style="color: #224400">swimbots.com</a>
+		<div id="masterPanelHeader">
+			<div id="masterPanelHeaderLeft">
+				<div id="mainTitle">Gene Pool</div>
+			</div>
+			<button id="toggleMasterPanel" class="windowControlBtn" aria-label="Toggle panel">−</button>
 		</div>
+
+		<div id="masterPanelContent">
 		<div id="viewPanel" class="basicPanel">
 			<div id="viewNavPanel">
 
@@ -210,8 +214,6 @@
 				<div id="saveLoadPanel"> SORRY! At the moment, you cannot save or load pool files: the save/load feature of Gene Pool is under construction. I will try to get that done soon. I am switching over to a local file system, using the html file api. <br>
 					<br> -Jeffrey
 					<br>
-					<br> After starting a pool from the **Speciation** preset and running it for tens of thousands of time steps, select the button below to get data collected during the simulation. You can load it into <a href='https://lnegoita.shinyapps.io/gene-pool-laboratory/' target="_blank" style='text-decoration:none'>GenePool Lab</a>
-					<br> ( <a href='https://lnegoita.shinyapps.io/gene-pool-laboratory/' target="_blank" style='text-decoration:none'>https://lnegoita.shinyapps.io/gene-pool-laboratory/</a> ) <br> (Contact jeffrey@ventrella.com for details).
 				</div>
 				<button id="familyTreeButton" class="basicButton">print swimbot data</button>
 			</div>
@@ -255,9 +257,6 @@
 					<div id="pageNumberLabel">page 1 of 28</div>
 					<button id="nextInfoButton" class="basicButton">next</button>
 				</font>
-			</div>
-			<div id="contactPanel">&copy 2021 Jeffrey Ventrella<br>
-				<a href='http://www.ventrella.com' target="_blank" style='color: #004444'>Ventrella.com</a>
 			</div>
 		</div>
 	</div>

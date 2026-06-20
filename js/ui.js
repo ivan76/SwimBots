@@ -64,6 +64,8 @@ function initializeUI() {
 
 	attachEventListeners();
 
+	initFloatingPanel();
+
 	// This starts an update loop that is called
 	// periodically to adjust UI states and stuff.
 	_lastUIUpdateTime = 0;
@@ -772,7 +774,13 @@ function notifyGeneTweakPanelMouseDown() {
 
 // under construction
 function resize() {
-	let rightMargin = 400;
+	// The masterPanel is `position: fixed` on the right.
+	// When collapsed, the canvas uses the full window width.
+	var panel = document.getElementById("masterPanel");
+	var rightMargin = 400;
+	if (panel && panel.style.minHeight === "0px") {
+		rightMargin = 0;
+	}
 	let width = window.innerWidth - rightMargin;
 	let height = window.innerHeight;
 
@@ -973,3 +981,61 @@ document.onkeyup = function(e) {
 	eventBus.emit(UI_CMD_STOP_CAMERA_NAV, CameraNavigationAction.IN);
 	eventBus.emit(UI_CMD_STOP_CAMERA_NAV, CameraNavigationAction.LEFT);
 };
+
+//------------------------------
+/**
+ * Floating panel: drag & drop + expand / collapse.
+ */
+function initFloatingPanel() {
+	const panel = document.getElementById("masterPanel");
+	const header = document.getElementById("masterPanelHeader");
+	const content = document.getElementById("masterPanelContent");
+	const toggleBtn = document.getElementById("toggleMasterPanel");
+
+	if (!panel || !header || !content || !toggleBtn) return;
+
+	// 1. Expand / Collapse
+	let collapsed = false;
+	toggleBtn.addEventListener("click", function(e) {
+		e.stopPropagation();
+		collapsed = !collapsed;
+		if (collapsed) {
+			content.style.display = "none";
+			panel.style.minHeight = "0";
+			toggleBtn.innerText = "+";
+			resize();
+		} else {
+			content.style.display = "flex";
+			panel.style.minHeight = "";
+			toggleBtn.innerText = "−";
+			resize();
+		}
+	});
+
+	// 2. Drag & Drop
+	let dragOffsetX = 0, dragOffsetY = 0;
+
+	header.addEventListener("mousedown", function(e) {
+		if (e.target === toggleBtn) return;
+		e.preventDefault();
+		dragOffsetX = e.clientX - panel.offsetLeft;
+		dragOffsetY = e.clientY - panel.offsetTop;
+
+		// Switch from CSS `right` to explicit `left` so the drag math works cleanly.
+		panel.style.right = "auto";
+
+		document.addEventListener("mousemove", elementDrag);
+		document.addEventListener("mouseup", closeDragElement);
+	});
+
+	function elementDrag(e) {
+		e.preventDefault();
+		panel.style.left = (e.clientX - dragOffsetX) + "px";
+		panel.style.top = (e.clientY - dragOffsetY) + "px";
+	}
+
+	function closeDragElement() {
+		document.removeEventListener("mousemove", elementDrag);
+		document.removeEventListener("mouseup", closeDragElement);
+	}
+}
