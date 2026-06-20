@@ -27,8 +27,6 @@ function submitFilenameInput() {
 }
 
 function printFamilyTree() {
-	SwimbotsApp.genePool.generatePhyloTree();
-
 	let w = window.open(
 		"",
 		"swimbot data",

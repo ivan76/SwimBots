@@ -99,7 +99,6 @@ class GenePool {
 		this._frameRate = ZERO;
 		this._debugTrail = Array(TRAIL_LENGTH);
 		this._familyTree = new FamilyTree();
-		this._phyloTree = new PhyloTree();
 		this._spatialGrid = new SpatialHashGrid(200); // cell size of 200 pixels
 		this._panningLeft = false;
 		this._panningRight = false;
@@ -1074,17 +1073,6 @@ class GenePool {
 		let similarity = ONE - (diff / num);
 
 		return similarity;
-	}
-
-	generatePhyloTree() {
-		let numJunkGenes = NUM_GENES - NUM_GENES_USED;
-		this._phyloTree.initialize(numJunkGenes);
-
-		for (let s = 0; s < MAX_SWIMBOTS; s++) {
-			if (this._swimbots[s].getAlive()) {
-				this._phyloTree.addJunkDNA(this._swimbots[s].getGenotype());
-			}
-		}
 	}
 
 	findLowestDeadSwimbotInArray() {

@@ -6,7 +6,7 @@
  * Required script load order (in test.html):
  *   MathConstants.js, Parameters.js, Utility.js, Vector2D.js, ObjectPool.js, SpatialHashGrid.js,
  *   SwimbotTypes.js, Genotype.js, Embryology.js, Brain.js, SwimbotRenderer.js, Swimbot.js,
- *   Touch.js, ViewTracking.js, FamilyTree.js, PhyloTree.js, Obstacle.js, FoodBit.js,
+ *   Touch.js, ViewTracking.js, FamilyTree.js, Obstacle.js, FoodBit.js,
  *   Pool.js, Camera.js, GenePool.js, EventBus.js
  *   test-runner.js, test-simulation.js
  */
@@ -527,26 +527,6 @@ describe("Obstacle", function () {
         p2.setXY(510, 490);
         var obstructed = obs.getObstruction(p1, p2);
         assertTrue(obstructed);
-    });
-});
-
-// ---------------------------------------------------------------------------
-// PhyloTree
-// ---------------------------------------------------------------------------
-
-describe("PhyloTree", function () {
-    it("should create and initialize", function () {
-        var pt = new PhyloTree();
-        pt.initialize(144); // 256 - 112 = 144 junk genes
-        assertNotNull(pt);
-    });
-
-    it("should add junk DNA without throwing", function () {
-        var pt = new PhyloTree();
-        pt.initialize(144);
-        var gt = new Genotype();
-        gt.randomize();
-        pt.addJunkDNA(gt);
     });
 });
 
