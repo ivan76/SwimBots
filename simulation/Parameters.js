@@ -52,8 +52,7 @@ const SWIMBOT_SELECT_RADIUS_SCALAR = 7.0;
 const RENDER_SWIMBOT_AS_DOT = false;
 const SWIMBOT_DOT_RENDER_RADIUS = 20;
 
-// I'm trying something new here: these are global variables that are
-// meant to be adjustible via the ui (and maybe via other components).
+//these are global variables that are meant to be adjustible via the ui (and maybe via other components).
 class GlobalTweakers {
 	constructor() {
 		this.childEnergyRatio = DEFAULT_CHILD_ENERGY_RATIO;

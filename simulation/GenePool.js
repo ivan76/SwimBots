@@ -893,7 +893,9 @@ class GenePool {
 			numSwimbotsPreferringType0: this.getNumSwimbotsPreferringType(0),
 			numSwimbotsPreferringType1: this.getNumSwimbotsPreferringType(1),
 			numFoodBits: this.getNumFoodBits(),
-			numFoodBits1: this.getNumFoodBits1(),
+			numFoodBits0: this.getNumFoodBitsByType(0),
+			numFoodBits1: this.getNumFoodBitsByType(1),
+			numFoodTypes: globalTweakers.numFoodTypes,
 
 			// Selection
 			selectedSwimbotID: this._selectedSwimbot,
@@ -2090,25 +2092,19 @@ class GenePool {
 
 		for (let f = 0; f < MAX_FOODBITS; f++) {
 			if (this._foodBits[f].getAlive()) {
-				if (globalTweakers.numFoodTypes === 2) {
-					if (this._foodBits[f].getType() === 0) {
-						num++;
-					}
-				} else {
-					num++;
-				}
+				num++;
 			}
 		}
 
 		return num;
 	}
 
-	getNumFoodBits1() {
+	getNumFoodBitsByType(type) {
 		let num = 0;
 
 		for (let f = 0; f < MAX_FOODBITS; f++) {
 			if (this._foodBits[f].getAlive()) {
-				if (this._foodBits[f].getType() === 1) {
+				if (this._foodBits[f].getType() === type) {
 					num++;
 				}
 			}

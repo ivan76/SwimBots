@@ -716,23 +716,27 @@ function updateUI() {
 		state.numSwimbots,
 		state.numSwimbotsPreferringType0,
 		state.numSwimbotsPreferringType1,
-		state.numFoodBits,
-		state.numFoodBits1
+		state.numFoodBits0,
+		state.numFoodBits1,
+		state.numFoodTypes > 1
 	);
 
 	// render the graph....
 	if (document.getElementById('graphPanel').style.visibility === 'visible') {
-		document.getElementById('graphData').innerHTML = "time step: " + state.clock +
-			"<br>" +
-			"swimbots: " + state.numSwimbots +
-			"<br>" +
-			"green pref: " + state.numSwimbotsPreferringType0 +
-			"<br>" +
-			"blue pref: " + state.numSwimbotsPreferringType1 +
-			"<br>" +
-			"food bits: " + state.numFoodBits +
-			"<br>" +
-			"food bits 1: " + state.numFoodBits1;
+		let speciationOn = state.numFoodTypes > 1;
+		let html = "time step: " + state.clock + "<br>";
+
+		if (speciationOn) {
+			html += "green pref: " + state.numSwimbotsPreferringType0 + "<br>" +
+				"blue pref: " + state.numSwimbotsPreferringType1 + "<br>" +
+				"food bits green: " + state.numFoodBits0 + "<br>" +
+				"food bits blue: " + state.numFoodBits1;
+		} else {
+			html += "swimbots: " + state.numSwimbots + "<br>" +
+				"food bits: " + state.numFoodBits0;
+		}
+
+		document.getElementById('graphData').innerHTML = html;
 
 		_graph.render();
 	}

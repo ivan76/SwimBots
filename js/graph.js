@@ -38,7 +38,7 @@ function Graph() {
 	let _numSwimbots = [];
 	let _numGreenPref = [];
 	let _numBluePref = [];
-	let _numFoodBits = [];
+	let _numFoodBits0 = [];
 	let _numFoodBits1 = [];
 
 	let _graphContext = null;
@@ -46,17 +46,21 @@ function Graph() {
 	let _writeIndex = 0;
 	const GRAPH_CAPACITY = 1001; // _maxGraphCount caps at 1000, +1 for the overflow slot
 
+	// Whether food speciation is enabled (2 types vs 1 type)
+	let _foodSpeciationEnabled = false;
+
 	this.initialize = function() {
 		_currentCount = 0;
 		_maxGraphCount = 20;
 		_writeIndex = 0;
+		_foodSpeciationEnabled = false;
 
 		// Pre-allocate to maximum capacity — avoids reallocation during warmup
 		_time = new Array(GRAPH_CAPACITY);
 		_numSwimbots = new Array(GRAPH_CAPACITY);
 		_numGreenPref = new Array(GRAPH_CAPACITY);
 		_numBluePref = new Array(GRAPH_CAPACITY);
-		_numFoodBits = new Array(GRAPH_CAPACITY);
+		_numFoodBits0 = new Array(GRAPH_CAPACITY);
 		_numFoodBits1 = new Array(GRAPH_CAPACITY);
 
 		_graphCanvas = document.getElementById('graphCanvas');
@@ -69,20 +73,23 @@ function Graph() {
 	 * @param {number} numSwimbots - total alive swimbots
 	 * @param {number} numGreenPref - swimbots preferring green food
 	 * @param {number} numBluePref - swimbots preferring blue food
-	 * @param {number} numFoodBits - green food bits alive
+	 * @param {number} numFoodBits0 - green food bits alive
 	 * @param {number} numFoodBits1 - blue food bits alive
+	 * @param {boolean} foodSpeciationEnabled - whether food speciation is active
 	 */
-	this.update = function(time, numSwimbots, numGreenPref, numBluePref, numFoodBits, numFoodBits1) {
+	this.update = function(time, numSwimbots, numGreenPref, numBluePref, numFoodBits0, numFoodBits1, foodSpeciationEnabled) {
 		if (_maxGraphCount < 1000) {
 			_maxGraphCount++;
 		}
+
+		_foodSpeciationEnabled = !!foodSpeciationEnabled;
 
 		// Write at the current circular index
 		_time[_writeIndex] = time;
 		_numSwimbots[_writeIndex] = numSwimbots;
 		_numGreenPref[_writeIndex] = numGreenPref;
 		_numBluePref[_writeIndex] = numBluePref;
-		_numFoodBits[_writeIndex] = numFoodBits;
+		_numFoodBits0[_writeIndex] = numFoodBits0;
 		_numFoodBits1[_writeIndex] = numFoodBits1;
 
 		// Advance the write pointer (circular)
@@ -150,13 +157,6 @@ function Graph() {
 		if (_currentCount > 1) {
 			let left = _graphLeft + 30;
 
-			// Y positions for each legend entry (match the order in ui.js graphData)
-			let swimbotY = _bottom - GRAPH_BOTTOM_MARGIN + 50;
-			let greenPrefY = _bottom - GRAPH_BOTTOM_MARGIN + 67;
-			let bluePrefY = _bottom - GRAPH_BOTTOM_MARGIN + 84;
-			let foodbitY = _bottom - GRAPH_BOTTOM_MARGIN + 101;
-			let foodbit1Y = _bottom - GRAPH_BOTTOM_MARGIN + 118;
-
 			graphCanvas.clearRect(_graphLeft, _bottom - GRAPH_BOTTOM_MARGIN, _graphWidth, GRAPH_BOTTOM_MARGIN);
 
 			graphCanvas.font = "20px Times";
@@ -166,50 +166,71 @@ function Graph() {
 			graphCanvas.fillText("500", left, _level0500 + 8);
 			graphCanvas.fillText("1000", left, _level1000 + 18);
 
-			// legend — swimbots (orange)
-			graphCanvas.lineWidth = 2;
-			graphCanvas.strokeStyle = GRAPH_SWIMBOT_COLOR;
-			graphCanvas.beginPath();
-			graphCanvas.moveTo(left + 140, swimbotY);
-			graphCanvas.lineTo(left + 250, swimbotY);
-			graphCanvas.stroke();
-			graphCanvas.closePath();
+			if (_foodSpeciationEnabled) {
+				// --- Food speciation ON: 4 entries ---
+				let greenPrefY = _bottom - GRAPH_BOTTOM_MARGIN + 50;
+				let bluePrefY = _bottom - GRAPH_BOTTOM_MARGIN + 67;
+				let foodGreenY = _bottom - GRAPH_BOTTOM_MARGIN + 84;
+				let foodBlueY = _bottom - GRAPH_BOTTOM_MARGIN + 101;
 
-			// legend — green pref swimbots (magenta)
-			graphCanvas.lineWidth = 2;
-			graphCanvas.strokeStyle = GRAPH_GREEN_PREF_COLOR;
-			graphCanvas.beginPath();
-			graphCanvas.moveTo(left + 140, greenPrefY);
-			graphCanvas.lineTo(left + 250, greenPrefY);
-			graphCanvas.stroke();
-			graphCanvas.closePath();
+				// legend — green pref swimbots (magenta)
+				graphCanvas.lineWidth = 2;
+				graphCanvas.strokeStyle = GRAPH_GREEN_PREF_COLOR;
+				graphCanvas.beginPath();
+				graphCanvas.moveTo(left + 140, greenPrefY);
+				graphCanvas.lineTo(left + 250, greenPrefY);
+				graphCanvas.stroke();
+				graphCanvas.closePath();
 
-			// legend — blue pref swimbots (dark blue)
-			graphCanvas.lineWidth = 2;
-			graphCanvas.strokeStyle = GRAPH_BLUE_PREF_COLOR;
-			graphCanvas.beginPath();
-			graphCanvas.moveTo(left + 140, bluePrefY);
-			graphCanvas.lineTo(left + 250, bluePrefY);
-			graphCanvas.stroke();
-			graphCanvas.closePath();
+				// legend — blue pref swimbots (dark blue)
+				graphCanvas.lineWidth = 2;
+				graphCanvas.strokeStyle = GRAPH_BLUE_PREF_COLOR;
+				graphCanvas.beginPath();
+				graphCanvas.moveTo(left + 140, bluePrefY);
+				graphCanvas.lineTo(left + 250, bluePrefY);
+				graphCanvas.stroke();
+				graphCanvas.closePath();
 
-			// legend — green food bits (green)
-			graphCanvas.lineWidth = 2;
-			graphCanvas.strokeStyle = GRAPH_FOODBIT_COLOR;
-			graphCanvas.beginPath();
-			graphCanvas.moveTo(left + 140, foodbitY);
-			graphCanvas.lineTo(left + 250, foodbitY);
-			graphCanvas.stroke();
-			graphCanvas.closePath();
+				// legend — green food bits (green)
+				graphCanvas.lineWidth = 2;
+				graphCanvas.strokeStyle = GRAPH_FOODBIT_COLOR;
+				graphCanvas.beginPath();
+				graphCanvas.moveTo(left + 140, foodGreenY);
+				graphCanvas.lineTo(left + 250, foodGreenY);
+				graphCanvas.stroke();
+				graphCanvas.closePath();
 
-			// legend — blue food bits (blue)
-			graphCanvas.lineWidth = 2;
-			graphCanvas.strokeStyle = GRAPH_FOODBIT_1_COLOR;
-			graphCanvas.beginPath();
-			graphCanvas.moveTo(left + 140, foodbit1Y);
-			graphCanvas.lineTo(left + 250, foodbit1Y);
-			graphCanvas.stroke();
-			graphCanvas.closePath();
+				// legend — blue food bits (blue)
+				graphCanvas.lineWidth = 2;
+				graphCanvas.strokeStyle = GRAPH_FOODBIT_1_COLOR;
+				graphCanvas.beginPath();
+				graphCanvas.moveTo(left + 140, foodBlueY);
+				graphCanvas.lineTo(left + 250, foodBlueY);
+				graphCanvas.stroke();
+				graphCanvas.closePath();
+			} else {
+				// --- Food speciation OFF: 2 entries ---
+				let swimbotY = _bottom - GRAPH_BOTTOM_MARGIN + 50;
+				let foodbitY = _bottom - GRAPH_BOTTOM_MARGIN + 67;
+
+				// legend — swimbots (orange)
+				graphCanvas.lineWidth = 2;
+				graphCanvas.strokeStyle = GRAPH_SWIMBOT_COLOR;
+				graphCanvas.beginPath();
+				graphCanvas.moveTo(left + 140, swimbotY);
+				graphCanvas.lineTo(left + 250, swimbotY);
+				graphCanvas.stroke();
+				graphCanvas.closePath();
+
+				// legend — food bits (green)
+				graphCanvas.lineWidth = 2;
+				graphCanvas.strokeStyle = GRAPH_FOODBIT_COLOR;
+				graphCanvas.beginPath();
+				graphCanvas.moveTo(left + 140, foodbitY);
+				graphCanvas.lineTo(left + 250, foodbitY);
+				graphCanvas.stroke();
+				graphCanvas.closePath();
+			}
 		}
 	}
 
@@ -234,64 +255,76 @@ function Graph() {
 			let iPrev = _idx(g - 1);
 			let iCurr = _idx(g);
 
-			let swimbotY1 = _graphBottom - (_numSwimbots[iPrev] * RECIPROCAL_OF_MAX_POP) * _graphHeight;
 			let swimbotY2 = _graphBottom - (_numSwimbots[iCurr] * RECIPROCAL_OF_MAX_POP) * _graphHeight;
-
-			let greenPrefY1 = _graphBottom - (_numGreenPref[iPrev] * RECIPROCAL_OF_MAX_POP) * _graphHeight;
 			let greenPrefY2 = _graphBottom - (_numGreenPref[iCurr] * RECIPROCAL_OF_MAX_POP) * _graphHeight;
-
-			let bluePrefY1 = _graphBottom - (_numBluePref[iPrev] * RECIPROCAL_OF_MAX_POP) * _graphHeight;
 			let bluePrefY2 = _graphBottom - (_numBluePref[iCurr] * RECIPROCAL_OF_MAX_POP) * _graphHeight;
-
-			let foodY1 = _graphBottom - (_numFoodBits[iPrev] * RECIPROCAL_OF_MAX_POP) * _graphHeight;
-			let foodY2 = _graphBottom - (_numFoodBits[iCurr] * RECIPROCAL_OF_MAX_POP) * _graphHeight;
-
-			let food1Y1 = _graphBottom - (_numFoodBits1[iPrev] * RECIPROCAL_OF_MAX_POP) * _graphHeight;
+			let food0Y2 = _graphBottom - (_numFoodBits0[iCurr] * RECIPROCAL_OF_MAX_POP) * _graphHeight;
 			let food1Y2 = _graphBottom - (_numFoodBits1[iCurr] * RECIPROCAL_OF_MAX_POP) * _graphHeight;
 
-			if (swimbotY2 > _graphBottom - _graphHeight) {
-				graphCanvas.strokeStyle = GRAPH_SWIMBOT_COLOR;
-				graphCanvas.beginPath();
-				graphCanvas.moveTo(x1, swimbotY1);
-				graphCanvas.lineTo(x2, swimbotY2);
-				graphCanvas.stroke();
-				graphCanvas.closePath();
-			}
+			if (_foodSpeciationEnabled) {
+				// --- Food speciation ON: green pref, blue pref, food bits green, food bits blue ---
 
-			if (greenPrefY2 > _graphBottom - _graphHeight) {
-				graphCanvas.strokeStyle = GRAPH_GREEN_PREF_COLOR;
-				graphCanvas.beginPath();
-				graphCanvas.moveTo(x1, greenPrefY1);
-				graphCanvas.lineTo(x2, greenPrefY2);
-				graphCanvas.stroke();
-				graphCanvas.closePath();
-			}
+				if (greenPrefY2 > _graphBottom - _graphHeight) {
+					let greenPrefY1 = _graphBottom - (_numGreenPref[iPrev] * RECIPROCAL_OF_MAX_POP) * _graphHeight;
+					graphCanvas.strokeStyle = GRAPH_GREEN_PREF_COLOR;
+					graphCanvas.beginPath();
+					graphCanvas.moveTo(x1, greenPrefY1);
+					graphCanvas.lineTo(x2, greenPrefY2);
+					graphCanvas.stroke();
+					graphCanvas.closePath();
+				}
 
-			if (bluePrefY2 > _graphBottom - _graphHeight) {
-				graphCanvas.strokeStyle = GRAPH_BLUE_PREF_COLOR;
-				graphCanvas.beginPath();
-				graphCanvas.moveTo(x1, bluePrefY1);
-				graphCanvas.lineTo(x2, bluePrefY2);
-				graphCanvas.stroke();
-				graphCanvas.closePath();
-			}
+				if (bluePrefY2 > _graphBottom - _graphHeight) {
+					let bluePrefY1 = _graphBottom - (_numBluePref[iPrev] * RECIPROCAL_OF_MAX_POP) * _graphHeight;
+					graphCanvas.strokeStyle = GRAPH_BLUE_PREF_COLOR;
+					graphCanvas.beginPath();
+					graphCanvas.moveTo(x1, bluePrefY1);
+					graphCanvas.lineTo(x2, bluePrefY2);
+					graphCanvas.stroke();
+					graphCanvas.closePath();
+				}
 
-			if (foodY2 > _graphBottom - _graphHeight) {
-				graphCanvas.strokeStyle = GRAPH_FOODBIT_COLOR;
-				graphCanvas.beginPath();
-				graphCanvas.moveTo(x1, foodY1);
-				graphCanvas.lineTo(x2, foodY2);
-				graphCanvas.stroke();
-				graphCanvas.closePath();
-			}
+				if (food0Y2 > _graphBottom - _graphHeight) {
+					let food0Y1 = _graphBottom - (_numFoodBits0[iPrev] * RECIPROCAL_OF_MAX_POP) * _graphHeight;
+					graphCanvas.strokeStyle = GRAPH_FOODBIT_COLOR;
+					graphCanvas.beginPath();
+					graphCanvas.moveTo(x1, food0Y1);
+					graphCanvas.lineTo(x2, food0Y2);
+					graphCanvas.stroke();
+					graphCanvas.closePath();
+				}
 
-			if (food1Y2 > _graphBottom - _graphHeight) {
-				graphCanvas.strokeStyle = GRAPH_FOODBIT_1_COLOR;
-				graphCanvas.beginPath();
-				graphCanvas.moveTo(x1, food1Y1);
-				graphCanvas.lineTo(x2, food1Y2);
-				graphCanvas.stroke();
-				graphCanvas.closePath();
+				if (food1Y2 > _graphBottom - _graphHeight) {
+					let food1Y1 = _graphBottom - (_numFoodBits1[iPrev] * RECIPROCAL_OF_MAX_POP) * _graphHeight;
+					graphCanvas.strokeStyle = GRAPH_FOODBIT_1_COLOR;
+					graphCanvas.beginPath();
+					graphCanvas.moveTo(x1, food1Y1);
+					graphCanvas.lineTo(x2, food1Y2);
+					graphCanvas.stroke();
+					graphCanvas.closePath();
+				}
+			} else {
+				// --- Food speciation OFF: swimbots (total), food bits (total green) ---
+
+				if (swimbotY2 > _graphBottom - _graphHeight) {
+					let swimbotY1 = _graphBottom - (_numSwimbots[iPrev] * RECIPROCAL_OF_MAX_POP) * _graphHeight;
+					graphCanvas.strokeStyle = GRAPH_SWIMBOT_COLOR;
+					graphCanvas.beginPath();
+					graphCanvas.moveTo(x1, swimbotY1);
+					graphCanvas.lineTo(x2, swimbotY2);
+					graphCanvas.stroke();
+					graphCanvas.closePath();
+				}
+
+				if (food0Y2 > _graphBottom - _graphHeight) {
+					let food0Y1 = _graphBottom - (_numFoodBits0[iPrev] * RECIPROCAL_OF_MAX_POP) * _graphHeight;
+					graphCanvas.strokeStyle = GRAPH_FOODBIT_COLOR;
+					graphCanvas.beginPath();
+					graphCanvas.moveTo(x1, food0Y1);
+					graphCanvas.lineTo(x2, food0Y2);
+					graphCanvas.stroke();
+					graphCanvas.closePath();
+				}
 			}
 		}
 	}
