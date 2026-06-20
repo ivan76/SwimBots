@@ -107,6 +107,7 @@ class GenePool {
 		this._zoomingIn = false;
 		this._zoomingOut = false;
 		this._renderingGoals = false;
+		this._foodPlaceMode = NULL_INDEX; // -1 = off, 0 = green, 1 = blue
 		this._windowWidth = 0;
 		this._windowHeight = 0;
 		this._lastFrameTime = 0;
@@ -207,6 +208,9 @@ class GenePool {
 
 		// Canvas dimensions
 		eventBus.on(UI_CMD_SET_CANVAS_DIMENSIONS, (data) => self.setCanvasDimensions(data.width, data.height));
+
+		// Food place mode
+		eventBus.on(UI_CMD_SET_FOOD_PLACE_MODE, (type) => self.setFoodPlaceMode(type));
 	}
 
 	setCanvas(c) {
@@ -259,6 +263,9 @@ class GenePool {
 
 		// reset family tree
 		this._familyTree.reset();
+
+		// reset food place mode
+		this._foodPlaceMode = NULL_INDEX;
 
 		// clear out all swimbots and food bits
 		this._numSwimbots = 0;
@@ -787,6 +794,22 @@ class GenePool {
 		for (let s = 0; s < MAX_SWIMBOTS; s++) {
 			this._swimbots[s].setAttraction(globalTweakers.attractionCriterion);
 		}
+	}
+
+	setFoodPlaceMode(type) {
+		this._foodPlaceMode = type;
+	}
+
+	placeFoodBitAtPoolPosition() {
+		if (this._foodPlaceMode === NULL_INDEX) return;
+
+		let slot = this.findLowestDeadFoodBitInArray();
+		if (slot === NULL_INDEX) return; // no free slot
+
+		let fb = this._foodBits[slot];
+		fb.initialize(slot);
+		fb.setPosition(this._vectorUtility);
+		fb.setType(this._foodPlaceMode);
 	}
 
 	notifySwimbotDeathTime(deceasedSwimbotIndex) {
@@ -1953,6 +1976,13 @@ class GenePool {
 		if ((x < this._canvasWidth) && (y < this._canvasHeight)) {
 			// in case view control is tracking, stop it...
 			this._viewTracking.stopTracking();
+
+			// Food place mode takes priority: place a food bit and return early.
+			if (this._foodPlaceMode !== NULL_INDEX) {
+				this._vectorUtility = this.convertScreenCoordinatesToPoolPosition(x, y);
+				this.placeFoodBitAtPoolPosition();
+				return;
+			}
 
 			// has a swimmer been clicked?
 			this._setSelectedSwimbot(this.indexOfClosestSwimbotToScreenPosition(x, y));

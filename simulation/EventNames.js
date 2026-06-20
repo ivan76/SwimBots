@@ -42,6 +42,7 @@ const UI_CMD_TOUCH_MOVE            = 'UI_CMD_TOUCH_MOVE';
 const UI_CMD_TOUCH_UP              = 'UI_CMD_TOUCH_UP';
 const UI_CMD_TOUCH_OUT             = 'UI_CMD_TOUCH_OUT';
 const UI_CMD_SET_CANVAS_DIMENSIONS = 'UI_CMD_SET_CANVAS_DIMENSIONS';
+const UI_CMD_SET_FOOD_PLACE_MODE   = 'UI_CMD_SET_FOOD_PLACE_MODE';
 
 // --- Simulation → UI state ---
 const SIM_STATE_UPDATED            = 'SIM_STATE_UPDATED';

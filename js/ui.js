@@ -275,6 +275,7 @@ function openPanel(buttonID) {
 
 function openPoolPanel() {
 	document.getElementById('poolPanel').style.visibility = 'visible';
+	_updateFoodPlaceButtons();
 }
 
 function openGraphPanel() {
@@ -795,6 +796,36 @@ function resize() {
 	}
 }
 
+/**
+ * Switch visibility of food place buttons based on food speciation state.
+ */
+function _updateFoodPlaceButtons() {
+	var speciationOn = document.getElementById('foodSpeciationCheckbox').checked;
+
+	var singleBtn = document.getElementById('addFoodBitButton');
+	var greenBtn  = document.getElementById('addGreenFoodBitButton');
+	var blueBtn   = document.getElementById('addBlueFoodBitButton');
+
+	if (speciationOn) {
+		singleBtn.style.display = 'none';
+		greenBtn.style.display  = '';
+		blueBtn.style.display   = '';
+	} else {
+		singleBtn.style.display = '';
+		greenBtn.style.display  = 'none';
+		blueBtn.style.display   = 'none';
+	}
+}
+
+/**
+ * Clear the active highlight from all food place buttons and reset simulation mode.
+ */
+function _clearFoodPlaceActive() {
+	document.getElementById('addFoodBitButton').classList.remove('foodPlaceActive');
+	document.getElementById('addGreenFoodBitButton').classList.remove('foodPlaceActive');
+	document.getElementById('addBlueFoodBitButton').classList.remove('foodPlaceActive');
+}
+
 function attachEventListeners() {
 	// View mode buttons
 	document.querySelectorAll('[data-view-mode]').forEach(function(btn) {
@@ -844,6 +875,39 @@ function attachEventListeners() {
 	// Food speciation toggle
 	document.getElementById('foodSpeciationCheckbox').addEventListener('change', function() {
 		eventBus.emit(UI_CMD_SET_FOOD_SPECIATION, this.checked);
+		_updateFoodPlaceButtons();
+	});
+
+	// Food place buttons
+	document.getElementById('addFoodBitButton').addEventListener('click', function() {
+		if (this.classList.contains('foodPlaceActive')) {
+			this.classList.remove('foodPlaceActive');
+			eventBus.emit(UI_CMD_SET_FOOD_PLACE_MODE, -1);
+		} else {
+			_clearFoodPlaceActive();
+			this.classList.add('foodPlaceActive');
+			eventBus.emit(UI_CMD_SET_FOOD_PLACE_MODE, 0);
+		}
+	});
+	document.getElementById('addGreenFoodBitButton').addEventListener('click', function() {
+		if (this.classList.contains('foodPlaceActive')) {
+			this.classList.remove('foodPlaceActive');
+			eventBus.emit(UI_CMD_SET_FOOD_PLACE_MODE, -1);
+		} else {
+			_clearFoodPlaceActive();
+			this.classList.add('foodPlaceActive');
+			eventBus.emit(UI_CMD_SET_FOOD_PLACE_MODE, 0);
+		}
+	});
+	document.getElementById('addBlueFoodBitButton').addEventListener('click', function() {
+		if (this.classList.contains('foodPlaceActive')) {
+			this.classList.remove('foodPlaceActive');
+			eventBus.emit(UI_CMD_SET_FOOD_PLACE_MODE, -1);
+		} else {
+			_clearFoodPlaceActive();
+			this.classList.add('foodPlaceActive');
+			eventBus.emit(UI_CMD_SET_FOOD_PLACE_MODE, 1);
+		}
 	});
 
 	// Family tree
