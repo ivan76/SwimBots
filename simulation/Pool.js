@@ -1,16 +1,6 @@
 "use strict";
 
-// metrics
-const POOL_LEFT = ZERO;
-const POOL_RIGHT = 8000.0;
-const POOL_TOP = ZERO;
-const POOL_BOTTOM = 8000.0;
 
-const POOL_WIDTH = (POOL_RIGHT - POOL_LEFT);
-const POOL_HEIGHT = (POOL_BOTTOM - POOL_TOP);
-
-const POOL_X_CENTER = POOL_LEFT + POOL_WIDTH * ONE_HALF;
-const POOL_Y_CENTER = POOL_TOP + POOL_HEIGHT * ONE_HALF;
 
 // helper classes (previously inner functions of Pool constructor)
 class PoolTouch {

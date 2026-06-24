@@ -36,7 +36,6 @@ class Swimbot {
         this._colorUtility = new Color();
         this._energyEfficiency = ZERO;
         this._selectRadius = ZERO;
-        this._species = NULL_INDEX;
 
         this._lastPositionForEfficiencyMeasurement = new Vector2D();
         this._lastEnergyForEfficiencyMeasurement = ZERO;

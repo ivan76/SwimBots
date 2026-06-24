@@ -546,22 +546,7 @@ function setViewMode(buttonID, viewMode) {
 	}
 }
 
-function choosePoolToLoad(pool) {
-	_chosenPoolToLoad = pool;
-}
-
 function requestToLoadPoolFromFile() {}
-
-function requestToLoadPoolFromPreset() {
-	// get the name of the pool to load...
-	let poolText = "(ERROR)";
-
-	if (_chosenPoolToLoad === SimulationStartMode.RANDOM) { poolText = "'random'"; } else if (_chosenPoolToLoad === SimulationStartMode.NEIGHBORHOOD) { poolText = "'neighborhood'"; } else if (_chosenPoolToLoad === SimulationStartMode.FROGGIES) { poolText = "'froggies'"; } else if (_chosenPoolToLoad === SimulationStartMode.TANGO) { poolText = "'tango'"; } else if (_chosenPoolToLoad === SimulationStartMode.RACE) { poolText = "'race'"; } else if (_chosenPoolToLoad === SimulationStartMode.BIG_BANG) { poolText = "'big bang'"; } else if (_chosenPoolToLoad === SimulationStartMode.BAD_PARENTS) { poolText = "'bad parents'"; } else if (_chosenPoolToLoad === SimulationStartMode.EMPTY) { poolText = "'empty'"; }
-	//else if (_chosenPoolToLoad === SimulationStartMode.FILE       ) { poolText = "from file";       }
-
-	// this overrides the UI asking the user to save the current pool first...
-	switchToChosenPresetPool();
-}
 
 function switchToChosenPresetPool() {
 	closePopupPanel();
@@ -866,9 +851,11 @@ function attachEventListeners() {
 	// Pool presets
 	document.querySelectorAll('[data-pool-preset]').forEach(function(btn) {
 		btn.addEventListener('click', function() {
-			let mode = SimulationStartMode[this.getAttribute('data-pool-preset')];
-			choosePoolToLoad(mode);
-			requestToLoadPoolFromPreset();
+			let pool = SimulationStartMode[this.getAttribute('data-pool-preset')];
+			_chosenPoolToLoad = pool;
+
+			// this overrides the UI asking the user to save the current pool first...
+			switchToChosenPresetPool();
 		});
 	});
 

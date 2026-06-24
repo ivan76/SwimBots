@@ -35,26 +35,6 @@ class GenePool {
 		// count-related constants
 		const TRAIL_LENGTH = 100;
 
-		const NUM_NEIGHBORHOOD_SWIMBOTS = 14 * 14;
-		const NUM_NEIGHBORHOOD_FOODBITS = 28 * 28;
-
-		// rendering-related constants
-		const DEFAULT_MILLISECONDS_PER_UPDATE = 20;
-
-		const LEVEL_OF_DETAIL_THRESHOLD = 1200.0;
-
-		const INITIAL_VIEW_SCALE = POOL_WIDTH * 0.1;
-		const RACE_VIEW_SCALE = POOL_WIDTH * 0.3;
-		const BANG_VIEW_SCALE = POOL_WIDTH * 0.2;
-		const PARENT_VIEW_SCALE = POOL_WIDTH * 0.05;
-		const NEIGHBORHOOD_VIEW_SCALE = POOL_WIDTH * 0.4;
-		const NEIGHBORHOOD_FREQ = 5.0;
-		const DEBUG_SHOW_SWIMBOT_TRAIL = false;
-		const CAMERA_TRACKING_UPDATE_PERIOD = 10;
-		const CLONE_SEPARATION = 10.0;
-		const FOOD_RACE_SIZE = 1000;
-		const FOOD_BANG_SIZE = 1700;
-
 		// instance fields (previously let-local variables)
 		this._millisecondsPerUpdate = 0;
 		this._touch = new Touch();
@@ -230,7 +210,7 @@ class GenePool {
 		// start with a random simulation
 		this.startSimulation(SimulationStartMode.RANDOM);
 
-		this._millisecondsPerUpdate = 20; // DEFAULT_MILLISECONDS_PER_UPDATE
+		this._millisecondsPerUpdate = DEFAULT_MILLISECONDS_PER_UPDATE;
 
 		// configure view tracking
 		//_viewTracking.setPoolCenter(_poolCenter);
@@ -245,7 +225,7 @@ class GenePool {
 	}
 
 	startSimulation(mode) {
-		//looks like numOffspring didn't get reset. fix this! (and any other related side effects
+		//looks like numOffspring didn't get reset. fix this! (and any other related side effects)
 
 		// start time
 		this._startTime = (new Date).getTime();
@@ -255,7 +235,7 @@ class GenePool {
 		this._pool.initialize(this._seconds);
 
 		// initialize camera
-		this._camera.setScale(POOL_WIDTH * 0.1); // INITIAL_VIEW_SCALE
+		this._camera.setScale(INITIAL_VIEW_SCALE);
 		this._camera.setPosition(this._poolCenter);
 
 		// reset view control
@@ -299,16 +279,12 @@ class GenePool {
 		} else {
 			globalTweakers.numFoodTypes = 1;
 		}
-		this.randomizeFood();
+		this.randomizeFood(); // Important: do this after setting numFoodTypes!
 
 		// initialize various parameters according to simulation start mode
 		if (mode === SimulationStartMode.RANDOM) {
 			//this uses all default values
 		} else if (mode === SimulationStartMode.SPECIES) {
-			globalTweakers.numFoodTypes = 2;
-			this.randomizeFood(); // Important: do this after setting numFoodTypes!
-
-			//this.setGardenOfEdenRadius(1500); /* again... */ this.randomizeFood();
 			this.setFoodGrowthDelay(15);
 			this.setMaximumSwimbotAge(20000);
 			this._numSwimbots = 1000;
@@ -316,18 +292,17 @@ class GenePool {
 			this.setFoodToSpeciesConfiguration();
 			this._camera.setScale(POOL_WIDTH);
 		} else if (mode === SimulationStartMode.FROGGIES) {
-			//this.randomizeFood();
+			//this uses all default values
 		} else if (mode === SimulationStartMode.TANGO) {
 			this._numSwimbots = 2;
-			//this.randomizeFood();
 		} else if (mode === SimulationStartMode.RACE) {
 			this._numSwimbots = 4;
 			this.setFoodToRaceConfiguration();
-			this._camera.setScale(POOL_WIDTH * 0.3); // RACE_VIEW_SCALE
+			this._camera.setScale(RACE_VIEW_SCALE);
 		} else if (mode === SimulationStartMode.BIG_BANG) {
 			this._numSwimbots = 100;
 			this.setFoodToBangConfiguration();
-			this._camera.setScale(POOL_WIDTH * 0.2); // BANG_VIEW_SCALE
+			this._camera.setScale(BANG_VIEW_SCALE);
 		} else if (mode === SimulationStartMode.BAD_PARENTS) {
 			this._numSwimbots = 2;
 			this.setFoodToBadParentsConfiguration();
@@ -338,21 +313,19 @@ class GenePool {
 			this.setFoodBitEnergy(6);
 			this.setOffspringEnergyRatio(0.0001);
 
-			this._camera.setScale(POOL_WIDTH * 0.05); // PARENT_VIEW_SCALE
+			this._camera.setScale(PARENT_VIEW_SCALE);
 		} else if (mode === SimulationStartMode.BARRIER) {
 			// the obstacle is initialized below to be in the middle of the pool!
 
 			//this.setFoodToBarrierConfiguration();
-			//this.randomizeFood();
 			//_camera.setScale(PARENT_VIEW_SCALE);
 		} else if (mode === SimulationStartMode.NEIGHBORHOOD) {
-			this._camera.setScale(POOL_WIDTH * 0.4); // NEIGHBORHOOD_VIEW_SCALE
-			this._numSwimbots = 14 * 14; // NUM_NEIGHBORHOOD_SWIMBOTS
+			this._camera.setScale(NEIGHBORHOOD_VIEW_SCALE);
+			this._numSwimbots = NUM_NEIGHBORHOOD_SWIMBOTS;
 			this.randomizeNeighborhood();
 			this.setFoodToNeighborhood(this._poolCenter, this._gardenOfEdenRadius);
 		} else if (mode === SimulationStartMode.EMPTY) {
 			this._numSwimbots = 0;
-			//this.randomizeFood();
 		}
 
 		// initialize swimbots
@@ -374,20 +347,10 @@ class GenePool {
 				initialPosition.setXY(x, y)
 			}
 
-			// yo, initial age is distributed
-			let weightedRandomNormal = Math.random();
-
-			let initialAge = YOUNG_AGE_DURATION + Math.floor((globalTweakers.maximumLifeSpan - YOUNG_AGE_DURATION) * weightedRandomNormal);
-
-			assert((initialAge >= YOUNG_AGE_DURATION), "Genepool.js: startSimulation: (initialAge >= YOUNG_AGE_DURATION)");
-			assert((initialAge <= globalTweakers.maximumLifeSpan), "Genepool.js: startSimulation: (initialAge <= globalTweakers.maximumLifeSpan)");
-
 			let initialAngle = getRandomAngleInDegrees(); //-180.0 + Math.random() * 360.0;
 			let initialEnergy = DEFAULT_SWIMBOT_HUNGER_THRESHOLD;
 
 			// set values according to sim type
-
-			// neighborhood
 			if (mode === SimulationStartMode.NEIGHBORHOOD) {
 				let sqrt = Math.floor(Math.sqrt(this._numSwimbots));
 				let xMod = i % sqrt;
@@ -405,9 +368,9 @@ class GenePool {
 					let value = ZERO;
 
 					if (this._neighborhoodAxis[g]) {
-						value = ONE_HALF + ONE_HALF * Math.sin((this._neighborhoodX[g] + (-ONE_HALF + xFraction)) * 5.0); // NEIGHBORHOOD_FREQ
+						value = ONE_HALF + ONE_HALF * Math.sin((this._neighborhoodX[g] + (-ONE_HALF + xFraction)) * NEIGHBORHOOD_FREQ);
 					} else {
-						value = ONE_HALF + ONE_HALF * Math.sin((this._neighborhoodY[g] + (-ONE_HALF + yFraction)) * 5.0); // NEIGHBORHOOD_FREQ
+						value = ONE_HALF + ONE_HALF * Math.sin((this._neighborhoodY[g] + (-ONE_HALF + yFraction)) * NEIGHBORHOOD_FREQ);
 					}
 
 					if (value < ZERO) { value = ZERO; }
@@ -418,11 +381,9 @@ class GenePool {
 					this._myGenotype.setGeneValue(g, geneValue);
 				}
 			}
-			// froggies
 			else if (mode === SimulationStartMode.FROGGIES) {
 				this._myGenotype.setToFroggy();
 			}
-			// tango
 			else if (mode === SimulationStartMode.TANGO) {
 				if (i === 0) { this._myGenotype.setToPreset(PRESET_GENOTYPE_DARWIN); }
 				if (i === 1) { this._myGenotype.setToPreset(PRESET_GENOTYPE_MENDEL); }
@@ -430,31 +391,22 @@ class GenePool {
 				if (i === 0) { initialPosition.setXY(this._poolCenter.x - 100 * ONE_HALF, this._poolCenter.y); }
 				if (i === 1) { initialPosition.setXY(this._poolCenter.x + 100 * ONE_HALF, this._poolCenter.y); }
 			}
-			// race
 			else if (mode === SimulationStartMode.RACE) {
-				/*
-				if (i === 0) { _myGenotype.setToPreset(PRESET_GENOTYPE_MARGULIS  ); }
-				if (i === 1) { _myGenotype.setToPreset(PRESET_GENOTYPE_MARGULIS  ); }
-				if (i === 2) { _myGenotype.setToPreset(PRESET_GENOTYPE_DAWKINS ); }
-				if (i === 3) { _myGenotype.setToPreset(PRESET_GENOTYPE_DAWKINS ); }
-				*/
 
 				if (i === 0) { this._myGenotype.setToPreset(PRESET_GENOTYPE_WILSON); }
 				if (i === 1) { this._myGenotype.setToPreset(PRESET_GENOTYPE_WILSON); }
 				if (i === 2) { this._myGenotype.setToPreset(PRESET_GENOTYPE_DENNETT); }
 				if (i === 3) { this._myGenotype.setToPreset(PRESET_GENOTYPE_DENNETT); }
 
-				if (i === 0) { initialPosition.setXY(this._poolCenter.x - 1000, this._poolCenter.y + 1000); } // FOOD_RACE_SIZE
-				if (i === 1) { initialPosition.setXY(this._poolCenter.x - 1000, this._poolCenter.y + 1000 - 60); }
-				if (i === 2) { initialPosition.setXY(this._poolCenter.x + 1000, this._poolCenter.y + 1000); }
-				if (i === 3) { initialPosition.setXY(this._poolCenter.x + 1000, this._poolCenter.y + 1000 - 60); }
+				if (i === 0) { initialPosition.setXY(this._poolCenter.x - FOOD_RACE_SIZE, this._poolCenter.y + FOOD_RACE_SIZE); }
+				if (i === 1) { initialPosition.setXY(this._poolCenter.x - FOOD_RACE_SIZE, this._poolCenter.y + FOOD_RACE_SIZE - 60); }
+				if (i === 2) { initialPosition.setXY(this._poolCenter.x + FOOD_RACE_SIZE, this._poolCenter.y + FOOD_RACE_SIZE); }
+				if (i === 3) { initialPosition.setXY(this._poolCenter.x + FOOD_RACE_SIZE, this._poolCenter.y + FOOD_RACE_SIZE - 60); }
 			}
-			// big bang
 			else if (mode === SimulationStartMode.BIG_BANG) {
 				initialPosition.setXY(this._poolCenter.x, this._poolCenter.y);
 				this._myGenotype.randomize();
 			}
-			// bad parents
 			else if (mode === SimulationStartMode.BAD_PARENTS) {
 				if (i === 0) { this._myGenotype.setToPreset(PRESET_GENOTYPE_TURING); }
 				if (i === 1) { this._myGenotype.setToPreset(PRESET_GENOTYPE_TURING); }
@@ -515,7 +467,7 @@ class GenePool {
 			}
 
 			// create the swimbot
-			this._swimbots[i].create(i, initialAge, initialPosition, initialAngle, initialEnergy, this._myGenotype, this._embryology);
+			this._swimbots[i].create(i, YOUNG_AGE_DURATION, initialPosition, initialAngle, initialEnergy, this._myGenotype, this._embryology);
 
 			// add the new swimbot to the family tree
 			this._familyTree.addNode(i, NULL_INDEX, NULL_INDEX, this._clock, this.getSwimbotGenes(i));
@@ -613,7 +565,7 @@ class GenePool {
 	}
 
 	setFoodToNeighborhood(position, size) {
-		this._numFoodBits = 28 * 28; // NUM_NEIGHBORHOOD_FOODBITS
+		this._numFoodBits = NUM_NEIGHBORHOOD_FOODBITS;
 
 		for (let f = 0; f < this._numFoodBits; f++) {
 			let sqrt = Math.floor(Math.sqrt(this._numFoodBits));
@@ -749,13 +701,13 @@ class GenePool {
 		let p = new Vector2D();
 		let num = 200;
 		let xx = this._poolCenter.x;
-		let yy = this._poolCenter.y + 1000 * 0.9; // FOOD_RACE_SIZE
+		let yy = this._poolCenter.y + FOOD_RACE_SIZE * 0.9;
 
 		for (let f = 0; f < num; f++) {
 			let fraction = f / num;
 
-			p.x = xx + 1000 * Math.cos(fraction * Math.PI); // FOOD_RACE_SIZE
-			p.y = yy - 1000 * Math.sin(fraction * Math.PI); // FOOD_RACE_SIZE
+			p.x = xx + FOOD_RACE_SIZE * Math.cos(fraction * Math.PI);
+			p.y = yy - FOOD_RACE_SIZE * Math.sin(fraction * Math.PI);
 
 			this._foodBits[this._numFoodBits].initialize(f);
 			this._foodBits[this._numFoodBits].setPosition(p);
@@ -765,7 +717,7 @@ class GenePool {
 		num = 140;
 		let r = 0;
 		xx = this._poolCenter.x;
-		yy = this._poolCenter.y - 1000 * 0.4; // FOOD_RACE_SIZE
+		yy = this._poolCenter.y - FOOD_RACE_SIZE * 0.4;
 
 		for (let f = 0; f < num; f++) {
 			let ff = f * 0.1;
@@ -853,7 +805,7 @@ class GenePool {
 			if (RENDER_SWIMBOT_AS_DOT) {
 				this._levelOfDetail = SWIMBOT_LEVEL_OF_DETAIL_DOT;
 			} else {
-				if (this._camera.getScale() > 1200.0) { // LEVEL_OF_DETAIL_THRESHOLD
+				if (this._camera.getScale() > LEVEL_OF_DETAIL_THRESHOLD) {
 					this._levelOfDetail = SWIMBOT_LEVEL_OF_DETAIL_LOW;
 				} else {
 					this._levelOfDetail = SWIMBOT_LEVEL_OF_DETAIL_HIGH;
@@ -1554,8 +1506,8 @@ class GenePool {
 			initialPosition.copyFrom(this._swimbots[ID].getPosition());
 			p.copyFrom(initialPosition);
 
-			initialPosition.x += 10.0; // CLONE_SEPARATION
-			p.x -= 10.0; // CLONE_SEPARATION
+			initialPosition.x += CLONE_SEPARATION;
+			p.x -= CLONE_SEPARATION;
 
 			this._swimbots[ID].setPosition(p);
 			this._swimbots[ID].setEnergy(initialEnergy); // the clonee gets its energy halved as well as the cloned
@@ -1686,7 +1638,7 @@ class GenePool {
 
 						this._swimbots[s].setRenderingGoals(true);
 
-						if (false) { // DEBUG_SHOW_SWIMBOT_TRAIL
+						if (DEBUG_SHOW_SWIMBOT_TRAIL) {
 							this.showSwimbotTrail(s);
 						}
 					} else {
