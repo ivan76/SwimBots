@@ -1498,7 +1498,7 @@ class GenePool {
 			//let initialAge      = YOUNG_AGE_DURATION;
 			let initialAge = this._swimbots[ID].getAge();
 			let initialAngle = this._swimbots[ID].getAngle();
-			let initialEnergy = this._swimbots[ID].getEnergy() * ONE_HALF;
+			let initialEnergy = this._swimbots[ID].getEnergy(); //* ONE_HALF;
 			let genotype = this._swimbots[ID].getGenotype();
 
 			let initialPosition = new Vector2D();
@@ -1510,7 +1510,7 @@ class GenePool {
 			p.x -= CLONE_SEPARATION;
 
 			this._swimbots[ID].setPosition(p);
-			this._swimbots[ID].setEnergy(initialEnergy); // the clonee gets its energy halved as well as the cloned
+			this._swimbots[ID].setEnergy(initialEnergy); // the clonee and the cloned keep the same initial energy
 			this._swimbots[index].create(index, initialAge, initialPosition, initialAngle, initialEnergy, genotype, this._embryology);
 
 			// add the new swimbot to the family tree
