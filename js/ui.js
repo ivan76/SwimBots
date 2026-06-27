@@ -996,26 +996,34 @@ document.getElementById('Canvas').onmouseout = function(e) {
 		y: e.pageY - document.getElementById('Canvas').offsetTop
 	});
 }
+// mouse wheel for camera zoom
+document.getElementById('Canvas').onwheel = function(e) {
+	e.preventDefault();
 
-// key down
+	let cameraNavAction = (e.deltaY < 0)
+		? CameraNavigationAction.IN
+		: CameraNavigationAction.OUT;
+
+	eventBus.emit(UI_CMD_START_CAMERA_NAV, cameraNavAction);
+
+	// Small delay so the render loop has time to process the zoom before we stop
+	setTimeout(function() {
+		eventBus.emit(UI_CMD_STOP_CAMERA_NAV, cameraNavAction);
+	}, 50);
+
+	clearViewMode();
+}
+
 document.onkeydown = function(e) {
-	e = e || window.event;
-
 	// keys for camera navigation
 	let cameraNavAction = -1;
 
-	if (e.keyCode === 37) // left arrow key
-	{
-		cameraNavAction = CameraNavigationAction.LEFT;
-	}
-
-	if (e.keyCode === 39) { cameraNavAction = CameraNavigationAction.RIGHT; } // right arrow key
-	if (e.keyCode === 38) { cameraNavAction = CameraNavigationAction.UP; } // up arrow key
-	if (e.keyCode === 40) { cameraNavAction = CameraNavigationAction.DOWN; } // down arrow key
-	if (e.keyCode === 61) { cameraNavAction = CameraNavigationAction.IN; } // plus key
-	if (e.keyCode === 173) { cameraNavAction = CameraNavigationAction.OUT; } // minus key
-	if (e.keyCode === 187) { cameraNavAction = CameraNavigationAction.IN; } // plus key
-	if (e.keyCode === 189) { cameraNavAction = CameraNavigationAction.OUT; } // minus key
+	if (e.key === "ArrowLeft"){cameraNavAction = CameraNavigationAction.LEFT;}
+	if (e.key === "ArrowRight"){cameraNavAction = CameraNavigationAction.RIGHT;}
+	if (e.key === "ArrowUp"){ cameraNavAction = CameraNavigationAction.UP;}
+	if (e.key === "ArrowDown"){ cameraNavAction = CameraNavigationAction.DOWN;}
+	if (e.key === "-"){ cameraNavAction = CameraNavigationAction.IN;} // plus key
+	if (e.key === "+"){ cameraNavAction = CameraNavigationAction.OUT;} // minus key
 
 	if (cameraNavAction != -1) {
 		eventBus.emit(UI_CMD_START_CAMERA_NAV, cameraNavAction);
