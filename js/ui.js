@@ -401,18 +401,10 @@ function updateGeneSliders(selectedSwimbotID) {
 function closePopupPanel() {
 	document.getElementById('popUpPanel').style.visibility = 'hidden';
 	document.getElementById('cancelPopUpPanelButton').style.visibility = 'hidden';
-	//document.getElementById('PopUpPanelError'        ).style.visibility = 'hidden';
-	//document.getElementById('cancelErrorButton'      ).style.visibility = 'hidden';
-	//document.getElementById('popUpPanelInput'        ).style.visibility = 'hidden';
-	//document.getElementById('savePopUpPanelButton'   ).style.visibility = 'hidden';
-	//document.getElementById('noSavePopUpPanelButton' ).style.visibility = 'hidden';
 	document.getElementById('tweakDefaultButton').style.visibility = 'hidden';
-	//document.getElementById('submitFilenameButton'   ).style.visibility = 'hidden';
-	document.getElementById('dataDisplayButton').style.visibility = "hidden";
 
-	// I don't know why these are popping an error that they don't exist.... ??
-	//document.getElementById("PopupText"              ).style.visibility = "hidden";
-	//document.getElementById("loadedList"             ).style.visibility = "hidden";
+	//document.getElementById("PopupText").style.visibility = "hidden";
+	//document.getElementById("loadedList").style.visibility = "hidden";
 
 	// move focus to the canvas in case it had been on the popup input
 	document.getElementById("Canvas").focus();
@@ -545,8 +537,6 @@ function setViewMode(buttonID, viewMode) {
 		document.getElementById(buttonID).style.borderWidth = "3px";
 	}
 }
-
-function requestToLoadPoolFromFile() {}
 
 function switchToChosenPresetPool() {
 	closePopupPanel();
@@ -902,6 +892,17 @@ function attachEventListeners() {
 		printFamilyTree();
 	});
 
+	// Pool save / load
+	document.getElementById('saveButton').addEventListener('click', requestToSavePool);
+	document.getElementById('loadButton').addEventListener('click', function() {
+		requestToLoadPoolFromFile();
+	});
+	document.getElementById('fileInput').addEventListener('change', readLocalFile);
+
+	// Swimbot gene save / load
+	document.getElementById('loadGenesButton').addEventListener('click', requestToLoadSwimbotFromFile);
+	document.getElementById('swimbotFileInput').addEventListener('change', readSwimbotFile);
+
 	// Swimbot creation
 	document.getElementById('createRandomSwimbotButton').addEventListener('click', function() {
 		eventBus.emit(UI_CMD_MAKE_RANDOM_SWIMBOT);
@@ -959,7 +960,6 @@ function attachEventListeners() {
 
 	// Popup/display
 	document.getElementById('cancelPopUpPanelButton').addEventListener('click', closePopupPanel);
-	document.getElementById('dataDisplayButton').addEventListener('click', displayData);
 	document.getElementById('closeDataDisplay').addEventListener('click', closeDataDisplay);
 	document.getElementById('closeTweakGenesPanel').addEventListener('click', closeTweakGenesPanel);
 	document.getElementById('noRenderPanel').addEventListener('click', function() { setRendering(true); });

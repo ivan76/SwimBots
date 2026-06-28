@@ -135,7 +135,7 @@ body
     right:              20px;
     width:              380px;
     min-height:         700px;
-    max-height:         90vh;
+    max-height:         900px;
     display:            flex;
     flex-direction:     column;
     background-color:   #caccc2;
@@ -573,7 +573,7 @@ body
     left: 0;
     top:  195;
     width: 150px;
-    height: 30px;
+    height: 25px;
     align-items: center;
     justify-content: center;
     cursor: pointer;
@@ -632,6 +632,22 @@ body
     border-color:     #00aa00 !important;
 }
 
+#saveButton
+{
+    position: absolute; 
+    left: 0;
+    top:  30;
+    width: 150; 
+}
+
+#loadButton
+{
+    position: absolute; 
+    left: 160;
+    top: 30;
+    width: 150; 
+}
+
 #saveLoadPanel
 {
     position: absolute;
@@ -665,22 +681,6 @@ body
     top:   100;
     width: 200; 
     height: 100;    
-}
-
-#saveButton
-{
-    position: absolute; 
-    left: 0;
-    top:  30;
-    width: 100; 
-}
-
-#loadButton
-{
-    position: absolute; 
-    left: 125;
-    top: 30;
-    width: 100; 
 }
 
 #familyTreeButton
@@ -769,49 +769,42 @@ body
 {
     left:       10px;
     top:        240px;
-    width:      100px;
+    width:      120px;
 }
 
 #randomizeSwimbotButton
 {
-    left:       120px;
+    left:       140px;
     top:        240px;
-    width:      100px;
+    width:      120px;
 }
 
 #cloneSwimbotButton
 {
     left:       10px;
     top:        275px;
-    width:      100px;
+    width:      120px;
 }
 
 #killSwimbotButton
 {
-    left:       120px;
+    left:       140px;
     top:        275px;
-    width:      100px;
-}
-
-#swimbotControlsTitle
-{
-    left:       10px;
-    top:        340px;
-    width:      100px;
-}
-
-#tweakGenesButton
-{
-    left:       10px;
-    top:        310px;
-    width:      150px;
+    width:      120px;
 }
 
 #showGenesButton
 {
     left:       10px;
-    top:        345px;
-    width:      150px;
+    top:        310px;
+    width:      120px;
+}
+
+#tweakGenesButton
+{
+    left:       140px;
+    top:        310px;
+    width:      120px;
 }
 
 /*  tweak genes panel */
@@ -864,7 +857,14 @@ body
 {
     position:   absolute; 
     left:       0px;
-    top:        70px;
+    top:        66px;
+    width:      150px;
+}
+
+#loadGenesButton
+{
+    left:       0px;
+    top:        130px;
     width:      150px;
 }
 

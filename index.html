@@ -217,8 +217,17 @@
 				<button id="addFoodBitButton" class="basicButton">add foodbit</button>
 				<button id="addGreenFoodBitButton" class="basicButton" style="display:none">add green</button>
 				<button id="addBlueFoodBitButton" class="basicButton" style="display:none">add blue</button>
-				<div id="saveLoadPanel"> SORRY! At the moment, you cannot save or load pool files: the save/load feature of Gene Pool is under construction. I will try to get that done soon. I am switching over to a local file system, using the html file api. <br>
-					<br> -Jeffrey
+				<div id="saveLoadPanel">
+					<div id="saveLoadTitle">
+						save the current pool or load one from file...
+					</div>
+
+					<!-- file input cache pour charger un pool -->
+					<input type="file" id="fileInput" accept=".txt" style="display:none">
+
+					<button id="saveButton" class="basicButton">save pool</button>
+					<button id="loadButton" class="basicButton">load pool</button>
+
 				</div>
 				<button id="familyTreeButton" class="basicButton">print swimbot data</button>
 			</div>
@@ -228,11 +237,12 @@
 				<div id="noSelectedSwimbotPanel"> No swimbot is selected. <br> Please select one in the pool. Or... <br>
 					<br> Create a new swimbot with randoized genes: <br>
 					<br>
+					<button id="loadGenesButton" class="basicButton">load genes</button>
 					<br>
+					Create a new swimbot by loading genes from a file: <br>
 					<br>
-					Sorry, but currently you cannot load swimbot genes. The code for that is being rewritten. <br>
-					<br>
-					<br> Create a new swimbot with genes from one of these presets: <button id="createRandomSwimbotButton" class="basicButton">create random</button>
+					<br> Create a new swimbot with genes from one of these presets: 
+					<button id="createRandomSwimbotButton" class="basicButton">create random</button>
 					<button id="presetSwimbot1Button" class="basicButton" data-swimbot-preset="0">Darwin</button>
 					<button id="presetSwimbot2Button" class="basicButton" data-swimbot-preset="1">Wallace</button>
 					<button id="presetSwimbot3Button" class="basicButton" data-swimbot-preset="2">Mendel</button>
@@ -250,6 +260,7 @@
 					<button id="killSwimbotButton" class="basicButton">kill</button>
 
 					<button id="showGenesButton" class="basicButton">save genes</button>
+					
 					<button id="tweakGenesButton" class="basicButton">tweak genes!</button>
 				</div>
 			</div>
@@ -275,8 +286,10 @@
 
 	<button id="cancelPopUpPanelButton">X</button>
 	
-	<button id="dataDisplayButton">show gene data</button>
+	<!-- file input cache pour charger des gènes de swimbot -->
+	<input type="file" id="swimbotFileInput" accept=".txt" style="display:none">
 
+	<!-- the data from saving swimbots and pools is displayed here -->
 	<div id="dataDisplay" class="basicPanel"></div>
 
 	<button id="closeDataDisplay" class="basicButton">X</button>
@@ -289,6 +302,10 @@
 		<b><big>SELECT THIS PANEL TO TURN ON RENDERING</big></b>
 		<br>
 		<br> Rendering is currently turned off. It makes the simulation run faster.
+		<br>
+		Select this panel at any time to turn rendering back on.
+		<br>
+		Select the "fast" button to make the simulation run as fast as possible. (Keep in mind that running fast uses more power). To monitor population and progress, select the graph menu button. 
 	</div>
 
 	<!-- prepare the UI...                                            -->

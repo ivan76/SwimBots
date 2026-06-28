@@ -1,37 +1,123 @@
 "use strict";
 
-const InputMode = {
-	NULL: -1,
-	LOAD_SWIMBOT_FROM_PRESET: 0,
-	SAVE_SWIMBOT: 2,
-	LOAD_POOL_FROM_PRESET: 3,
-	SAVE_POOL: 5
-};
+// -----------------------------------------------------------------------
+// Save / Load via JSON .txt files (no backend)
+// -----------------------------------------------------------------------
 
-let _inputFilenameString = "";
-let _inputMode = InputMode.NULL;
 let _chosenPoolToLoad = 0;
 
-function addToFilenameInputString(e) {
-	_inputFilenameString = e.currentTarget.value;
+// ---------------------
+// Pool export / import
+// ---------------------
 
-	if (e.key === 'Enter') {
-		submitFilenameInput();
+function requestToSavePool() {
+	exportPoolToFile();
+}
+
+function requestToLoadPoolFromFile() {
+	document.getElementById('fileInput').click();
+}
+
+function exportPoolToFile() {
+	let pool = SwimbotsApp.genePool.getPoolData();
+	let data = JSON.stringify({ type: "pool", pool: pool }, null, 2);
+	downloadFile(data, "pool_" + _getTimestampFilename() + ".txt", "text/plain");
+}
+
+function readLocalFile(event) {
+	let file = event.target.files[0];
+	if (!file) return;
+
+	let reader = new FileReader();
+	reader.onload = function (e) {
+		try {
+			let parsed = JSON.parse(e.target.result);
+			if (parsed.type !== "pool") {
+				alert("This file does not contain pool data.");
+				return;
+			}
+			SwimbotsApp.genePool.setPoolData(parsed.pool);
+		} catch (err) {
+			alert("Error parsing pool file: " + err.message);
+		}
+	};
+	reader.readAsText(file);
+
+	// Reset so the same file can be re-selected
+	event.target.value = "";
+}
+
+// -----------------------
+// Swimbot export / import
+// -----------------------
+
+function requestToSaveSwimbot() {
+	let state = _getSimState();
+	if (state) {
+		exportSwimbotToFile(state.selectedSwimbotID);
 	}
 }
 
-function submitFilenameInput() {
-	// File-based save/load is handled through the data display panel.
-	// Firebase backend was removed — presets and JSON export/import remain.
-	_inputMode = InputMode.NULL;
+function requestToLoadSwimbotFromFile() {
+	document.getElementById('swimbotFileInput').click();
+}
+
+function exportSwimbotToFile(swimbotID) {
+	if (swimbotID == -1) return;
+
+	let genes = Array.from(SwimbotsApp.genePool.getSwimbotGenes(swimbotID));
+	let data = JSON.stringify({ type: "swimbot", genes: genes }, null, 2);
+	downloadFile(data, "swimbot_genes_" + _getTimestampFilename() + ".txt", "text/plain");
+}
+
+function readSwimbotFile(event) {
+	let file = event.target.files[0];
+	if (!file) return;
+
+	let reader = new FileReader();
+	reader.onload = function (e) {
+		try {
+			let parsed = JSON.parse(e.target.result);
+			if (parsed.type !== "swimbot" || !Array.isArray(parsed.genes)) {
+				alert("This file does not contain valid swimbot gene data.");
+				return;
+			}
+			SwimbotsApp.genePool.createNewSwimbotWithGenes(parsed.genes);
+		} catch (err) {
+			alert("Error parsing swimbot gene file: " + err.message);
+		}
+	};
+	reader.readAsText(file);
+
+	// Reset so the same file can be re-selected
+	event.target.value = "";
+}
+
+// ---------------------
+// Utility: trigger download
+// ---------------------
+
+function downloadFile(content, filename, mimeType) {
+	let blob = new Blob([content], { type: mimeType });
+	let url = URL.createObjectURL(blob);
+	let a = document.createElement('a');
+	a.href = url;
+	a.download = filename;
+	document.body.appendChild(a);
+	a.click();
+	document.body.removeChild(a);
+	URL.revokeObjectURL(url);
 }
 
 function printFamilyTree() {
+	SwimbotsApp.genePool.generatePhyloTree();
+
 	let w = window.open(
 		"",
 		"swimbot data",
 		"left=400, top=100, width=600, height=700, status=0, resizable=0, channelmode=0, menubar=0, toolbar=0, location=0, titlebar=0"
 	);
+
 
 	w.document.title = "Swimbot Data (copy and paste into a text file, then load into Gene Pool Lab)";
 
@@ -71,95 +157,9 @@ function printFamilyTree() {
 	w.document.body.innerHTML = f;
 }
 
-function loadPool() {
-	switchToChosenPresetPool();
-}
-
-function openPopupPanelForInput(text, mode) {
-	_inputMode = mode;
-
-	// make sure these are turned off
-	document.getElementById('noSavePopUpPanelButton').style.visibility = "hidden";
-	document.getElementById('savePopUpPanelButton').style.visibility = "hidden";
-	document.getElementById('dataDisplayButton').style.visibility = "hidden";
-
-	// turn these on
-	document.getElementById('popUpPanel').style.visibility = "visible";
-	document.getElementById('cancelPopUpPanelButton').style.visibility = "visible";
-	document.getElementById('popUpPanelInput').style.visibility = "visible";
-	document.getElementById('submitFilenameButton').style.visibility = "visible";
-
-	// give focus to the input
-	document.getElementById("popUpPanelInput").focus();
-
-	// default case...
-	document.getElementById("popUpPanelInput").style.top = "185px";
-	document.getElementById("submitFilenameButton").style.top = "185px";
-
-	if (_inputMode === InputMode.SAVE_SWIMBOT) {
-		document.getElementById("loadedList").style.visibility = "hidden";
-
-		document.getElementById("PopupText").style.visibility = "visible";
-		document.getElementById("PopupText").innerHTML = text +
-			"<br>" +
-			"<br>" +
-			"Name this swimbot...";
-
-		// give user option to display data...
-		document.getElementById('dataDisplayButton').style.visibility = "visible";
-	}
-
-	// clear-out input string...
-	_inputFilenameString = "";
-	document.getElementById('popUpPanelInput').value = '';
-}
-
-function displayData(filename) {
-	if (_inputMode === InputMode.SAVE_SWIMBOT) {
-		showSwimbotGenes(SwimbotsApp.genePool.getSelectedSwimbotID());
-	} else if (_inputMode === InputMode.SAVE_POOL) {
-
-		let pool = SwimbotsApp.genePool.getPoolData();
-		let json = JSON.stringify({ pool });
-
-		document.getElementById('dataDisplay').style.visibility = "visible";
-		document.getElementById('closeDataDisplay').style.visibility = "visible";
-		document.getElementById('dataDisplay').innerHTML = "Copy the text below, put it in a new text file, and then give" +
-			"<br>" +
-			"the file a unique name ending in '.json' (example: 'my_pool.json')" +
-			"<br>" +
-			"<br>" +
-			"_________________" +
-			"<br>" +
-			"<br>" +
-			json;
-	}
-}
-
 function showSwimbotGenes(s) {
 	if (s != -1) {
-		let genes = SwimbotsApp.genePool.getSwimbotGenes(s);
-		let json = JSON.stringify({ genes });
-
-		document.getElementById('dataDisplay').style.visibility = "visible";
-		document.getElementById('closeDataDisplay').style.visibility = "visible";
-		document.getElementById('dataDisplay').innerHTML = "<br>" +
-			"<big><b>Save genes of swimbot " + s.toString() + "</b></big>" +
-			"<br>" +
-			"<br>" +
-			"Please copy the genetic data below and put it in an " +
-			"<br>" +
-			"empty text file. Give it a cool name and save it." +
-			"<br>" +
-			"<br>" +
-			"This is formatted as JSON, which is required " +
-			"<br>" +
-			"for it to be loaded back into the pool." +
-			"<br>" +
-			"<br>" +
-			"<br>" +
-			"<br>" +
-			json;
+		exportSwimbotToFile(s);
 	}
 }
 
