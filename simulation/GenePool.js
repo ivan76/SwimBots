@@ -274,7 +274,7 @@ class GenePool {
 		this._numFoodBits = INITIAL_NUM_FOODBITS;
 
 		// default
-		if (this._foodSpeciationEnabled || mode === SimulationStartMode.SPECIES) {
+		if (this._foodSpeciationEnabled) {
 			globalTweakers.numFoodTypes = 2;
 		} else {
 			globalTweakers.numFoodTypes = 1;
@@ -326,6 +326,7 @@ class GenePool {
 			this.setFoodToNeighborhood(this._poolCenter, this._gardenOfEdenRadius);
 		} else if (mode === SimulationStartMode.EMPTY) {
 			this._numSwimbots = 0;
+			this._numFoodBits = 0;
 		}
 
 		// initialize swimbots
@@ -1570,6 +1571,10 @@ class GenePool {
 
 	getFoodSpeciationEnabled() {
 		return this._foodSpeciationEnabled;
+	}
+
+	isSimulationRunning() {
+		return this._numSwimbots > 0 || this._numFoodBits > 0;
 	}
 
 	toggleGoalOverlay() {

@@ -631,6 +631,46 @@ function _brainStateDescription(state, mateIndex) {
 	return "unknown";
 }
 
+let _simRunning = false;
+
+/**
+ * Enable/disable pool panel buttons based on whether a simulation is running.
+ */
+function _updatePoolPanelState() {
+	var running = SwimbotsApp.genePool.isSimulationRunning();
+	if (running === _simRunning) return;
+	_simRunning = running;
+
+	var presetBtns = document.querySelectorAll('[data-pool-preset]');
+	var endPoolBtn = document.getElementById('pool8Button');
+	var foodSpecToggle = document.getElementById('foodSpeciationToggle');
+	var foodSpecCheckbox = document.getElementById('foodSpeciationCheckbox');
+	var title = document.getElementById('startPoolTitle');
+
+	if (running) {
+		// Disable all preset buttons except "end pool"
+		presetBtns.forEach(function(btn) {
+			if (btn !== endPoolBtn) btn.disabled = true;
+		});
+		// Lock food speciation toggle
+		foodSpecToggle.classList.add('disabled');
+		// Sync checkbox with actual simulation state + food place buttons
+		foodSpecCheckbox.checked = SwimbotsApp.genePool.getFoodSpeciationEnabled();
+		_updateFoodPlaceButtons();
+		// Update title
+		title.textContent = 'click "end pool" to stop';
+	} else {
+		// Re-enable everything
+		presetBtns.forEach(function(btn) {
+			btn.disabled = false;
+		});
+		foodSpecToggle.classList.remove('disabled');
+		_updateFoodPlaceButtons();
+		// Restore title
+		title.textContent = 'start a new pool with one of these presets...';
+	}
+}
+
 function updateUI() {
 	let state = _getSimState();
 	if (!state || !state.clock && state.clock !== 0) {
@@ -638,6 +678,9 @@ function updateUI() {
 		_scheduleNextUIUpdate();
 		return;
 	}
+
+	// Update pool panel button state when simulation starts/stops
+	_updatePoolPanelState();
 
 	// update the view buttons...
 	if (state.viewMode === ViewTrackingMode.NULL) {

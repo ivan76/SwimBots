@@ -51,9 +51,16 @@ body
 	background-color:    #eeeedd;
 }
 
-.basicButton:active 
+.basicButton:active
 {
 	background-color:    #ffffee;
+}
+
+.basicButton:disabled
+{
+	opacity: 0.4;
+	cursor: not-allowed;
+	background-color: #b0b0a8;
 }
 
 .basicTitle
@@ -593,6 +600,13 @@ body
 .foodSpeciationToggle:hover
 {
     background-color: #eeeedd;
+}
+
+.foodSpeciationToggle.disabled
+{
+    opacity: 0.4;
+    cursor: not-allowed;
+    pointer-events: none;
 }
 
 .foodSpeciationToggle input[type="checkbox"]
