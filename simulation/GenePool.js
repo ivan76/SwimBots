@@ -137,6 +137,7 @@ class GenePool {
 		eventBus.on(UI_CMD_SET_HUNGER_THRESHOLD,  (h) => self.setHungerThreshold(h));
 		eventBus.on(UI_CMD_SET_OFFSPRING_RATIO,   (e) => self.setOffspringEnergyRatio(e));
 		eventBus.on(UI_CMD_SET_MAX_AGE,           (m) => self.setMaximumSwimbotAge(m));
+		eventBus.on(UI_CMD_SET_MUTATION_RATE,     (m) => self.setMutationRate(m));
 		eventBus.on(UI_CMD_SET_ATTRACTION,        (a) => self.setAttraction(a));
 		eventBus.on(UI_CMD_SET_ECOSYSTEM_DEFAULTS, () => {
 			self.setFoodGrowthDelay(DEFAULT_FOOD_REGENERATION_PERIOD);
@@ -145,6 +146,7 @@ class GenePool {
 			self.setHungerThreshold(DEFAULT_SWIMBOT_HUNGER_THRESHOLD);
 			self.setOffspringEnergyRatio(DEFAULT_CHILD_ENERGY_RATIO);
 			self.setMaximumSwimbotAge(DEFAULT_MAXIMUM_AGE);
+			self.setMutationRate(DEFAULT_MUTATION_RATE);
 		});
 
 		// Simulation control
@@ -855,6 +857,7 @@ class GenePool {
 			hungerThreshold: globalTweakers.hungerThreshold,
 			energyToOffspring: globalTweakers.childEnergyRatio,
 			maximumSwimbotAge: globalTweakers.maximumLifeSpan,
+			mutationRate: globalTweakers.mutationRate,
 			attraction: globalTweakers.attractionCriterion,
 
 			// Simulation flags
@@ -1273,6 +1276,13 @@ class GenePool {
 		assert(m <= MAX_MAXIMUM_AGE, "GenePool: setMaximumSwimbotAge: m <= MAX_MAXIMUM_AGE");
 
 		globalTweakers.maximumLifeSpan = m;
+	}
+
+	setMutationRate(m) {
+		assert(m >= MIN_MUTATION_RATE, "GenePool: setMutationRate: m >= MIN_MUTATION_RATE");
+		assert(m <= MAX_MUTATION_RATE, "GenePool: setMutationRate: m <= MAX_MUTATION_RATE");
+
+		globalTweakers.mutationRate = m;
 	}
 
 	findRandomLivingFoodBit(foodType) {

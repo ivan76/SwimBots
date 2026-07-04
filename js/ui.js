@@ -83,7 +83,7 @@ function setupNavigationButtons() {
 	];
 
 	for (let i = 0; i < navButtons.length; i++) {
-		let btn = document.getElementById(navButtons[i].id);
+		let btn = $(navButtons[i].id);
 		if (!btn) continue;
 
 		btn.addEventListener("mousedown", function() {
@@ -135,22 +135,29 @@ function chooseAttraction() {
 }
 
 function openTweakPanel() {
-	document.getElementById('tweakPanel').style.visibility = 'visible';
-	document.getElementById('tweakDefaultButton').style.visibility = 'visible';
+	$('tweakPanel').style.visibility = 'visible';
+	$('tweakDefaultButton').style.visibility = 'visible';
 	updateEcosystemUI();
 }
 
 function setEcosystemValue(id) {
-	let input = document.getElementById(id);
+	let input = $(id);
 
-	if (id === "foodGrowthDelaySlider") { eventBus.emit(UI_CMD_SET_FOOD_DELAY, input.value); }
-	else if (id === "foodSpreadSlider") { eventBus.emit(UI_CMD_SET_FOOD_SPREAD, input.value); }
-	else if (id === "foodBitEnergySlider") { eventBus.emit(UI_CMD_SET_FOOD_ENERGY, input.value); }
-	else if (id === "hungerThresholdSlider") { eventBus.emit(UI_CMD_SET_HUNGER_THRESHOLD, input.value); }
-	else if (id === "energyToOffspringSlider") { eventBus.emit(UI_CMD_SET_OFFSPRING_RATIO, input.value); }
-	else if (id === "maxAgeSlider") { eventBus.emit(UI_CMD_SET_MAX_AGE, input.value); }
+	setEcosystemValueFromInput(id, input.value);
+}
 
-	updateEcosystemUI();
+function setEcosystemValueFromInput(id, value) {
+
+	if (id === "foodGrowthDelaySlider") { eventBus.emit(UI_CMD_SET_FOOD_DELAY, value); }
+	else if (id === "foodSpreadSlider") { eventBus.emit(UI_CMD_SET_FOOD_SPREAD, value); }
+	else if (id === "foodBitEnergySlider") { eventBus.emit(UI_CMD_SET_FOOD_ENERGY, value); }
+	else if (id === "hungerThresholdSlider") { eventBus.emit(UI_CMD_SET_HUNGER_THRESHOLD, value); }
+	else if (id === "energyToOffspringSlider") { eventBus.emit(UI_CMD_SET_OFFSPRING_RATIO, value); }
+	else if (id === "maxAgeSlider") { eventBus.emit(UI_CMD_SET_MAX_AGE, value); }
+	else if (id === "mutationRateSlider") { eventBus.emit(UI_CMD_SET_MUTATION_RATE, value); }
+
+	// Pas de updateEcosystemUI() ici : _simState est mis à jour asynchrone via SIM_STATE_UPDATED.
+	// Le prochain appel à updateEcosystemUI() (depuis updateUI) syncera les champs.
 }
 
 function setEcosystemToDefaults() {
@@ -159,23 +166,26 @@ function setEcosystemToDefaults() {
 }
 
 function initializeEcosystemUI() {
-	document.getElementById('foodGrowthDelaySlider').min = MIN_FOOD_REGENERATION_PERIOD;
-	document.getElementById('foodGrowthDelaySlider').max = MAX_FOOD_REGENERATION_PERIOD;
+	$('foodGrowthDelaySlider').min = MIN_FOOD_REGENERATION_PERIOD;
+	$('foodGrowthDelaySlider').max = MAX_FOOD_REGENERATION_PERIOD;
 
-	document.getElementById('foodSpreadSlider').min = MIN_FOOD_BIT_MAX_SPAWN_RADIUS;
-	document.getElementById('foodSpreadSlider').max = MAX_FOOD_BIT_MAX_SPAWN_RADIUS;
+	$('foodSpreadSlider').min = MIN_FOOD_BIT_MAX_SPAWN_RADIUS;
+	$('foodSpreadSlider').max = MAX_FOOD_BIT_MAX_SPAWN_RADIUS;
 
-	document.getElementById('foodBitEnergySlider').min = MIN_FOOD_BIT_ENERGY;
-	document.getElementById('foodBitEnergySlider').max = MAX_FOOD_BIT_ENERGY;
+	$('foodBitEnergySlider').min = MIN_FOOD_BIT_ENERGY;
+	$('foodBitEnergySlider').max = MAX_FOOD_BIT_ENERGY;
 
-	document.getElementById('hungerThresholdSlider').min = MIN_SWIMBOT_HUNGER_THRESHOLD;
-	document.getElementById('hungerThresholdSlider').max = MAX_SWIMBOT_HUNGER_THRESHOLD;
+	$('hungerThresholdSlider').min = MIN_SWIMBOT_HUNGER_THRESHOLD;
+	$('hungerThresholdSlider').max = MAX_SWIMBOT_HUNGER_THRESHOLD;
 
-	document.getElementById('energyToOffspringSlider').min = MIN_CHILD_ENERGY_RATIO;
-	document.getElementById('energyToOffspringSlider').max = MAX_CHILD_ENERGY_RATIO;
+	$('energyToOffspringSlider').min = MIN_CHILD_ENERGY_RATIO;
+	$('energyToOffspringSlider').max = MAX_CHILD_ENERGY_RATIO;
 
-	document.getElementById('maxAgeSlider').min = MIN_MAXIMUM_AGE;
-	document.getElementById('maxAgeSlider').max = MAX_MAXIMUM_AGE;
+	$('maxAgeSlider').min = MIN_MAXIMUM_AGE;
+	$('maxAgeSlider').max = MAX_MAXIMUM_AGE;
+
+	$('mutationRateSlider').min = MIN_MUTATION_RATE;
+	$('mutationRateSlider').max = MAX_MUTATION_RATE;
 
 	updateEcosystemUI();
 }
@@ -187,23 +197,26 @@ function updateEcosystemUI() {
 		return;
 	}
 
-	document.getElementById("foodGrowthDelaySlider").value = state.foodGrowthDelay;
-	document.getElementById("foodGrowthDelayValue").innerHTML = state.foodGrowthDelay;
+	$("foodGrowthDelaySlider").value = state.foodGrowthDelay;
+	$("foodGrowthDelayValue").value = state.foodGrowthDelay;
 
-	document.getElementById("foodSpreadSlider").value = state.foodSpread;
-	document.getElementById("foodSpreadValue").innerHTML = state.foodSpread;
+	$("foodSpreadSlider").value = state.foodSpread;
+	$("foodSpreadValue").value = state.foodSpread;
 
-	document.getElementById("foodBitEnergySlider").value = state.foodBitEnergy;
-	document.getElementById("foodBitEnergyValue").innerHTML = state.foodBitEnergy;
+	$("foodBitEnergySlider").value = state.foodBitEnergy;
+	$("foodBitEnergyValue").value = state.foodBitEnergy;
 
-	document.getElementById("hungerThresholdSlider").value = state.hungerThreshold;
-	document.getElementById("hungerThresholdValue").innerHTML = state.hungerThreshold;
+	$("hungerThresholdSlider").value = state.hungerThreshold;
+	$("hungerThresholdValue").value = state.hungerThreshold;
 
-	document.getElementById("energyToOffspringSlider").value = state.energyToOffspring;
-	document.getElementById("energyToOffspringValue").innerHTML = state.energyToOffspring;
+	$("energyToOffspringSlider").value = state.energyToOffspring;
+	$("energyToOffspringValue").value = state.energyToOffspring;
 
-	document.getElementById("maxAgeSlider").value = state.maximumSwimbotAge;
-	document.getElementById("maxAgeValue").innerHTML = state.maximumSwimbotAge;
+	$("maxAgeSlider").value = state.maximumSwimbotAge;
+	$("maxAgeValue").value = state.maximumSwimbotAge;
+
+	$("mutationRateSlider").value = state.mutationRate;
+	$("mutationRateValue").value = state.mutationRate;
 
 	// the radio buttons need to be reset to reflect any changes in attraction
 	let radioButtons = document.getElementsByName('attractionRadioButton');
@@ -222,30 +235,30 @@ function updateEcosystemUI() {
 }
 
 function closeAllPanels() {
-	document.getElementById('poolPanel').style.visibility = 'hidden';
-	document.getElementById('swimbotPanel').style.visibility = 'hidden';
-	document.getElementById('graphPanel').style.visibility = 'hidden';
-	document.getElementById('tweakPanel').style.visibility = 'hidden';
-	document.getElementById('infoPanel').style.visibility = 'hidden';
-	document.getElementById('infoText').style.visibility = 'hidden';
+	$('poolPanel').style.visibility = 'hidden';
+	$('swimbotPanel').style.visibility = 'hidden';
+	$('graphPanel').style.visibility = 'hidden';
+	$('tweakPanel').style.visibility = 'hidden';
+	$('infoPanel').style.visibility = 'hidden';
+	$('infoText').style.visibility = 'hidden';
 
-	document.getElementById('prevInfoButton').style.visibility = 'hidden';
-	document.getElementById('nextInfoButton').style.visibility = 'hidden';
+	$('prevInfoButton').style.visibility = 'hidden';
+	$('nextInfoButton').style.visibility = 'hidden';
 
-	document.getElementById('noSelectedSwimbotPanel').style.visibility = 'hidden';
-	document.getElementById('selectedSwimbotPanel').style.visibility = 'hidden';
+	$('noSelectedSwimbotPanel').style.visibility = 'hidden';
+	$('selectedSwimbotPanel').style.visibility = 'hidden';
 
-	document.getElementById('menuPoolButton').style.top = 0;
-	document.getElementById('menuSwimbotButton').style.top = 0;
-	document.getElementById('menuTweakButton').style.top = 0;
-	document.getElementById('menuInfoButton').style.top = 0;
-	document.getElementById('menuGraphButton').style.top = 0;
+	$('menuPoolButton').style.top = 0;
+	$('menuSwimbotButton').style.top = 0;
+	$('menuTweakButton').style.top = 0;
+	$('menuInfoButton').style.top = 0;
+	$('menuGraphButton').style.top = 0;
 
-	document.getElementById('menuPoolButton').style = "border-bottom-width: 3; border-bottom-left-radius: 4px; border-bottom-right-radius: 4px;"
-	document.getElementById('menuSwimbotButton').style = "border-bottom-width: 3; border-bottom-left-radius: 4px; border-bottom-right-radius: 4px;"
-	document.getElementById('menuTweakButton').style = "border-bottom-width: 3; border-bottom-left-radius: 4px; border-bottom-right-radius: 4px;"
-	document.getElementById('menuInfoButton').style = "border-bottom-width: 3; border-bottom-left-radius: 4px; border-bottom-right-radius: 4px;"
-	document.getElementById('menuGraphButton').style = "border-bottom-width: 3; border-bottom-left-radius: 4px; border-bottom-right-radius: 4px;"
+	$('menuPoolButton').style = "border-bottom-width: 3; border-bottom-left-radius: 4px; border-bottom-right-radius: 4px;"
+	$('menuSwimbotButton').style = "border-bottom-width: 3; border-bottom-left-radius: 4px; border-bottom-right-radius: 4px;"
+	$('menuTweakButton').style = "border-bottom-width: 3; border-bottom-left-radius: 4px; border-bottom-right-radius: 4px;"
+	$('menuInfoButton').style = "border-bottom-width: 3; border-bottom-left-radius: 4px; border-bottom-right-radius: 4px;"
+	$('menuGraphButton').style = "border-bottom-width: 3; border-bottom-left-radius: 4px; border-bottom-right-radius: 4px;"
 
 	closePopupPanel();
 
@@ -268,44 +281,44 @@ function openPanel(buttonID) {
 	if (buttonID === 'menuGraphButton') { panelID = 'graphPanel';
 		openGraphPanel() }
 
-	document.getElementById(buttonID).style.backgroundColor = DEFAULT_BASIC_PANEL_COLOR;
+	$(buttonID).style.backgroundColor = DEFAULT_BASIC_PANEL_COLOR;
 
-	document.getElementById(buttonID).style.top = 3;
+	$(buttonID).style.top = 3;
 }
 
 function openPoolPanel() {
-	document.getElementById('poolPanel').style.visibility = 'visible';
+	$('poolPanel').style.visibility = 'visible';
 	_updateFoodPlaceButtons();
 }
 
 function openGraphPanel() {
-	document.getElementById('graphPanel').style.visibility = 'visible';
+	$('graphPanel').style.visibility = 'visible';
 }
 
 function openSwimbotPanel() {
-	document.getElementById('swimbotPanel').style.visibility = 'visible';
+	$('swimbotPanel').style.visibility = 'visible';
 
 	let state = _getSimState();
 	if (state && state.aSwimbotIsSelected) {
-		document.getElementById('selectedSwimbotPanel').style.visibility = 'visible';
-		document.getElementById('noSelectedSwimbotPanel').style.visibility = 'hidden';
+		$('selectedSwimbotPanel').style.visibility = 'visible';
+		$('noSelectedSwimbotPanel').style.visibility = 'hidden';
 	} else {
-		document.getElementById('selectedSwimbotPanel').style.visibility = 'hidden';
-		document.getElementById('noSelectedSwimbotPanel').style.visibility = 'visible';
+		$('selectedSwimbotPanel').style.visibility = 'hidden';
+		$('noSelectedSwimbotPanel').style.visibility = 'visible';
 	}
 }
 
 function openTweakGenesPanel(selectedSwimbotID) {
 	if (selectedSwimbotID != NULL_INDEX) {
-		document.getElementById('tweakGenesPanel').style.visibility = 'visible';
-		document.getElementById('closeTweakGenesPanel').style.visibility = "visible";
+		$('tweakGenesPanel').style.visibility = 'visible';
+		$('closeTweakGenesPanel').style.visibility = "visible";
 
-		document.getElementById('tweakGenesPanel').innerHTML = "<div id = 'tweakGenesTitle' >Tweak the genes of swimbot " + selectedSwimbotID + "</div>";
-		document.getElementById('tweakGenesPanel').innerHTML += "<div id = 'tweakGenesCategoryNote' >(choose which limb type to tweak)</div>";
+		$('tweakGenesPanel').innerHTML = "<div id = 'tweakGenesTitle' >Tweak the genes of swimbot " + selectedSwimbotID + "</div>";
+		$('tweakGenesPanel').innerHTML += "<div id = 'tweakGenesCategoryNote' >(choose which limb type to tweak)</div>";
 
 		let numCategories = SwimbotsApp.genePool.getNumGeneCategories();
 		for (let c = 0; c < numCategories; c++) {
-			document.getElementById('tweakGenesPanel').innerHTML += "<div id = 'category" + (c + 1) + "' >" + (c + 1) +
+			$('tweakGenesPanel').innerHTML += "<div id = 'category" + (c + 1) + "' >" + (c + 1) +
 				"<input " +
 				"type         = 'radio' " +
 				"id           = 'geneTweakerCategory" + c + "'" +
@@ -331,10 +344,10 @@ function openTweakGenesPanel(selectedSwimbotID) {
 			}
 
 			// construct the gene value display
-			document.getElementById('tweakGenesPanel').innerHTML += "<div class = 'geneTweakerValue' id = 'gene" + g + "Value' style = 'top:" + top + "px;'>" + geneTweakerValue + "</div>";
+			$('tweakGenesPanel').innerHTML += "<div class = 'geneTweakerValue' id = 'gene" + g + "Value' style = 'top:" + top + "px;'>" + geneTweakerValue + "</div>";
 
 			// construct the slider
-			document.getElementById('tweakGenesPanel').innerHTML += "<input " +
+			$('tweakGenesPanel').innerHTML += "<input " +
 				"style        = 'top:" + (top - 3) + "px; width:" + width + "px;'" +
 				"type         = 'range' " +
 				"class        = 'geneTweakerSlider' " +
@@ -349,7 +362,7 @@ function openTweakGenesPanel(selectedSwimbotID) {
 				">";
 
 			// construct the gene name
-			document.getElementById('tweakGenesPanel').innerHTML += "<div class = 'geneTweakerName' style = 'top:" + top + "px;'>" + geneTweakerName + "</div>";
+			$('tweakGenesPanel').innerHTML += "<div class = 'geneTweakerName' style = 'top:" + top + "px;'>" + geneTweakerName + "</div>";
 		}
 
 		// initialize tweak category
@@ -366,14 +379,14 @@ function openTweakGenesPanel(selectedSwimbotID) {
 			}
 		}
 	} else {
-		document.getElementById('tweakGenesPanel').style.visibility = 'hidden';
-		document.getElementById('closeTweakGenesPanel').style.visibility = "hidden";
+		$('tweakGenesPanel').style.visibility = 'hidden';
+		$('closeTweakGenesPanel').style.visibility = "hidden";
 	}
 }
 
 function closeTweakGenesPanel() {
-	document.getElementById('tweakGenesPanel').style.visibility = "hidden";
-	document.getElementById('closeTweakGenesPanel').style.visibility = "hidden";
+	$('tweakGenesPanel').style.visibility = "hidden";
+	$('closeTweakGenesPanel').style.visibility = "hidden";
 }
 
 function updateGeneSliders(selectedSwimbotID) {
@@ -390,39 +403,39 @@ function updateGeneSliders(selectedSwimbotID) {
 		let geneTweakerValue = SwimbotsApp.genePool.getGeneValue(selectedSwimbotID, geneIndex);
 
 		let id = "geneTweaker" + g;
-		let slider = document.getElementById(id);
+		let slider = $(id);
 		slider.value = geneTweakerValue;
 
 		id = "gene" + g + "Value";
-		document.getElementById(id).innerHTML = geneTweakerValue;
+		$(id).innerHTML = geneTweakerValue;
 	}
 }
 
 function closePopupPanel() {
-	document.getElementById('popUpPanel').style.visibility = 'hidden';
-	document.getElementById('cancelPopUpPanelButton').style.visibility = 'hidden';
-	document.getElementById('tweakDefaultButton').style.visibility = 'hidden';
+	$('popUpPanel').style.visibility = 'hidden';
+	$('cancelPopUpPanelButton').style.visibility = 'hidden';
+	$('tweakDefaultButton').style.visibility = 'hidden';
 
-	//document.getElementById("PopupText").style.visibility = "hidden";
-	//document.getElementById("loadedList").style.visibility = "hidden";
+	//$("PopupText").style.visibility = "hidden";
+	//$("loadedList").style.visibility = "hidden";
 
 	// move focus to the canvas in case it had been on the popup input
-	document.getElementById("Canvas").focus();
+	$("Canvas").focus();
 }
 
 function closeAccountPanel() {
-	document.getElementById('cancelAccountPanelButton').style.visibility = "hidden";
-	document.getElementById('accountPanel').style.visibility = "hidden";
-	document.getElementById('accountEmailInput').style.visibility = "hidden";
-	document.getElementById('accountPasswordInput').style.visibility = "hidden";
-	document.getElementById('submitAccountButton').style.visibility = 'hidden';
-	document.getElementById('accountButton').style.visibility = "visible";
-	document.getElementById('loginButton').style.visibility = "visible";
+	$('cancelAccountPanelButton').style.visibility = "hidden";
+	$('accountPanel').style.visibility = "hidden";
+	$('accountEmailInput').style.visibility = "hidden";
+	$('accountPasswordInput').style.visibility = "hidden";
+	$('submitAccountButton').style.visibility = 'hidden';
+	$('accountButton').style.visibility = "visible";
+	$('loginButton').style.visibility = "visible";
 }
 
 function closeErrorPanel() {
-	document.getElementById('PopUpPanelError').style.visibility = "hidden";
-	document.getElementById('cancelErrorButton').style.visibility = "hidden";
+	$('PopUpPanelError').style.visibility = "hidden";
+	$('cancelErrorButton').style.visibility = "hidden";
 }
 
 function toggleSimulationRunning() {
@@ -430,10 +443,10 @@ function toggleSimulationRunning() {
 
 	let state = _getSimState();
 	if (state && !state.simulationRunning) {
-		document.getElementById("freezeButton").style.borderColor = ACTIVE_BORDER_COLOR;
-		document.getElementById("freezeButton").style.borderWidth = "3px";
+		$("freezeButton").style.borderColor = ACTIVE_BORDER_COLOR;
+		$("freezeButton").style.borderWidth = "3px";
 	} else {
-		document.getElementById("freezeButton").style = "border-color: " + DEFAULT_BASIC_BUTTON_BORDER_COLOR;
+		$("freezeButton").style = "border-color: " + DEFAULT_BASIC_BUTTON_BORDER_COLOR;
 	}
 }
 
@@ -441,12 +454,12 @@ function toggleFastRendering() {
 	if (_runningFast) {
 		_runningFast = false;
 		eventBus.emit(UI_CMD_SET_FAST_RENDERING, false);
-		document.getElementById("fastButton").style = "border-color: " + DEFAULT_BASIC_BUTTON_BORDER_COLOR
+		$("fastButton").style = "border-color: " + DEFAULT_BASIC_BUTTON_BORDER_COLOR
 	} else {
 		_runningFast = true;
 		eventBus.emit(UI_CMD_SET_FAST_RENDERING, true);
-		document.getElementById("fastButton").style.borderColor = ACTIVE_BORDER_COLOR;
-		document.getElementById("fastButton").style.borderWidth = "3px";
+		$("fastButton").style.borderColor = ACTIVE_BORDER_COLOR;
+		$("fastButton").style.borderWidth = "3px";
 	}
 }
 
@@ -464,11 +477,11 @@ function setRendering(r) {
 		eventBus.emit(UI_CMD_SET_RENDERING, true);
 
 		canvasID.style.visibility = 'visible';
-		document.getElementById("noRenderPanel").style.visibility = 'hidden';
+		$("noRenderPanel").style.visibility = 'hidden';
 	} else {
 		eventBus.emit(UI_CMD_SET_RENDERING, false);
 		canvasID.style.visibility = 'hidden';
-		document.getElementById("noRenderPanel").style.visibility = 'visible';
+		$("noRenderPanel").style.visibility = 'visible';
 	}
 }
 
@@ -477,10 +490,10 @@ function toggleGoalOverlay() {
 
 	let state = _getSimState();
 	if (state && state.renderingGoals) {
-		document.getElementById("viewGoalButton").style = "border-color: " + ACTIVE_BORDER_COLOR
-		document.getElementById("viewGoalButton").style.borderWidth = "3px";
+		$("viewGoalButton").style = "border-color: " + ACTIVE_BORDER_COLOR
+		$("viewGoalButton").style.borderWidth = "3px";
 	} else {
-		document.getElementById("viewGoalButton").style = "border-color: " + DEFAULT_BASIC_BUTTON_BORDER_COLOR;
+		$("viewGoalButton").style = "border-color: " + DEFAULT_BASIC_BUTTON_BORDER_COLOR;
 	}
 }
 
@@ -490,32 +503,32 @@ function clearViewMode() {
 }
 
 function clearViewModeButtons() {
-	document.getElementById('viewWholePoolButton').style.borderColor = DEFAULT_BASIC_BUTTON_BORDER_COLOR;
-	document.getElementById('viewAutoTrackButton').style.borderColor = DEFAULT_BASIC_BUTTON_BORDER_COLOR;
-	document.getElementById('viewSelectedButton').style.borderColor = DEFAULT_BASIC_BUTTON_BORDER_COLOR;
-	document.getElementById('viewMutualButton').style.borderColor = DEFAULT_BASIC_BUTTON_BORDER_COLOR;
-	document.getElementById('viewProlificButton').style.borderColor = DEFAULT_BASIC_BUTTON_BORDER_COLOR;
-	document.getElementById('viewEfficientButton').style.borderColor = DEFAULT_BASIC_BUTTON_BORDER_COLOR;
-	document.getElementById('viewVirginButton').style.borderColor = DEFAULT_BASIC_BUTTON_BORDER_COLOR;
-	document.getElementById('viewGluttonButton').style.borderColor = DEFAULT_BASIC_BUTTON_BORDER_COLOR;
+	$('viewWholePoolButton').style.borderColor = DEFAULT_BASIC_BUTTON_BORDER_COLOR;
+	$('viewAutoTrackButton').style.borderColor = DEFAULT_BASIC_BUTTON_BORDER_COLOR;
+	$('viewSelectedButton').style.borderColor = DEFAULT_BASIC_BUTTON_BORDER_COLOR;
+	$('viewMutualButton').style.borderColor = DEFAULT_BASIC_BUTTON_BORDER_COLOR;
+	$('viewProlificButton').style.borderColor = DEFAULT_BASIC_BUTTON_BORDER_COLOR;
+	$('viewEfficientButton').style.borderColor = DEFAULT_BASIC_BUTTON_BORDER_COLOR;
+	$('viewVirginButton').style.borderColor = DEFAULT_BASIC_BUTTON_BORDER_COLOR;
+	$('viewGluttonButton').style.borderColor = DEFAULT_BASIC_BUTTON_BORDER_COLOR;
 
-	document.getElementById('viewWholePoolButton').style.borderWidth = "1px";
-	document.getElementById('viewAutoTrackButton').style.borderWidth = "1px";
-	document.getElementById('viewSelectedButton').style.borderWidth = "1px";
-	document.getElementById('viewMutualButton').style.borderWidth = "1px";
-	document.getElementById('viewProlificButton').style.borderWidth = "1px";
-	document.getElementById('viewEfficientButton').style.borderWidth = "1px";
-	document.getElementById('viewVirginButton').style.borderWidth = "1px";
-	document.getElementById('viewGluttonButton').style.borderWidth = "1px";
+	$('viewWholePoolButton').style.borderWidth = "1px";
+	$('viewAutoTrackButton').style.borderWidth = "1px";
+	$('viewSelectedButton').style.borderWidth = "1px";
+	$('viewMutualButton').style.borderWidth = "1px";
+	$('viewProlificButton').style.borderWidth = "1px";
+	$('viewEfficientButton').style.borderWidth = "1px";
+	$('viewVirginButton').style.borderWidth = "1px";
+	$('viewGluttonButton').style.borderWidth = "1px";
 
-	document.getElementById('viewWholePoolButton').style.borderBottomWidth = "4px";
-	document.getElementById('viewAutoTrackButton').style.borderBottomWidth = "4px";
-	document.getElementById('viewSelectedButton').style.borderBottomWidth = "4px";
-	document.getElementById('viewMutualButton').style.borderBottomWidth = "4px";
-	document.getElementById('viewProlificButton').style.borderBottomWidth = "4px";
-	document.getElementById('viewEfficientButton').style.borderBottomWidth = "4px";
-	document.getElementById('viewVirginButton').style.borderBottomWidth = "4px";
-	document.getElementById('viewGluttonButton').style.borderBottomWidth = "4px";
+	$('viewWholePoolButton').style.borderBottomWidth = "4px";
+	$('viewAutoTrackButton').style.borderBottomWidth = "4px";
+	$('viewSelectedButton').style.borderBottomWidth = "4px";
+	$('viewMutualButton').style.borderBottomWidth = "4px";
+	$('viewProlificButton').style.borderBottomWidth = "4px";
+	$('viewEfficientButton').style.borderBottomWidth = "4px";
+	$('viewVirginButton').style.borderBottomWidth = "4px";
+	$('viewGluttonButton').style.borderBottomWidth = "4px";
 }
 
 function setViewMode(buttonID, viewMode) {
@@ -529,12 +542,12 @@ function setViewMode(buttonID, viewMode) {
 	if (buttonID === 'viewSelectedButton') {
 		let state = _getSimState();
 		if (state && state.selectedSwimbotID != -1) {
-			document.getElementById(buttonID).style = "border-color: " + ACTIVE_BORDER_COLOR
-			document.getElementById(buttonID).style.borderWidth = "3px";
+			$(buttonID).style = "border-color: " + ACTIVE_BORDER_COLOR
+			$(buttonID).style.borderWidth = "3px";
 		}
 	} else {
-		document.getElementById(buttonID).style = "border-color: " + ACTIVE_BORDER_COLOR
-		document.getElementById(buttonID).style.borderWidth = "3px";
+		$(buttonID).style = "border-color: " + ACTIVE_BORDER_COLOR
+		$(buttonID).style.borderWidth = "3px";
 	}
 }
 
@@ -567,7 +580,7 @@ function tweakGene(swimbotIndex, sliderIndex) {
 	// get the gene value...
 	let id = "geneTweaker" + sliderIndex;
 
-	let input = document.getElementById(id);
+	let input = $(id);
 
 	let geneValue = input.value;
 
@@ -580,12 +593,12 @@ function tweakGene(swimbotIndex, sliderIndex) {
 
 	// update the html that displays the value...
 	id = "gene" + sliderIndex + "Value";
-	document.getElementById(id).innerHTML = geneValue;
+	$(id).innerHTML = geneValue;
 }
 
 function openInfoPanel() {
-	document.getElementById('infoPanel').style.visibility = 'visible';
-	document.getElementById('infoText').style.visibility = 'visible';
+	$('infoPanel').style.visibility = 'visible';
+	$('infoText').style.visibility = 'visible';
 
 	//let the current page load up
 	setInfoPage(_currentInfoPage);
@@ -606,19 +619,19 @@ function advanceInfoPage(increment) {
 }
 
 function setInfoPage(pageNumber) {
-	document.getElementById('pageNumberLabel').innerHTML = "page " + _currentInfoPage + " of 28";
-	document.getElementById("infoText").innerHTML = getInfoText(_currentInfoPage);
+	$('pageNumberLabel').innerHTML = "page " + _currentInfoPage + " of 28";
+	$("infoText").innerHTML = getInfoText(_currentInfoPage);
 
 	if (_currentInfoPage === FIRST_INFO_PAGE) {
-		document.getElementById('prevInfoButton').style.visibility = 'hidden'
+		$('prevInfoButton').style.visibility = 'hidden'
 	} else {
-		document.getElementById('prevInfoButton').style.visibility = 'visible'
+		$('prevInfoButton').style.visibility = 'visible'
 	}
 
 	if (_currentInfoPage === LAST_INFO_PAGE) {
-		document.getElementById('nextInfoButton').style.visibility = 'hidden'
+		$('nextInfoButton').style.visibility = 'hidden'
 	} else {
-		document.getElementById('nextInfoButton').style.visibility = 'visible'
+		$('nextInfoButton').style.visibility = 'visible'
 	}
 }
 
@@ -642,10 +655,10 @@ function _updatePoolPanelState() {
 	_simRunning = running;
 
 	var presetBtns = document.querySelectorAll('[data-pool-preset]');
-	var endPoolBtn = document.getElementById('pool8Button');
-	var foodSpecToggle = document.getElementById('foodSpeciationToggle');
-	var foodSpecCheckbox = document.getElementById('foodSpeciationCheckbox');
-	var title = document.getElementById('startPoolTitle');
+	var endPoolBtn = $('pool8Button');
+	var foodSpecToggle = $('foodSpeciationToggle');
+	var foodSpecCheckbox = $('foodSpeciationCheckbox');
+	var title = $('startPoolTitle');
 
 	if (running) {
 		// Disable all preset buttons except "end pool"
@@ -688,15 +701,15 @@ function updateUI() {
 	}
 
 	// update the swimbot panel....
-	if (document.getElementById('swimbotPanel').style.visibility === 'visible') {
+	if ($('swimbotPanel').style.visibility === 'visible') {
 		let selectedSwimbot = state.selectedSwimbotID;
 
 		if (selectedSwimbot === NULL_INDEX) {
-			document.getElementById('selectedSwimbotPanel').style.visibility = 'hidden';
-			document.getElementById('noSelectedSwimbotPanel').style.visibility = 'visible';
+			$('selectedSwimbotPanel').style.visibility = 'hidden';
+			$('noSelectedSwimbotPanel').style.visibility = 'visible';
 		} else {
-			document.getElementById('selectedSwimbotPanel').style.visibility = 'visible';
-			document.getElementById('noSelectedSwimbotPanel').style.visibility = 'hidden';
+			$('selectedSwimbotPanel').style.visibility = 'visible';
+			$('noSelectedSwimbotPanel').style.visibility = 'hidden';
 
 			let sb = _getSwimbotState();
 			if (sb) {
@@ -705,7 +718,7 @@ function updateUI() {
 				let foodPreferenceText = sb.preferredFoodType === 1 ? "blue" : "green";
 				let foodTypeText = sb.digestibleFoodType === 1 ? "blue" : "green";
 
-				document.getElementById('swimbotDataPanel').innerHTML = "<b>Info about the selected swimbot:</b>" +
+				$('swimbotDataPanel').innerHTML = "<b>Info about the selected swimbot:</b>" +
 					"<br>" +
 					"<br>" +
 					"ID = " + sb.index.toString() +
@@ -743,7 +756,7 @@ function updateUI() {
 	);
 
 	// render the graph....
-	if (document.getElementById('graphPanel').style.visibility === 'visible') {
+	if ($('graphPanel').style.visibility === 'visible') {
 		let speciationOn = state.numFoodTypes > 1;
 		let html = "time step: " + state.clock + "<br>";
 
@@ -757,7 +770,7 @@ function updateUI() {
 				"food bits: " + state.numFoodBits0;
 		}
 
-		document.getElementById('graphData').innerHTML = html;
+		$('graphData').innerHTML = html;
 
 		_graph.render();
 	}
@@ -785,7 +798,7 @@ function notifyGeneTweakPanelMouseDown() {
 	if (selectedSwimbotID === -1) {
 		closeTweakGenesPanel();
 	} else {
-		if (document.getElementById('tweakGenesPanel').style.visibility === 'visible') {
+		if ($('tweakGenesPanel').style.visibility === 'visible') {
 			openTweakGenesPanel(selectedSwimbotID);
 		}
 	}
@@ -795,7 +808,7 @@ function notifyGeneTweakPanelMouseDown() {
 function resize() {
 	// The masterPanel is `position: fixed` on the right.
 	// When collapsed, the canvas uses the full window width.
-	var panel = document.getElementById("masterPanel");
+	var panel = $("masterPanel");
 	var rightMargin = 400;
 	if (panel && panel.style.minHeight === "0px") {
 		rightMargin = 0;
@@ -818,11 +831,11 @@ function resize() {
  * Switch visibility of food place buttons based on food speciation state.
  */
 function _updateFoodPlaceButtons() {
-	var speciationOn = document.getElementById('foodSpeciationCheckbox').checked;
+	var speciationOn = $('foodSpeciationCheckbox').checked;
 
-	var singleBtn = document.getElementById('addFoodBitButton');
-	var greenBtn  = document.getElementById('addGreenFoodBitButton');
-	var blueBtn   = document.getElementById('addBlueFoodBitButton');
+	var singleBtn = $('addFoodBitButton');
+	var greenBtn  = $('addGreenFoodBitButton');
+	var blueBtn   = $('addBlueFoodBitButton');
 
 	if (speciationOn) {
 		singleBtn.style.display = 'none';
@@ -839,9 +852,9 @@ function _updateFoodPlaceButtons() {
  * Clear the active highlight from all food place buttons and reset simulation mode.
  */
 function _clearFoodPlaceActive() {
-	document.getElementById('addFoodBitButton').classList.remove('foodPlaceActive');
-	document.getElementById('addGreenFoodBitButton').classList.remove('foodPlaceActive');
-	document.getElementById('addBlueFoodBitButton').classList.remove('foodPlaceActive');
+	$('addFoodBitButton').classList.remove('foodPlaceActive');
+	$('addGreenFoodBitButton').classList.remove('foodPlaceActive');
+	$('addBlueFoodBitButton').classList.remove('foodPlaceActive');
 }
 
 function attachEventListeners() {
@@ -854,10 +867,10 @@ function attachEventListeners() {
 	});
 
 	// View options
-	document.getElementById('viewGoalButton').addEventListener('click', toggleGoalOverlay);
-	document.getElementById('freezeButton').addEventListener('click', toggleSimulationRunning);
-	document.getElementById('noRenderButton').addEventListener('click', toggleRendering);
-	document.getElementById('fastButton').addEventListener('click', toggleFastRendering);
+	$('viewGoalButton').addEventListener('click', toggleGoalOverlay);
+	$('freezeButton').addEventListener('click', toggleSimulationRunning);
+	$('noRenderButton').addEventListener('click', toggleRendering);
+	$('fastButton').addEventListener('click', toggleFastRendering);
 
 	// Menu buttons
 	document.querySelectorAll('[data-panel]').forEach(function(btn) {
@@ -873,8 +886,20 @@ function attachEventListeners() {
 		});
 	});
 
+	// Ecosystem number inputs (saisie directe)
+	document.querySelectorAll('.EcoSliderValueDisplay').forEach(function(input) {
+		input.addEventListener('change', function() {
+			let sliderId = this.id.replace('Value', 'Slider');
+			let slider = $(sliderId);
+			if (slider) {
+				slider.value = this.value;
+			}
+			setEcosystemValueFromInput(sliderId, this.value);
+		});
+	});
+
 	// Tweak default
-	document.getElementById('tweakDefaultButton').addEventListener('click', setEcosystemToDefaults);
+	$('tweakDefaultButton').addEventListener('click', setEcosystemToDefaults);
 
 	// Attraction radios
 	document.querySelectorAll('input[name="attractionRadioButton"]').forEach(function(radio) {
@@ -893,13 +918,13 @@ function attachEventListeners() {
 	});
 
 	// Food speciation toggle
-	document.getElementById('foodSpeciationCheckbox').addEventListener('change', function() {
+	$('foodSpeciationCheckbox').addEventListener('change', function() {
 		eventBus.emit(UI_CMD_SET_FOOD_SPECIATION, this.checked);
 		_updateFoodPlaceButtons();
 	});
 
 	// Food place buttons
-	document.getElementById('addFoodBitButton').addEventListener('click', function() {
+	$('addFoodBitButton').addEventListener('click', function() {
 		if (this.classList.contains('foodPlaceActive')) {
 			this.classList.remove('foodPlaceActive');
 			eventBus.emit(UI_CMD_SET_FOOD_PLACE_MODE, -1);
@@ -909,7 +934,7 @@ function attachEventListeners() {
 			eventBus.emit(UI_CMD_SET_FOOD_PLACE_MODE, 0);
 		}
 	});
-	document.getElementById('addGreenFoodBitButton').addEventListener('click', function() {
+	$('addGreenFoodBitButton').addEventListener('click', function() {
 		if (this.classList.contains('foodPlaceActive')) {
 			this.classList.remove('foodPlaceActive');
 			eventBus.emit(UI_CMD_SET_FOOD_PLACE_MODE, -1);
@@ -919,7 +944,7 @@ function attachEventListeners() {
 			eventBus.emit(UI_CMD_SET_FOOD_PLACE_MODE, 0);
 		}
 	});
-	document.getElementById('addBlueFoodBitButton').addEventListener('click', function() {
+	$('addBlueFoodBitButton').addEventListener('click', function() {
 		if (this.classList.contains('foodPlaceActive')) {
 			this.classList.remove('foodPlaceActive');
 			eventBus.emit(UI_CMD_SET_FOOD_PLACE_MODE, -1);
@@ -931,23 +956,23 @@ function attachEventListeners() {
 	});
 
 	// Family tree
-	document.getElementById('familyTreeButton').addEventListener('click', function() {
+	$('familyTreeButton').addEventListener('click', function() {
 		printFamilyTree();
 	});
 
 	// Pool save / load
-	document.getElementById('saveButton').addEventListener('click', requestToSavePool);
-	document.getElementById('loadButton').addEventListener('click', function() {
+	$('saveButton').addEventListener('click', requestToSavePool);
+	$('loadButton').addEventListener('click', function() {
 		requestToLoadPoolFromFile();
 	});
-	document.getElementById('fileInput').addEventListener('change', readLocalFile);
+	$('fileInput').addEventListener('change', readLocalFile);
 
 	// Swimbot gene save / load
-	document.getElementById('loadGenesButton').addEventListener('click', requestToLoadSwimbotFromFile);
-	document.getElementById('swimbotFileInput').addEventListener('change', readSwimbotFile);
+	$('loadGenesButton').addEventListener('click', requestToLoadSwimbotFromFile);
+	$('swimbotFileInput').addEventListener('change', readSwimbotFile);
 
 	// Swimbot creation
-	document.getElementById('createRandomSwimbotButton').addEventListener('click', function() {
+	$('createRandomSwimbotButton').addEventListener('click', function() {
 		eventBus.emit(UI_CMD_MAKE_RANDOM_SWIMBOT);
 	});
 
@@ -959,37 +984,37 @@ function attachEventListeners() {
 	});
 
 	// Selected swimbot actions
-	document.getElementById('zapSwimbotButton').addEventListener('click', function() {
+	$('zapSwimbotButton').addEventListener('click', function() {
 		let state = _getSimState();
 		if (state) {
 			eventBus.emit(UI_CMD_ZAP_SWIMBOT, { id: state.selectedSwimbotID, amount: 0.2 });
 		}
 	});
-	document.getElementById('randomizeSwimbotButton').addEventListener('click', function() {
+	$('randomizeSwimbotButton').addEventListener('click', function() {
 		let state = _getSimState();
 		if (state) {
 			eventBus.emit(UI_CMD_RANDOMIZE_SWIMBOT, state.selectedSwimbotID);
 		}
 	});
-	document.getElementById('cloneSwimbotButton').addEventListener('click', function() {
+	$('cloneSwimbotButton').addEventListener('click', function() {
 		let state = _getSimState();
 		if (state) {
 			eventBus.emit(UI_CMD_CLONE_SWIMBOT, state.selectedSwimbotID);
 		}
 	});
-	document.getElementById('killSwimbotButton').addEventListener('click', function() {
+	$('killSwimbotButton').addEventListener('click', function() {
 		let state = _getSimState();
 		if (state) {
 			eventBus.emit(UI_CMD_KILL_SWIMBOT, state.selectedSwimbotID);
 		}
 	});
-	document.getElementById('showGenesButton').addEventListener('click', function() {
+	$('showGenesButton').addEventListener('click', function() {
 		let state = _getSimState();
 		if (state) {
 			showSwimbotGenes(state.selectedSwimbotID);
 		}
 	});
-	document.getElementById('tweakGenesButton').addEventListener('click', function() {
+	$('tweakGenesButton').addEventListener('click', function() {
 		let state = _getSimState();
 		if (state) {
 			openTweakGenesPanel(state.selectedSwimbotID);
@@ -998,49 +1023,49 @@ function attachEventListeners() {
 	});
 
 	// Info panel
-	document.getElementById('prevInfoButton').addEventListener('click', function() { advanceInfoPage(-1); });
-	document.getElementById('nextInfoButton').addEventListener('click', function() { advanceInfoPage(1); });
+	$('prevInfoButton').addEventListener('click', function() { advanceInfoPage(-1); });
+	$('nextInfoButton').addEventListener('click', function() { advanceInfoPage(1); });
 
 	// Popup/display
-	document.getElementById('cancelPopUpPanelButton').addEventListener('click', closePopupPanel);
-	document.getElementById('closeDataDisplay').addEventListener('click', closeDataDisplay);
-	document.getElementById('closeTweakGenesPanel').addEventListener('click', closeTweakGenesPanel);
-	document.getElementById('noRenderPanel').addEventListener('click', function() { setRendering(true); });
+	$('cancelPopUpPanelButton').addEventListener('click', closePopupPanel);
+	$('closeDataDisplay').addEventListener('click', closeDataDisplay);
+	$('closeTweakGenesPanel').addEventListener('click', closeTweakGenesPanel);
+	$('noRenderPanel').addEventListener('click', function() { setRendering(true); });
 }
 
-document.getElementById('Canvas').onmousedown = function(e) {
+$('Canvas').onmousedown = function(e) {
 	clearViewMode();
 
 	eventBus.emit(UI_CMD_TOUCH_DOWN, {
-		x: e.pageX - document.getElementById('Canvas').offsetLeft,
-		y: e.pageY - document.getElementById('Canvas').offsetTop
+		x: e.pageX - $('Canvas').offsetLeft,
+		y: e.pageY - $('Canvas').offsetTop
 	});
 
 	notifyGeneTweakPanelMouseDown();
 }
 
-document.getElementById('Canvas').onmousemove = function(e) {
+$('Canvas').onmousemove = function(e) {
 	eventBus.emit(UI_CMD_TOUCH_MOVE, {
-		x: e.pageX - document.getElementById('Canvas').offsetLeft,
-		y: e.pageY - document.getElementById('Canvas').offsetTop
+		x: e.pageX - $('Canvas').offsetLeft,
+		y: e.pageY - $('Canvas').offsetTop
 	});
 }
 
-document.getElementById('Canvas').onmouseup = function(e) {
+$('Canvas').onmouseup = function(e) {
 	eventBus.emit(UI_CMD_TOUCH_UP, {
-		x: e.pageX - document.getElementById('Canvas').offsetLeft,
-		y: e.pageY - document.getElementById('Canvas').offsetTop
+		x: e.pageX - $('Canvas').offsetLeft,
+		y: e.pageY - $('Canvas').offsetTop
 	});
 }
 
-document.getElementById('Canvas').onmouseout = function(e) {
+$('Canvas').onmouseout = function(e) {
 	eventBus.emit(UI_CMD_TOUCH_OUT, {
-		x: e.pageX - document.getElementById('Canvas').offsetLeft,
-		y: e.pageY - document.getElementById('Canvas').offsetTop
+		x: e.pageX - $('Canvas').offsetLeft,
+		y: e.pageY - $('Canvas').offsetTop
 	});
 }
 // mouse wheel for camera zoom
-document.getElementById('Canvas').onwheel = function(e) {
+$('Canvas').onwheel = function(e) {
 	e.preventDefault();
 
 	let cameraNavAction = (e.deltaY < 0)
@@ -1089,10 +1114,10 @@ document.onkeyup = function(e) {
  * Floating panel: drag & drop + expand / collapse.
  */
 function initFloatingPanel() {
-	const panel = document.getElementById("masterPanel");
-	const header = document.getElementById("masterPanelHeader");
-	const content = document.getElementById("masterPanelContent");
-	const toggleBtn = document.getElementById("toggleMasterPanel");
+	const panel = $("masterPanel");
+	const header = $("masterPanelHeader");
+	const content = $("masterPanelContent");
+	const toggleBtn = $("toggleMasterPanel");
 
 	if (!panel || !header || !content || !toggleBtn) return;
 

@@ -40,3 +40,7 @@
 			pad(now.getMinutes()) +
 			pad(now.getSeconds());
 	}
+
+	function $(id){
+		return document.getElementById(id);
+	}

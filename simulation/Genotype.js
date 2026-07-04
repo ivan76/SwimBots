@@ -265,7 +265,7 @@ const PRESET_GENOTYPE_DENNETT = 7;
 				assertInteger(this._genes[g], "Genotype: setAsOffspring: assertInteger: _genes[g]");
 
 				// mutation
-				if (Math.random() < MUTATION_RATE) {
+				if (Math.random() < globalTweakers.mutationRate) {
 					this.mutateGene(g);
 				}
 

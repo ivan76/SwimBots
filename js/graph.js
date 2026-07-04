@@ -63,7 +63,7 @@ function Graph() {
 		_numFoodBits0 = new Array(GRAPH_CAPACITY);
 		_numFoodBits1 = new Array(GRAPH_CAPACITY);
 
-		_graphCanvas = document.getElementById('graphCanvas');
+		_graphCanvas = $('graphCanvas');
 		_graphContext = _graphCanvas.getContext('2d');
 	}
 

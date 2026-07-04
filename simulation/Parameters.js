@@ -33,7 +33,9 @@ const NON_REPRODUCING_JUNK_DNA_LIMIT = 0.9;
 
 const SPAWN_FOOD_RANDOMLY_IN_POOL = false;
 
-const MUTATION_RATE = 0.01;
+const MIN_MUTATION_RATE = 0;
+const DEFAULT_MUTATION_RATE = 0.01;
+const MAX_MUTATION_RATE = 1;
 
 const CROSSOVER_RATE = 0.2;
 
@@ -91,6 +93,7 @@ class GlobalTweakers {
 		this.foodBitEnergy = DEFAULT_FOOD_BIT_ENERGY;
 		this.foodRegenerationPeriod = DEFAULT_FOOD_REGENERATION_PERIOD;
 		this.hungerThreshold = DEFAULT_SWIMBOT_HUNGER_THRESHOLD;
+		this.mutationRate = DEFAULT_MUTATION_RATE;
 		this.numFoodTypes = DEFAULT_NUM_FOOD_TYPES;
 		this.attractionCriterion = ATTRACTION_SIMILAR_COLOR;
 	}

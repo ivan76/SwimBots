@@ -15,7 +15,7 @@ function requestToSavePool() {
 }
 
 function requestToLoadPoolFromFile() {
-	document.getElementById('fileInput').click();
+	$('fileInput').click();
 }
 
 function exportPoolToFile() {
@@ -59,7 +59,7 @@ function requestToSaveSwimbot() {
 }
 
 function requestToLoadSwimbotFromFile() {
-	document.getElementById('swimbotFileInput').click();
+	$('swimbotFileInput').click();
 }
 
 function exportSwimbotToFile(swimbotID) {
@@ -164,6 +164,6 @@ function showSwimbotGenes(s) {
 }
 
 function closeDataDisplay() {
-	document.getElementById('dataDisplay').style.visibility = "hidden";
-	document.getElementById('closeDataDisplay').style.visibility = "hidden";
+	$('dataDisplay').style.visibility = "hidden";
+	$('closeDataDisplay').style.visibility = "hidden";
 }
