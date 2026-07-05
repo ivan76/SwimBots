@@ -497,6 +497,18 @@ function toggleGoalOverlay() {
 	}
 }
 
+function toggleShowGoals() {
+	eventBus.emit(UI_CMD_TOGGLE_SHOW_GOALS);
+
+	let state = _getSimState();
+	if (state && state.showGoalsLines) {
+		$("showGoalsButton").style = "border-color: " + ACTIVE_BORDER_COLOR
+		$("showGoalsButton").style.borderWidth = "3px";
+	} else {
+		$("showGoalsButton").style = "border-color: " + DEFAULT_BASIC_BUTTON_BORDER_COLOR;
+	}
+}
+
 function clearViewMode() {
 	eventBus.emit(UI_CMD_CLEAR_VIEW_MODE);
 	clearViewModeButtons();
@@ -873,6 +885,7 @@ function attachEventListeners() {
 
 	// View options
 	$('viewGoalButton').addEventListener('click', toggleGoalOverlay);
+	$('showGoalsButton').addEventListener('click', toggleShowGoals);
 	$('freezeButton').addEventListener('click', toggleSimulationRunning);
 	$('noRenderButton').addEventListener('click', toggleRendering);
 	$('fastButton').addEventListener('click', toggleFastRendering);

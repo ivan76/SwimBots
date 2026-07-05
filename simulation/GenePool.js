@@ -92,6 +92,7 @@ class GenePool {
 		this._zoomingIn = false;
 		this._zoomingOut = false;
 		this._renderingGoals = false;
+		this._showGoalsLines = false;
 		this._foodPlaceMode = NULL_INDEX; // -1 = off, 0 = green, 1 = blue
 		this._windowWidth = 0;
 		this._windowHeight = 0;
@@ -198,6 +199,7 @@ class GenePool {
 
 		// Food place mode
 		eventBus.on(UI_CMD_SET_FOOD_PLACE_MODE, (type) => self.setFoodPlaceMode(type));
+		eventBus.on(UI_CMD_TOGGLE_SHOW_GOALS, () => self.toggleShowGoals());
 
 		// Obstacle place mode
 		eventBus.on(UI_CMD_SET_OBSTACLE_PLACE_MODE, (enabled) => self.setObstaclePlaceMode(enabled));
@@ -948,6 +950,7 @@ class GenePool {
 			simulationRunning: this._simulationRunning,
 			rendering: this._rendering,
 			renderingGoals: this._renderingGoals,
+			showGoalsLines: this._showGoalsLines,
 			clock: this._clock,
 
 			// Counts
@@ -1700,6 +1703,10 @@ class GenePool {
 		}
 	}
 
+	toggleShowGoals() {
+		this._showGoalsLines = !this._showGoalsLines;
+	}
+
 	// shift any food bit that maye be overlapping with any obstacle... (previously inner function)
 	_moveFoodBitsFromObstacle() {
 		for (let f = 0; f < MAX_FOODBITS; f++) {
@@ -1772,6 +1779,73 @@ class GenePool {
 						}
 					}
 				}
+			}
+		}
+
+		// draw goal lines when show goals is enabled
+		if (this._showGoalsLines) {
+			this._canvas.lineCap = "round";
+
+			// first pass: draw thin pink lines for all pursuing-mate swimbots
+			for (let s = 0; s < MAX_SWIMBOTS; s++) {
+				if (!this._swimbots[s].getAlive()) continue;
+				if (this._swimbots[s].getBrainState() !== BRAIN_STATE_PURSUING_MATE) continue;
+
+				let chosenMate = this._swimbots[s].getChosenMate();
+				if (chosenMate === null || !chosenMate.getAlive()) continue;
+
+				let p1 = this._swimbots[s].getGenitalPosition();
+				let p2 = chosenMate.getGenitalPosition();
+
+				this._canvas.lineWidth = 1;
+				this._canvas.strokeStyle = "rgba(255, 100, 200, 0.6)";
+				this._canvas.beginPath();
+				this._canvas.moveTo(p1.x, p1.y);
+				this._canvas.lineTo(p2.x, p2.y);
+				this._canvas.stroke();
+			}
+
+			// second pass: draw thick pink line for mutual attraction pairs
+			for (let s = 0; s < MAX_SWIMBOTS; s++) {
+				if (!this._swimbots[s].getAlive()) continue;
+				if (this._swimbots[s].getBrainState() !== BRAIN_STATE_PURSUING_MATE) continue;
+
+				let chosenMate = this._swimbots[s].getChosenMate();
+				if (chosenMate === null || !chosenMate.getAlive()) continue;
+				if (chosenMate.getBrainState() !== BRAIN_STATE_PURSUING_MATE) continue;
+
+				let mateOfMate = chosenMate.getChosenMate();
+				if (mateOfMate !== this._swimbots[s]) continue;
+
+				// mutual attraction confirmed, draw thick line
+				let p1 = this._swimbots[s].getGenitalPosition();
+				let p2 = chosenMate.getGenitalPosition();
+
+				this._canvas.lineWidth = 3;
+				this._canvas.strokeStyle = "rgba(255, 100, 200, 0.8)";
+				this._canvas.beginPath();
+				this._canvas.moveTo(p1.x, p1.y);
+				this._canvas.lineTo(p2.x, p2.y);
+				this._canvas.stroke();
+			}
+
+			// third pass: draw thin blue lines for all pursuing-food swimbots
+			for (let s = 0; s < MAX_SWIMBOTS; s++) {
+				if (!this._swimbots[s].getAlive()) continue;
+				if (this._swimbots[s].getBrainState() !== BRAIN_STATE_PURSUING_FOOD) continue;
+
+				let chosenFoodBit = this._swimbots[s].getChosenFoodBit();
+				if (chosenFoodBit === null || !chosenFoodBit.getAlive()) continue;
+
+				let p1 = this._swimbots[s].getMouthPosition();
+				let p2 = chosenFoodBit.getPosition();
+
+				this._canvas.lineWidth = 1;
+				this._canvas.strokeStyle = "rgba(100, 150, 255, 0.6)";
+				this._canvas.beginPath();
+				this._canvas.moveTo(p1.x, p1.y);
+				this._canvas.lineTo(p2.x, p2.y);
+				this._canvas.stroke();
 			}
 		}
 

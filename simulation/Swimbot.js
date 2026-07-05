@@ -433,6 +433,8 @@ class Swimbot {
     getMouthPosition() { return this._phenotype.parts[MOUTH_INDEX].position; }
     getChosenMateIndex() { return this._chosenMateIndex; }
     getChosenFoodBitIndex() { return this._chosenFoodBitIndex; }
+    getChosenMate() { return this._chosenMate; }
+    getChosenFoodBit() { return this._chosenFoodBit; }
     getNumOffspring() { return this._numOffspring; }
     getNumFoodBitsEaten() { return this._numFoodBitsEaten; }
     getBrainState() { return this._brain.getState(); }

@@ -240,7 +240,7 @@ body
     position: absolute; 
     left: 0; 
     top: 42; 
-    width: 365;
+    width: 465;
     height: 155;
     background-color: #9daeae;
     border-color:     #646870;       
@@ -399,9 +399,18 @@ body
     height:     30px;
 }
 
-#viewGoalButton
+#showGoalsButton
 {
     left:       10px; 
+    top:        2px;
+    width:      80px;
+    height:     25px;
+    font-size:  10px;   
+}
+
+#viewGoalButton
+{
+    left:       100px; 
     top:        2px;
     width:      100px;
     height:     25px;
@@ -410,16 +419,16 @@ body
 
 #noRenderButton
 { 
-    left:   113;
+    left:   210;
     top:    2;
-    width:  110; 
+    width:  100; 
     height: 25px;
     font-size:  10px;   
 }
 
 #fastButton
 { 
-    left:   226;
+    left:   320;
     top:    2;
     width:  60; 
     height: 25px;
@@ -428,7 +437,7 @@ body
 
 #freezeButton
 { 
-    left:   289;
+    left:   390;
     top:    2;
     width:  60; 
     height: 25px;
