@@ -278,4 +278,19 @@ class Obstacle {
 		this._end1.render(camera);
 		this._end2.render(camera);
 	}
+
+	// render a preview line from this obstacle's end1 to a live mouse position (end2)
+	renderPreview(end1Pos, end2Pos, camera) {
+		canvas.save();
+		canvas.setLineDash([10, 10]);
+		canvas.strokeStyle = "rgba( 200, 200, 200, 0.5 )";
+		canvas.lineWidth = ObstacleEndpoint.END_RADIUS;
+		canvas.beginPath();
+		canvas.moveTo(end1Pos.x, end1Pos.y);
+		canvas.lineTo(end2Pos.x, end2Pos.y);
+		canvas.closePath();
+		canvas.stroke();
+		canvas.setLineDash([]);
+		canvas.restore();
+	}
 }

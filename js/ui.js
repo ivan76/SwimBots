@@ -553,6 +553,11 @@ function setViewMode(buttonID, viewMode) {
 
 function switchToChosenPresetPool() {
 	closePopupPanel();
+	// reset obstacle mode if active when starting a new simulation
+	if (SwimbotsApp.genePool.getObstaclePlaceMode()) {
+		eventBus.emit(UI_CMD_SET_OBSTACLE_PLACE_MODE, false);
+		$('obstacleCheckbox').checked = false;
+	}
 	eventBus.emit(UI_CMD_START_SIMULATION, _chosenPoolToLoad);
 	clearViewMode();
 	updateEcosystemUI();
@@ -665,9 +670,9 @@ function _updatePoolPanelState() {
 		presetBtns.forEach(function(btn) {
 			if (btn !== endPoolBtn) btn.disabled = true;
 		});
-		// Lock food speciation toggle
+		// Lock food speciation toggle (obstacle toggle stays always active)
 		foodSpecToggle.classList.add('disabled');
-		// Sync checkbox with actual simulation state + food place buttons
+		// Sync food speciation checkbox with actual simulation state
 		foodSpecCheckbox.checked = SwimbotsApp.genePool.getFoodSpeciationEnabled();
 		_updateFoodPlaceButtons();
 		// Update title
@@ -921,6 +926,11 @@ function attachEventListeners() {
 	$('foodSpeciationCheckbox').addEventListener('change', function() {
 		eventBus.emit(UI_CMD_SET_FOOD_SPECIATION, this.checked);
 		_updateFoodPlaceButtons();
+	});
+
+	// Obstacle placement toggle
+	$('obstacleCheckbox').addEventListener('change', function() {
+		eventBus.emit(UI_CMD_SET_OBSTACLE_PLACE_MODE, this.checked);
 	});
 
 	// Food place buttons

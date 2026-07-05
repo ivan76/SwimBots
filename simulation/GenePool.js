@@ -45,7 +45,12 @@ class GenePool {
 		this._potentialMate = new Swimbot();
 		this._chosenFoodBit = new FoodBit();
 		this._camera = new Camera();
-		this._obstacle = new Obstacle();
+		this._obstacles = [];
+		this._obstaclePlaceMode = false;
+		this._placingObstacleEnd1 = null;
+		this._obstacleBeingMoved = NULL_INDEX;
+		this._mouseScreenX = 0;
+		this._mouseScreenY = 0;
 		this._pool = new Pool();
 		this._embryology = new Embryology();
 		this._vectorUtility = new Vector2D();
@@ -193,6 +198,9 @@ class GenePool {
 
 		// Food place mode
 		eventBus.on(UI_CMD_SET_FOOD_PLACE_MODE, (type) => self.setFoodPlaceMode(type));
+
+		// Obstacle place mode
+		eventBus.on(UI_CMD_SET_OBSTACLE_PLACE_MODE, (enabled) => self.setObstaclePlaceMode(enabled));
 	}
 
 	setCanvas(c) {
@@ -248,6 +256,11 @@ class GenePool {
 
 		// reset food place mode
 		this._foodPlaceMode = NULL_INDEX;
+
+		// reset obstacle place mode
+		this._obstaclePlaceMode = false;
+		this._placingObstacleEnd1 = null;
+		this._obstacles = [];
 
 		// clear out all swimbots and food bits
 		this._numSwimbots = 0;
@@ -476,19 +489,8 @@ class GenePool {
 			this._familyTree.addNode(i, NULL_INDEX, NULL_INDEX, this._clock, this.getSwimbotGenes(i));
 		}
 
-		// initialize obstacle
-		let end1 = new Vector2D();
-		let end2 = new Vector2D();
-
-		end1.setXY(POOL_LEFT + POOL_WIDTH * 0.005, POOL_TOP + POOL_HEIGHT * 0.005);
-		end2.setXY(POOL_LEFT + POOL_WIDTH * 0.01, POOL_TOP + POOL_HEIGHT * 0.005);
-
-		if (mode === SimulationStartMode.BARRIER) {
-			end1.setXY(POOL_LEFT + POOL_WIDTH * 0.2, POOL_TOP + POOL_HEIGHT * ONE_HALF);
-			end2.setXY(POOL_LEFT + POOL_WIDTH * 0.8, POOL_TOP + POOL_HEIGHT * ONE_HALF);
-		}
-
-		this._obstacle.setEndpointPositions(end1, end2);
+		// initialize obstacles
+		this._initializeObstacles(mode);
 
 		for (let m = 0; m < 10; m++) {
 			this._moveFoodBitsFromObstacle();
@@ -509,6 +511,88 @@ class GenePool {
 
 	setGardenOfEdenRadius(r) {
 		this._gardenOfEdenRadius = r;
+	}
+
+	// initialize obstacles array based on simulation start mode
+	_initializeObstacles(mode) {
+		if (mode === SimulationStartMode.BARRIER) {
+			let obs = new Obstacle();
+			let end1 = new Vector2D();
+			let end2 = new Vector2D();
+			end1.setXY(POOL_LEFT + POOL_WIDTH * 0.2, POOL_TOP + POOL_HEIGHT * ONE_HALF);
+			end2.setXY(POOL_LEFT + POOL_WIDTH * 0.8, POOL_TOP + POOL_HEIGHT * ONE_HALF);
+			obs.setEndpointPositions(end1, end2);
+			this._obstacles.push(obs);
+		} else {
+			// invisible obstacle in the corner (preserves original behavior)
+			let obs = new Obstacle();
+			let end1 = new Vector2D();
+			let end2 = new Vector2D();
+			end1.setXY(POOL_LEFT + POOL_WIDTH * 0.005, POOL_TOP + POOL_HEIGHT * 0.005);
+			end2.setXY(POOL_LEFT + POOL_WIDTH * 0.01, POOL_TOP + POOL_HEIGHT * 0.005);
+			obs.setEndpointPositions(end1, end2);
+			this._obstacles.push(obs);
+		}
+	}
+
+	// add a new obstacle to the pool
+	addObstacle(end1, end2) {
+		let obs = new Obstacle();
+		obs.setEndpointPositions(end1, end2);
+		this._obstacles.push(obs);
+		for (let m = 0; m < 10; m++) {
+			this._moveFoodBitsFromObstacle();
+		}
+	}
+
+	// return true if any obstacle blocks the line between p1 and p2
+	_anyObstacleBlocks(p1, p2) {
+		for (let oi = 0; oi < this._obstacles.length; oi++) {
+			if (this._obstacles[oi].getObstruction(p1, p2)) {
+				return true;
+			}
+		}
+		return false;
+	}
+
+	// toggle obstacle placement mode
+	setObstaclePlaceMode(enabled) {
+		this._obstaclePlaceMode = enabled;
+		this._placingObstacleEnd1 = null;
+	}
+
+	// get obstacle placement mode
+	getObstaclePlaceMode() {
+		return this._obstaclePlaceMode;
+	}
+
+	// handle one click in obstacle placement mode (called from touchDown)
+	// returns true if the click was consumed by placement, false if it should fall through to drag
+	_handleObstaclePlacement(poolPos) {
+		if (!this._obstaclePlaceMode) return false;
+
+		// if clicking on an existing obstacle endpoint, let the drag handler take over
+		for (let oi = 0; oi < this._obstacles.length; oi++) {
+			if (this._obstacles[oi].detectHover(poolPos)) {
+				return false;
+			}
+		}
+
+		if (this._placingObstacleEnd1 === null) {
+			// first click: store the first endpoint
+			this._placingObstacleEnd1 = new Vector2D();
+			this._placingObstacleEnd1.x = poolPos.x;
+			this._placingObstacleEnd1.y = poolPos.y;
+		} else {
+			// second click: create the obstacle
+			let end2 = new Vector2D();
+			end2.x = poolPos.x;
+			end2.y = poolPos.y;
+			this.addObstacle(this._placingObstacleEnd1, end2);
+			this._placingObstacleEnd1 = null;
+		}
+
+		return true;
 	}
 
 	randomizeNeighborhood() {
@@ -932,11 +1016,12 @@ class GenePool {
 				}
 
 				// check for obstacle collision....
-				if (this._obstacle.getCollision(this._swimbots[s].getPosition(), this._swimbots[s].getBoundingRadius() * ONE_HALF)) {
-					// only call this IMMEDIATELY after calling "_obstacle.getCollision"...
-					this._vectorUtility = this._obstacle.getCurrentCollisionForce();
-					this._vectorUtility.scale(1.2);
-					this._swimbots[s].addForce(this._vectorUtility);
+				for (let oi = 0; oi < this._obstacles.length; oi++) {
+					if (this._obstacles[oi].getCollision(this._swimbots[s].getPosition(), this._swimbots[s].getBoundingRadius() * ONE_HALF)) {
+						this._vectorUtility = this._obstacles[oi].getCurrentCollisionForce();
+						this._vectorUtility.scale(1.2);
+						this._swimbots[s].addForce(this._vectorUtility);
+					}
 				}
 
 				// eating
@@ -1086,7 +1171,7 @@ class GenePool {
 			if (o !== this._swimbots[s]) {
 				let distanceSquared = pos.getDistanceSquaredTo(o.getGenitalPosition());
 				if (distanceSquared < SWIMBOT_VIEW_RADIUS * SWIMBOT_VIEW_RADIUS) {
-					if (!this._obstacle.getObstruction(pos, o.getGenitalPosition())) {
+					if (!this._anyObstacleBlocks(pos, o.getGenitalPosition())) {
 						this._nearbySwimbotsArray[this._numNearbySwimbots] = o;
 						this._numNearbySwimbots++;
 					}
@@ -1116,7 +1201,7 @@ class GenePool {
 						let distance = viewDistance / SWIMBOT_VIEW_RADIUS;
 
 						if (distance < smallestDistance) {
-							if (!this._obstacle.getObstruction(this._swimbots[s].getMouthPosition(), this._foodBits[f].getPosition())) {
+							if (!this._anyObstacleBlocks(this._swimbots[s].getMouthPosition(), this._foodBits[f].getPosition())) {
 								smallestDistance = distance;
 								this._chosenFoodBit = this._foodBits[f];
 								foundFoodBit = true;
@@ -1210,7 +1295,7 @@ class GenePool {
 						// spawn the child to new position relative to parent...
 						this._foodBits[childFoodBitIndex].randomizeSpawnPosition(this._foodBits[parentFoodBitIndex]);
 
-						if (!this._obstacle.getObstruction(this._foodBits[parentFoodBitIndex].getPosition(), this._foodBits[childFoodBitIndex].getPosition())) {
+						if (!this._anyObstacleBlocks(this._foodBits[parentFoodBitIndex].getPosition(), this._foodBits[childFoodBitIndex].getPosition())) {
 							looking = false;
 						}
 
@@ -1433,18 +1518,34 @@ class GenePool {
 		let end1 = new Vector2D();
 		let end2 = new Vector2D();
 
-		if ((data.obstacleEnd1X != undefined) &&
+		// restore obstacles (new array format, with fallback to old single-obstacle format)
+		if (data.obstacles && Array.isArray(data.obstacles) && data.obstacles.length > 0) {
+			for (let oi = 0; oi < data.obstacles.length; oi++) {
+				let obsData = data.obstacles[oi];
+				let o1 = new Vector2D();
+				let o2 = new Vector2D();
+				o1.setXY(obsData.end1X, obsData.end1Y);
+				o2.setXY(obsData.end2X, obsData.end2Y);
+				let obs = new Obstacle();
+				obs.setEndpointPositions(o1, o2);
+				this._obstacles.push(obs);
+			}
+		} else if ((data.obstacleEnd1X != undefined) &&
 			(data.obstacleEnd1Y != undefined) &&
 			(data.obstacleEnd2X != undefined) &&
 			(data.obstacleEnd2Y != undefined)) {
 			end1.setXY(data.obstacleEnd1X, data.obstacleEnd1Y);
 			end2.setXY(data.obstacleEnd2X, data.obstacleEnd2Y);
+			let obs = new Obstacle();
+			obs.setEndpointPositions(end1, end2);
+			this._obstacles.push(obs);
 		} else {
 			end1.setXY(100, 100);
 			end2.setXY(200, 100);
+			let obs = new Obstacle();
+			obs.setEndpointPositions(end1, end2);
+			this._obstacles.push(obs);
 		}
-
-		this._obstacle.setEndpointPositions(end1, end2);
 
 		// start time
 		this._startTime = (new Date).getTime();
@@ -1599,15 +1700,16 @@ class GenePool {
 		}
 	}
 
-	// shift any food bit that maye be overlapping with the obstacle... (previously inner function)
+	// shift any food bit that maye be overlapping with any obstacle... (previously inner function)
 	_moveFoodBitsFromObstacle() {
 		for (let f = 0; f < MAX_FOODBITS; f++) {
 			if (this._foodBits[f].getAlive()) {
-				if (this._obstacle.getCollision(this._foodBits[f].getPosition(), 30)) {
-					this._vectorUtility = this._obstacle.getCurrentCollisionForce();
-					this._vectorUtility.scale(5);
-					this._foodBits[f].shiftPosition(this._vectorUtility);
-
+				for (let oi = 0; oi < this._obstacles.length; oi++) {
+					if (this._obstacles[oi].getCollision(this._foodBits[f].getPosition(), 30)) {
+						this._vectorUtility = this._obstacles[oi].getCurrentCollisionForce();
+						this._vectorUtility.scale(5);
+						this._foodBits[f].shiftPosition(this._vectorUtility);
+					}
 				}
 			}
 		}
@@ -1631,8 +1733,16 @@ class GenePool {
 		// render the pool
 		this._pool.render(this._seconds, this._camera);
 
-		// render obstacle
-		this._obstacle.render(this._camera);
+		// render obstacles
+		for (let oi = 0; oi < this._obstacles.length; oi++) {
+			this._obstacles[oi].render(this._camera);
+		}
+
+		// render obstacle placement preview
+		if (this._placingObstacleEnd1 !== null) {
+			let mousePoolPos = this.convertScreenCoordinatesToPoolPosition(this._mouseScreenX, this._mouseScreenY);
+			this._obstacles[0].renderPreview(this._placingObstacleEnd1, mousePoolPos, this._camera);
+		}
 
 		// render food
 		this.renderFoodBits();
@@ -1817,6 +1927,8 @@ class GenePool {
 	}
 
 	touchDown(x, y) {
+		this._mouseScreenX = x;
+		this._mouseScreenY = y;
 		this._touch.setToDown(x, y);
 		this.handleNonUITouchDownActions(x, y);
 	}
@@ -1828,51 +1940,56 @@ class GenePool {
 	}
 
 	touchMove(x, y) {
-		if ((x < this._canvasWidth) &&
-			(y < this._canvasHeight)) {
+		this._mouseScreenX = x;
+		this._mouseScreenY = y;
+		if ((x < this._canvasWidth) && (y < this._canvasHeight)) {
 			this._touch.setToMove(x, y);
 
 			this._vectorUtility = this.convertScreenCoordinatesToPoolPosition(x, y);
 			this._pool.moveTouch(this._vectorUtility, this._seconds);
 
-			if ((this._touch.getState() === TouchState.JUST_DOWN) ||
-				(this._touch.getState() === TouchState.BEEN_DOWN)) {
+			if ((this._touch.getState() === TouchState.JUST_DOWN) || (this._touch.getState() === TouchState.BEEN_DOWN)) {
 				// dragging a swimbot around
-				if ((this._swimbotBeingDragged) &&
-					(this._selectedSwimbot != NULL_INDEX)) {
+				if ((this._swimbotBeingDragged) && (this._selectedSwimbot != NULL_INDEX)) {
 					this._vectorUtility = this.convertScreenCoordinatesToPoolPosition(x, y);
 					this._swimbots[this._selectedSwimbot].setPosition(this._vectorUtility);
 
 					this._vectorUtility.setXY(ZERO, ZERO);
 					this._swimbots[this._selectedSwimbot].setVelocity(this._vectorUtility);
-				} else if ((this._foodBitBeingDragged) &&
-					(this._selectedFoodBit != NULL_INDEX)) {
+				} else if ((this._foodBitBeingDragged) && (this._selectedFoodBit != NULL_INDEX)) {
 					// dragging a fodbit around
 					this._vectorUtility = this.convertScreenCoordinatesToPoolPosition(x, y);
 					this._foodBits[this._selectedFoodBit].setPosition(this._vectorUtility);
-				} else {
-					if (this._obstacle.getBeingMoved()) {
-						// set the new moved position
-						this._vectorUtility = this.convertScreenCoordinatesToPoolPosition(x, y);
-						this._obstacle.setMovePosition(this._vectorUtility);
+				} else if (this._obstacleBeingMoved !== NULL_INDEX) {
+					// dragging an obstacle endpoint
+					this._vectorUtility = this.convertScreenCoordinatesToPoolPosition(x, y);
+					this._obstacles[this._obstacleBeingMoved].setMovePosition(this._vectorUtility);
+					this._moveFoodBitsFromObstacle();
 
-						// keep food away from obstacle
-						this._moveFoodBitsFromObstacle();
-					} else {
-						let x = this._touch.getVelocityX();
-						let y = this._touch.getVelocityY();
-						this._camera.drag(x, y);
+					// if endpoints overlap, delete the obstacle
+					let e1 = this._obstacles[this._obstacleBeingMoved].getEnd1Position();
+					let e2 = this._obstacles[this._obstacleBeingMoved].getEnd2Position();
+					let dist = Math.sqrt((e1.x - e2.x) * (e1.x - e2.x) + (e1.y - e2.y) * (e1.y - e2.y));
+					if (dist < 50) {
+						this._obstacles.splice(this._obstacleBeingMoved, 1);
+						this._obstacleBeingMoved = NULL_INDEX;
 					}
+				} else {
+					let x = this._touch.getVelocityX();
+					let y = this._touch.getVelocityY();
+					this._camera.drag(x, y);
 				}
-			} else {
+		} else {
 				this._vectorUtility = this.convertScreenCoordinatesToPoolPosition(x, y);
 
 				// check to see if the mouse if hovering over a swimbot or food bit
 				this._mousedOverSwimbot = this.indexOfClosestSwimbotToScreenPosition(x, y);
 				this._mousedOverFoodBit = this.indexOfClosestFoodBitToScreenPosition(x, y);
 
-				// check to see if the mouse if hovering over the obstacle
-				this._obstacle.detectHover(this._vectorUtility)
+				// check to see if the mouse if hovering over any obstacle
+				for (let oi = 0; oi < this._obstacles.length; oi++) {
+					this._obstacles[oi].detectHover(this._vectorUtility);
+				}
 			}
 		}
 	}
@@ -1883,13 +2000,14 @@ class GenePool {
 		this._swimbotBeingDragged = false;
 		this._foodBitBeingDragged = false;
 
+		if (this._obstacleBeingMoved !== NULL_INDEX) {
+			this._obstacles[this._obstacleBeingMoved].stopMoving();
+			this._obstacleBeingMoved = NULL_INDEX;
+		}
+
 		// if no button or swimbot or food bit was un-clicked
 		if ((this._selectedSwimbot === NULL_INDEX) &&
 			(this._selectedFoodBit === NULL_INDEX)) {
-			if (this._obstacle.getBeingMoved()) {
-				this._obstacle.stopMoving();
-			}
-
 			this._vectorUtility = this.convertScreenCoordinatesToPoolPosition(x, y);
 			this._pool.endTouch(this._vectorUtility, this._seconds);
 		}
@@ -1944,9 +2062,16 @@ class GenePool {
 			// in case view control is tracking, stop it...
 			this._viewTracking.stopTracking();
 
+			this._vectorUtility = this.convertScreenCoordinatesToPoolPosition(x, y);
+			let poolPos = this._vectorUtility;
+
+			// obstacle placement mode has highest priority
+			if (this._handleObstaclePlacement(poolPos)) {
+				return;
+			}
+
 			// Food place mode takes priority: place a food bit and return early.
 			if (this._foodPlaceMode !== NULL_INDEX) {
-				this._vectorUtility = this.convertScreenCoordinatesToPoolPosition(x, y);
 				this.placeFoodBitAtPoolPosition();
 				return;
 			}
@@ -1974,14 +2099,19 @@ class GenePool {
 			// if no swimbot or food bit was clicked
 			if ((this._selectedSwimbot == NULL_INDEX) &&
 				(this._selectedFoodBit == NULL_INDEX)) {
-				this._vectorUtility = this.convertScreenCoordinatesToPoolPosition(x, y);
+				// did an obstacle endpoint get touched?
+				this._obstacleBeingMoved = NULL_INDEX;
+				for (let oi = 0; oi < this._obstacles.length; oi++) {
+					if (this._obstacles[oi].detectHover(poolPos)) {
+						this._obstacles[oi].startMoving(poolPos);
+						this._obstacleBeingMoved = oi;
+						break;
+					}
+				}
 
-				// did the obstacle get touched?
-				if (this._obstacle.detectHover(this._vectorUtility)) {
-					this._obstacle.startMoving(this._vectorUtility);
-				} else {
+				if (this._obstacleBeingMoved === NULL_INDEX) {
 					// touch the pool!
-					this._pool.startTouch(this._vectorUtility, this._seconds);
+					this._pool.startTouch(poolPos, this._seconds);
 				}
 			}
 		}
@@ -2193,10 +2323,14 @@ class GenePool {
 			"attractionCriterion": globalTweakers.attractionCriterion,
 			"childEnergyRatio": globalTweakers.childEnergyRatio,
 			"renderingGoals": this._renderingGoals,
-			"obstacleEnd1X": this._obstacle.getEnd1Position().x,
-			"obstacleEnd1Y": this._obstacle.getEnd1Position().y,
-			"obstacleEnd2X": this._obstacle.getEnd2Position().x,
-			"obstacleEnd2Y": this._obstacle.getEnd2Position().y
+			"obstacles": this._obstacles.map(function(obs) {
+				return {
+					"end1X": obs.getEnd1Position().x,
+					"end1Y": obs.getEnd1Position().y,
+					"end2X": obs.getEnd2Position().x,
+					"end2Y": obs.getEnd2Position().y
+				};
+			})
 		}
 
 		return poolData;
