@@ -95,8 +95,6 @@ class GenePool {
 		this._showGoalsLines = false;
 		this._showPerception = false;
 		this._foodPlaceMode = NULL_INDEX; // -1 = off, 0 = green, 1 = blue
-		this._windowWidth = 0;
-		this._windowHeight = 0;
 		this._lastFrameTime = 0;
 		this._lastSimTime = 0;
 		this._frameAccumulator = 0;

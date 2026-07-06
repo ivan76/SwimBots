@@ -832,18 +832,8 @@ function notifyGeneTweakPanelMouseDown() {
 
 // under construction
 function resize() {
-	// The masterPanel is `position: fixed` on the right.
-	// When collapsed, the canvas uses the full window width.
-	var panel = $("masterPanel");
-	var rightMargin = 400;
-	if (panel && panel.style.minHeight === "0px") {
-		rightMargin = 0;
-	}
-	let width = window.innerWidth - rightMargin;
-	let height = window.innerHeight;
-
-	canvasID.width = width;
-	canvasID.height = height - 15;
+	canvasID.width = window.innerWidth;
+	canvasID.height = window.innerHeight;
 
 	if (SwimbotsApp.genePool) {
 		eventBus.emit(UI_CMD_SET_CANVAS_DIMENSIONS, {
@@ -1163,12 +1153,10 @@ function initFloatingPanel() {
 			content.style.display = "none";
 			panel.style.minHeight = "0";
 			toggleBtn.innerText = "+";
-			resize();
 		} else {
 			content.style.display = "flex";
 			panel.style.minHeight = "";
 			toggleBtn.innerText = "−";
-			resize();
 		}
 	});
 
