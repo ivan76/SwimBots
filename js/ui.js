@@ -416,9 +416,6 @@ function closePopupPanel() {
 	$('cancelPopUpPanelButton').style.visibility = 'hidden';
 	$('tweakDefaultButton').style.visibility = 'hidden';
 
-	//$("PopupText").style.visibility = "hidden";
-	//$("loadedList").style.visibility = "hidden";
-
 	// move focus to the canvas in case it had been on the popup input
 	$("Canvas").focus();
 }
@@ -443,10 +440,10 @@ function toggleSimulationRunning() {
 
 	let state = _getSimState();
 	if (state && !state.simulationRunning) {
+		$("freezeButton").style = "border-color: " + DEFAULT_BASIC_BUTTON_BORDER_COLOR;
+	} else {
 		$("freezeButton").style.borderColor = ACTIVE_BORDER_COLOR;
 		$("freezeButton").style.borderWidth = "3px";
-	} else {
-		$("freezeButton").style = "border-color: " + DEFAULT_BASIC_BUTTON_BORDER_COLOR;
 	}
 }
 
@@ -490,10 +487,10 @@ function toggleGoalOverlay() {
 
 	let state = _getSimState();
 	if (state && state.renderingGoals) {
+		$("viewGoalButton").style = "border-color: " + DEFAULT_BASIC_BUTTON_BORDER_COLOR;
+	} else {
 		$("viewGoalButton").style = "border-color: " + ACTIVE_BORDER_COLOR
 		$("viewGoalButton").style.borderWidth = "3px";
-	} else {
-		$("viewGoalButton").style = "border-color: " + DEFAULT_BASIC_BUTTON_BORDER_COLOR;
 	}
 }
 
@@ -502,10 +499,22 @@ function toggleShowGoals() {
 
 	let state = _getSimState();
 	if (state && state.showGoalsLines) {
+		$("showGoalsButton").style = "border-color: " + DEFAULT_BASIC_BUTTON_BORDER_COLOR;
+	} else {
 		$("showGoalsButton").style = "border-color: " + ACTIVE_BORDER_COLOR
 		$("showGoalsButton").style.borderWidth = "3px";
+	}
+}
+
+function toggleShowPerception() {
+	eventBus.emit(UI_CMD_TOGGLE_SHOW_PERCEPTION);
+
+	let state = _getSimState();
+	if (state && state.showPerception) {
+		$("showPerceptionButton").style = "border-color: " + DEFAULT_BASIC_BUTTON_BORDER_COLOR;
 	} else {
-		$("showGoalsButton").style = "border-color: " + DEFAULT_BASIC_BUTTON_BORDER_COLOR;
+		$("showPerceptionButton").style = "border-color: " + ACTIVE_BORDER_COLOR;
+		$("showPerceptionButton").style.borderWidth = "3px";
 	}
 }
 
@@ -886,6 +895,7 @@ function attachEventListeners() {
 	// View options
 	$('viewGoalButton').addEventListener('click', toggleGoalOverlay);
 	$('showGoalsButton').addEventListener('click', toggleShowGoals);
+	$('showPerceptionButton').addEventListener('click', toggleShowPerception);
 	$('freezeButton').addEventListener('click', toggleSimulationRunning);
 	$('noRenderButton').addEventListener('click', toggleRendering);
 	$('fastButton').addEventListener('click', toggleFastRendering);

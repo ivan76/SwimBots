@@ -93,6 +93,7 @@ class GenePool {
 		this._zoomingOut = false;
 		this._renderingGoals = false;
 		this._showGoalsLines = false;
+		this._showPerception = false;
 		this._foodPlaceMode = NULL_INDEX; // -1 = off, 0 = green, 1 = blue
 		this._windowWidth = 0;
 		this._windowHeight = 0;
@@ -200,6 +201,7 @@ class GenePool {
 		// Food place mode
 		eventBus.on(UI_CMD_SET_FOOD_PLACE_MODE, (type) => self.setFoodPlaceMode(type));
 		eventBus.on(UI_CMD_TOGGLE_SHOW_GOALS, () => self.toggleShowGoals());
+		eventBus.on(UI_CMD_TOGGLE_SHOW_PERCEPTION, () => self.toggleShowPerception());
 
 		// Obstacle place mode
 		eventBus.on(UI_CMD_SET_OBSTACLE_PLACE_MODE, (enabled) => self.setObstaclePlaceMode(enabled));
@@ -951,6 +953,7 @@ class GenePool {
 			rendering: this._rendering,
 			renderingGoals: this._renderingGoals,
 			showGoalsLines: this._showGoalsLines,
+			showPerception: this._showPerception,
 			clock: this._clock,
 
 			// Counts
@@ -1707,6 +1710,10 @@ class GenePool {
 		this._showGoalsLines = !this._showGoalsLines;
 	}
 
+	toggleShowPerception() {
+		this._showPerception = !this._showPerception;
+	}
+
 	// shift any food bit that maye be overlapping with any obstacle... (previously inner function)
 	_moveFoodBitsFromObstacle() {
 		for (let f = 0; f < MAX_FOODBITS; f++) {
@@ -1845,6 +1852,19 @@ class GenePool {
 				this._canvas.beginPath();
 				this._canvas.moveTo(p1.x, p1.y);
 				this._canvas.lineTo(p2.x, p2.y);
+				this._canvas.stroke();
+			}
+		}
+
+		// draw perception circle for the selected swimbot
+		if (this._showPerception && this._selectedSwimbot !== NULL_INDEX) {
+			let sb = this._swimbots[this._selectedSwimbot];
+			if (sb.getAlive() && this._camera.getWithinView(sb.getPosition(), SWIMBOT_VIEW_RADIUS)) {
+				let pos = sb.getPosition();
+				this._canvas.lineWidth = 1;
+				this._canvas.strokeStyle = "rgba(200, 200, 255, 0.25)";
+				this._canvas.beginPath();
+				this._canvas.arc(pos.x, pos.y, SWIMBOT_VIEW_RADIUS, 0, PI2, false);
 				this._canvas.stroke();
 			}
 		}

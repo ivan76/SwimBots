@@ -826,6 +826,14 @@ body
     color: #000000; 
 }
 
+#showPerceptionButton
+{
+    left:       10px;
+    top:        205px;
+    width:      120px;
+    font-size: 11;
+}
+
 #zapSwimbotButton
 {
     left:       10px;
