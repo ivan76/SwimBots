@@ -978,11 +978,6 @@ function attachEventListeners() {
 		}
 	});
 
-	// Family tree
-	$('familyTreeButton').addEventListener('click', function() {
-		printFamilyTree();
-	});
-
 	// Pool save / load
 	$('saveButton').addEventListener('click', requestToSavePool);
 	$('loadButton').addEventListener('click', function() {

@@ -745,16 +745,8 @@ body
     position: absolute; 
     right: 100; 
     top:   100;
-    width: 200; 
-    height: 100;    
-}
-
-#familyTreeButton
-{
-    position: absolute; 
-    left: 0;
-    bottom: 10;
-    width: 200; 
+    width: 200;
+    height: 100;
 }
 
 /*  graph panel */

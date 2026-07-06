@@ -83,7 +83,6 @@ class GenePool {
 		this._previousTime = ZERO;
 		this._frameRate = ZERO;
 		this._debugTrail = Array(TRAIL_LENGTH);
-		this._familyTree = new FamilyTree();
 		this._spatialGrid = new SpatialHashGrid(200); // cell size of 200 pixels
 		this._panningLeft = false;
 		this._panningRight = false;
@@ -252,9 +251,6 @@ class GenePool {
 
 		// reset view control
 		this._viewTracking.reset();
-
-		// reset family tree
-		this._familyTree.reset();
 
 		// reset food place mode
 		this._foodPlaceMode = NULL_INDEX;
@@ -486,9 +482,6 @@ class GenePool {
 
 			// create the swimbot
 			this._swimbots[i].create(i, YOUNG_AGE_DURATION, initialPosition, initialAngle, initialEnergy, this._myGenotype, this._embryology);
-
-			// add the new swimbot to the family tree
-			this._familyTree.addNode(i, NULL_INDEX, NULL_INDEX, this._clock, this.getSwimbotGenes(i));
 		}
 
 		// initialize obstacles
@@ -855,7 +848,6 @@ class GenePool {
 
 	notifySwimbotDeathTime(deceasedSwimbotIndex) {
 		assert(deceasedSwimbotIndex != NULL_INDEX, "GenePool.js: this.notifySwimbotDeathTime: deceasedSwimbotIndex != NULL_INDEX")
-		this._familyTree.setDeathTime(deceasedSwimbotIndex, this._clock);
 		eventBus.emit('SWIMBOT_DIED', { index: deceasedSwimbotIndex, clock: this._clock });
 	}
 
@@ -1081,9 +1073,6 @@ class GenePool {
 								// create the child swimbot
 								let initialAngle = getRandomAngleInDegrees();
 								this._swimbots[newBornSwimbotIndex].create(newBornSwimbotIndex, 0, this._vectorUtility, initialAngle, energyToOffspring, this._childGenotype, this._embryology)
-
-								// add the new swimbot to the family tree
-								this._familyTree.addNode(newBornSwimbotIndex, s, chosenMateIndex, this._clock, this.getSwimbotGenes(newBornSwimbotIndex));
 
 								eventBus.emit('SWIMBOT_BORN', { index: newBornSwimbotIndex, clock: this._clock });
 							} // if (getJunkDnaDistance(_myGenotype, _mateGenotype) > NON_REPRODUCING_JUNK_DNA_LIMIT)
@@ -1437,9 +1426,6 @@ class GenePool {
 
 		this._swimbots[index].create(index, initialAge, this._camera.getPosition(), initialAngle, initialEnergy, this._myGenotype, this._embryology);
 
-		// add the new swimbot to the family tree
-		this._familyTree.addNode(index, NULL_INDEX, NULL_INDEX, this._clock, this.getSwimbotGenes(index));
-
 		this._setSelectedSwimbot(index);
 	}
 
@@ -1471,9 +1457,6 @@ class GenePool {
 			this._swimbots[s].die();
 		}
 
-		// reset family tree array
-		this._familyTree.reset();
-
 		// create the swimbots
 		for (let s = 0; s < data.numSwimbots; s++) {
 			let id = data.swimbotArray[s].id;
@@ -1494,8 +1477,6 @@ class GenePool {
 				this._embryology
 			);
 
-			// add the new swimbot to the family tree
-			this._familyTree.addNode(id, NULL_INDEX, NULL_INDEX, this._clock, this.getSwimbotGenes(id));
 		}
 
 		// camera
@@ -1584,9 +1565,6 @@ class GenePool {
 
 			this._swimbots[index].create(index, initialAge, this._camera.getPosition(), initialAngle, initialEnergy, this._myGenotype, this._embryology);
 
-			// add the new swimbot to the family tree
-			this._familyTree.addNode(index, NULL_INDEX, NULL_INDEX, this._clock, this.getSwimbotGenes(index));
-
 			this._setSelectedSwimbot(index)
 		} else {
 			// cannot make random swimbot
@@ -1628,9 +1606,6 @@ class GenePool {
 			this._swimbots[ID].setPosition(p);
 			this._swimbots[ID].setEnergy(initialEnergy); // the clonee and the cloned keep the same initial energy
 			this._swimbots[index].create(index, initialAge, initialPosition, initialAngle, initialEnergy, genotype, this._embryology);
-
-			// add the new swimbot to the family tree
-			this._familyTree.addNode(index, NULL_INDEX, NULL_INDEX, this._clock, this.getSwimbotGenes(index));
 
 			this._setSelectedSwimbot(index)
 		}
@@ -2431,10 +2406,6 @@ class GenePool {
 	getSwimbotGenes(ID) {
 		let genotype = this._swimbots[ID].getGenotype();
 		return genotype.getGenes();
-	}
-
-	getFamilyTree() {
-		return this._familyTree;
 	}
 
 	getAttraction() {

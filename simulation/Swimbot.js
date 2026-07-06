@@ -323,7 +323,6 @@ class Swimbot {
         this._alive = false;
 
         if (this._index != NULL_INDEX) {
-            // this is used for updating the FamilyTree
             this._parent.notifySwimbotDeathTime(this._index);
         }
     }

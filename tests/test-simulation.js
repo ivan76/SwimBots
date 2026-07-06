@@ -1,12 +1,12 @@
 "use strict";
 
 /*
- * Tests for the main simulation system (GenePool, FamilyTree, ViewTracking, Pool, Obstacle).
+ * Tests for the main simulation system (GenePool, ViewTracking, Pool, Obstacle).
  *
  * Required script load order (in test.html):
  *   MathConstants.js, Parameters.js, Utility.js, Vector2D.js, ObjectPool.js, SpatialHashGrid.js,
  *   SwimbotTypes.js, Genotype.js, Embryology.js, Brain.js, SwimbotRenderer.js, Swimbot.js,
- *   Touch.js, ViewTracking.js, FamilyTree.js, Obstacle.js, FoodBit.js,
+ *   Touch.js, ViewTracking.js, Obstacle.js, FoodBit.js,
  *   Pool.js, Camera.js, GenePool.js, EventBus.js
  *   test-runner.js, test-simulation.js
  */
@@ -257,13 +257,6 @@ describe("GenePool — metadata and getters", function () {
         assertTrue(name.length > 0);
     });
 
-    it("should return family tree instance", function () {
-        var pool = new GenePool();
-        var ft = pool.getFamilyTree();
-        assertNotNull(ft);
-        assertType("object", ft);
-    });
-
     it("should return pool data as object", function () {
         var pool = new GenePool();
         var fakeCtx = { fillRect: function () { }, fillStyle: "", fillText: function () { }, stroke: function () { }, strokeStyle: "", beginPath: function () { }, arc: function () { }, closePath: function () { }, lineWidth: 1, lineCap: "", save: function () { }, restore: function () { }, translate: function () { }, rotate: function () { }, scale: function () { }, moveTo: function () { }, lineTo: function () { }, bezierCurveTo: function () { }, clip: function () { }, measureText: function () { return { width: 0 }; } };
@@ -281,75 +274,6 @@ describe("GenePool — metadata and getters", function () {
         var genes = pool.getPresetGenotype(0); // Darwin
         assertNotNull(genes);
         assertArrayLength(NUM_GENES, genes);
-    });
-});
-
-// ---------------------------------------------------------------------------
-// FamilyTree
-// ---------------------------------------------------------------------------
-
-describe("FamilyTree", function () {
-    it("should create with 0 nodes", function () {
-        var tree = new FamilyTree();
-        assertEquals(0, tree.getNumNodes());
-    });
-
-    it("should add and retrieve a node", function () {
-        var tree = new FamilyTree();
-        var genes = [];
-        for (var g = 0; g < NUM_GENES; g++) genes[g] = g % 256;
-        tree.addNode(42, NULL_INDEX, NULL_INDEX, 100, genes);
-
-        assertEquals(1, tree.getNumNodes());
-        assertEquals(42, tree.getNodePoolIndex(0));
-        assertEquals(100, tree.getNodeBirthTime(0));
-        assertEquals(0, tree.getNodeDeathTime(0));
-        assertNotNull(tree.getNodeGenes(0));
-    });
-
-    it("should set and get death time", function () {
-        var tree = new FamilyTree();
-        var genes = [];
-        for (var g = 0; g < NUM_GENES; g++) genes[g] = 0;
-        tree.addNode(5, NULL_INDEX, NULL_INDEX, 50, genes);
-        tree.setDeathTime(5, 200);
-        assertEquals(200, tree.getNodeDeathTime(0));
-    });
-
-    it("should reset all nodes", function () {
-        var tree = new FamilyTree();
-        var genes = [];
-        for (var g = 0; g < NUM_GENES; g++) genes[g] = 0;
-        tree.addNode(1, NULL_INDEX, NULL_INDEX, 10, genes);
-        tree.addNode(2, NULL_INDEX, NULL_INDEX, 20, genes);
-        assertEquals(2, tree.getNumNodes());
-        tree.reset();
-        assertEquals(0, tree.getNumNodes());
-    });
-
-    it("should enforce MAX_FAMILY_TREE_NODES limit with eviction", function () {
-        var tree = new FamilyTree();
-        var genes = [];
-        for (var g = 0; g < NUM_GENES; g++) genes[g] = 0;
-
-        // Add nodes up to the limit
-        for (var i = 0; i < MAX_FAMILY_TREE_NODES + 100; i++) {
-            tree.addNode(i, NULL_INDEX, NULL_INDEX, i, genes);
-        }
-
-        // Should not exceed MAX_FAMILY_TREE_NODES
-        assertTrue(tree.getNumNodes() <= MAX_FAMILY_TREE_NODES, "nodes should not exceed limit: " + tree.getNumNodes());
-    });
-
-    it("should return parent indices", function () {
-        var tree = new FamilyTree();
-        var genes = [];
-        for (var g = 0; g < NUM_GENES; g++) genes[g] = 0;
-        tree.addNode(1, NULL_INDEX, NULL_INDEX, 0, genes);
-        tree.addNode(2, 1, NULL_INDEX, 1, genes);
-
-        assertEquals(NULL_INDEX, tree.getNodeParent1PoolIndex(0));
-        assertEquals(1, tree.getNodeParent1PoolIndex(1));
     });
 });
 
