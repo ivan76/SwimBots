@@ -3,6 +3,7 @@ body
     background-color: #889088;
 }
 
+
 /* classes */
 .basicPanel
 { 
@@ -122,10 +123,8 @@ body
 {
     position: absolute; 
     left: 50;     
-
     width: 100;
     height: 30;
-
 }
 
 .geneTweakerName
@@ -239,7 +238,6 @@ body
     flex-direction: column;
 }
 
-/* view panel */
 #viewPanel
 {
     position: absolute; 
@@ -474,29 +472,17 @@ body
     left: 148;
 }
 
-#menuGraphButton
+#menuInfoButton
 {
     left: 222;
 }
 
-#menuInfoButton
-{
-    left: 296;
-}
-
-/* main panel */
 #mainPanel
 {
     left:   0px; 
     top:    229px; 
     width:  465px; 
     height: 450px;
-}
-
-/* pool panel */
-#poolPanel
-{
-/* inherits from menuPanel*/
 }
 
 #poolSettingsTitle
@@ -834,7 +820,6 @@ body
     width:      120px;
 }
 
-/*  tweak genes panel */
 #tweakGenesPanel
 {
     visibility: hidden;       
@@ -850,13 +835,11 @@ body
 #closeTweakGenesPanel
 {
     visibility: hidden;       
-    /*position: absolute; */
     right: 15; 
     top: 15;
     width: 30; 
     height: 30;    
     z-index: 3;
-    
 }
 
 #tweakGenesTitle
@@ -959,12 +942,6 @@ body
     top:  335;
 }
 
-/* tweak panel */
-#tweakPanel
-{
-    /* inherits from menuPanel*/
-}
-
 #ecosystemPanel
 {
     position:   absolute; 
@@ -999,7 +976,6 @@ body
     font-size: 12;       
 }
 
-/* attraction */
 #attractionPanel
 {
     position:   absolute;
@@ -1009,7 +985,6 @@ body
     height:     200px;
 }
 
-/* radio buttons for attraction */
 #radioColorful, #radioBig, #radioHyper, #radioLong, #radioStraight, #radioClosest, #radioRandom
 {
     position: absolute; 
@@ -1115,7 +1090,6 @@ body
 #closestLabel
 { top: 150; }
 
-/* popup panel */
 #popUpPanel
 {
     font-family: "Arial";
@@ -1145,12 +1119,11 @@ body
     height: 30;    
 }
 
-/* render */
 #noRenderPanel
 {
     right:          17px;
     top:             42px;
-    width:          317px; 
+    width:          440px; 
     height:         105px;
     padding-top:     20px;
     padding-right:   20px;
@@ -1159,12 +1132,6 @@ body
     font-size:      12px;
     visibility:     hidden;
     z-index: 2;
-}
-
-/* info panel */
-#infoPanel
-{
-/* inherits from menuPanel*/
 }
 
 #prevInfoButton
@@ -1203,7 +1170,6 @@ body
     width: 320;
 }
 
-/* data display panel */
 #dataDisplay
 {
     font-size: 14;
@@ -1223,7 +1189,6 @@ body
 #closeDataDisplay
 {
     visibility: hidden;       
-    /* position: absolute; */ 
     right: 205; 
     top: 105;
     width: 30; 
@@ -1241,35 +1206,6 @@ body
     height: 25;    
 }
 
-/* donate panel */
-#donatePanel
-{
-    /*
-    position: absolute; 
-    left: 270; 
-    top: 460; 
-    width: 130; 
-    height: 40; 
-    */
-}
-
-#donateButton
-{
-    position: absolute; 
-    left: 270; 
-    top: 460; 
-    width:  90px; 
-    height: 25px;
-}
-
-#donateHeart
-{
-    position: absolute; 
-    left: 105; 
-    top: 6; 
-}
-
-/* contact panel */
 #contactPanel
 {
     color: #000000;
@@ -1283,7 +1219,6 @@ body
 }
 
 /* ---- Graph Panel (standalone, fixed, draggable, resizable, collapsible) ---- */
-
 #graphPanel
 {
     position: fixed;
