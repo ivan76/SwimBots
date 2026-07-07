@@ -49,11 +49,37 @@ function Graph() {
 	// Whether food speciation is enabled (2 types vs 1 type)
 	let _foodSpeciationEnabled = false;
 
+	// Samples per tick: how many buffer entries to write per clock tick
+	let _samplesPerTick = 1;
+
+	// Previous values for interpolation when writing multiple samples per tick
+	let _prevClock = 0;
+	let _prevNumSwimbots = 0;
+	let _prevNumGreenPref = 0;
+	let _prevNumBluePref = 0;
+	let _prevNumFoodBits0 = 0;
+	let _prevNumFoodBits1 = 0;
+
+	// Latest values for legend rendering
+	let _latestClock = 0;
+	let _latestNumSwimbots = 0;
+	let _latestNumGreenPref = 0;
+	let _latestNumBluePref = 0;
+	let _latestNumFoodBits0 = 0;
+	let _latestNumFoodBits1 = 0;
+
 	this.initialize = function() {
 		_currentCount = 0;
 		_maxGraphCount = 20;
 		_writeIndex = 0;
 		_foodSpeciationEnabled = false;
+		_samplesPerTick = 1;
+		_prevClock = 0;
+		_prevNumSwimbots = 0;
+		_prevNumGreenPref = 0;
+		_prevNumBluePref = 0;
+		_prevNumFoodBits0 = 0;
+		_prevNumFoodBits1 = 0;
 
 		// Pre-allocate to maximum capacity — avoids reallocation during warmup
 		_time = new Array(GRAPH_CAPACITY);
@@ -67,8 +93,14 @@ function Graph() {
 		_graphContext = _graphCanvas.getContext('2d');
 	}
 
+	this.setSamplesPerTick = function(n) {
+		_samplesPerTick = Math.max(1, Math.min(50, n));
+	}
+
 	/**
 	 * Update graph data.
+	 * Writes _samplesPerTick interpolated entries per call.
+	 * No-op if clock has not advanced (simulation frozen).
 	 * @param {number} time - current time step
 	 * @param {number} numSwimbots - total alive swimbots
 	 * @param {number} numGreenPref - swimbots preferring green food
@@ -78,27 +110,63 @@ function Graph() {
 	 * @param {boolean} foodSpeciationEnabled - whether food speciation is active
 	 */
 	this.update = function(time, numSwimbots, numGreenPref, numBluePref, numFoodBits0, numFoodBits1, foodSpeciationEnabled) {
+		_foodSpeciationEnabled = !!foodSpeciationEnabled;
+
+		// Skip if clock has not advanced (simulation frozen or paused)
+		if (_currentCount > 0 && time <= _prevClock) return;
+
 		if (_maxGraphCount < 1000) {
 			_maxGraphCount++;
 		}
 
-		_foodSpeciationEnabled = !!foodSpeciationEnabled;
+		var totalSamples = _samplesPerTick;
+		if (totalSamples < 1) totalSamples = 1;
 
-		// Write at the current circular index
-		_time[_writeIndex] = time;
-		_numSwimbots[_writeIndex] = numSwimbots;
-		_numGreenPref[_writeIndex] = numGreenPref;
-		_numBluePref[_writeIndex] = numBluePref;
-		_numFoodBits0[_writeIndex] = numFoodBits0;
-		_numFoodBits1[_writeIndex] = numFoodBits1;
+		for (var s = 0; s < totalSamples; s++) {
+			// When totalSamples == 1, write the current values directly (original behavior).
+			// When totalSamples > 1, interpolate evenly from previous to current,
+			// with the last sample landing exactly on the current values.
+			var t = totalSamples > 1 ? s / (totalSamples - 1) : 1;
 
-		// Advance the write pointer (circular)
-		_writeIndex = (_writeIndex + 1) % GRAPH_CAPACITY;
+			var iTime = _prevClock + Math.round((time - _prevClock) * t);
+			var iSwim = _prevNumSwimbots + (numSwimbots - _prevNumSwimbots) * t;
+			var iGreen = _prevNumGreenPref + (numGreenPref - _prevNumGreenPref) * t;
+			var iBlue = _prevNumBluePref + (numBluePref - _prevNumBluePref) * t;
+			var iFood0 = _prevNumFoodBits0 + (numFoodBits0 - _prevNumFoodBits0) * t;
+			var iFood1 = _prevNumFoodBits1 + (numFoodBits1 - _prevNumFoodBits1) * t;
 
-		// Track how many entries we have filled
-		if (_currentCount < _maxGraphCount) {
-			_currentCount++;
+			// Write at the current circular index
+			_time[_writeIndex] = iTime;
+			_numSwimbots[_writeIndex] = iSwim;
+			_numGreenPref[_writeIndex] = iGreen;
+			_numBluePref[_writeIndex] = iBlue;
+			_numFoodBits0[_writeIndex] = iFood0;
+			_numFoodBits1[_writeIndex] = iFood1;
+
+			// Advance the write pointer (circular)
+			_writeIndex = (_writeIndex + 1) % GRAPH_CAPACITY;
+
+			// Track how many entries we have filled
+			if (_currentCount < _maxGraphCount) {
+				_currentCount++;
+			}
 		}
+
+		// Update previous values for next interpolation
+		_prevClock = time;
+		_prevNumSwimbots = numSwimbots;
+		_prevNumGreenPref = numGreenPref;
+		_prevNumBluePref = numBluePref;
+		_prevNumFoodBits0 = numFoodBits0;
+		_prevNumFoodBits1 = numFoodBits1;
+
+		// Store latest values for legend
+		_latestClock = time;
+		_latestNumSwimbots = numSwimbots;
+		_latestNumGreenPref = numGreenPref;
+		_latestNumBluePref = numBluePref;
+		_latestNumFoodBits0 = numFoodBits0;
+		_latestNumFoodBits1 = numFoodBits1;
 	}
 
 	this.clear = function() {
@@ -153,7 +221,7 @@ function Graph() {
 		// render the actual graph
 		this.renderPopulationLines();
 
-		// show legend
+		// show legend + X-axis labels
 		if (_currentCount > 1) {
 			let left = _graphLeft + 30;
 
@@ -166,71 +234,115 @@ function Graph() {
 			graphCanvas.fillText("500", left, _level0500 + 8);
 			graphCanvas.fillText("1000", left, _level1000 + 18);
 
+			// X-axis clock labels (bottom of the graph area)
+			if (_currentCount >= 2) {
+				graphCanvas.font = "12px Arial";
+				graphCanvas.fillStyle = "rgb(80, 80, 80)";
+
+				var startIdx = _idx(0);
+				var endIdx = _idx(_currentCount - 1);
+				var startClock = _time[startIdx] || 0;
+				var endClock = _time[endIdx] || 0;
+
+				graphCanvas.fillText(
+					Math.floor(startClock).toString(),
+					_graphLeft + 4,
+					_graphBottom + 14
+				);
+				graphCanvas.fillText(
+					Math.floor(endClock).toString(),
+					_graphRight - 40,
+					_graphBottom + 14
+				);
+			}
+
+			// Legend: colored line + text label, aligned on the canvas
+			let legendX1 = left + 10;
+			let legendX2 = left + 130;
+			let legendTextX = legendX2 + 10;
+
 			if (_foodSpeciationEnabled) {
 				// --- Food speciation ON: 4 entries ---
-				let greenPrefY = _bottom - GRAPH_BOTTOM_MARGIN + 50;
-				let bluePrefY = _bottom - GRAPH_BOTTOM_MARGIN + 67;
-				let foodGreenY = _bottom - GRAPH_BOTTOM_MARGIN + 84;
-				let foodBlueY = _bottom - GRAPH_BOTTOM_MARGIN + 101;
+				let y0 = _bottom - GRAPH_BOTTOM_MARGIN + 50;
+				let y1 = _bottom - GRAPH_BOTTOM_MARGIN + 70;
+				let y2 = _bottom - GRAPH_BOTTOM_MARGIN + 90;
+				let y3 = _bottom - GRAPH_BOTTOM_MARGIN + 110;
 
-				// legend — green pref swimbots (magenta)
 				graphCanvas.lineWidth = 2;
+
+				// green pref swimbots (magenta)
 				graphCanvas.strokeStyle = GRAPH_GREEN_PREF_COLOR;
 				graphCanvas.beginPath();
-				graphCanvas.moveTo(left + 140, greenPrefY);
-				graphCanvas.lineTo(left + 250, greenPrefY);
+				graphCanvas.moveTo(legendX1, y0);
+				graphCanvas.lineTo(legendX2, y0);
 				graphCanvas.stroke();
 				graphCanvas.closePath();
+				graphCanvas.fillStyle = GRAPH_GREEN_PREF_COLOR;
+				graphCanvas.font = "12px Arial";
+				graphCanvas.fillText("green pref: " + Math.round(_latestNumGreenPref), legendTextX, y0 + 5);
 
-				// legend — blue pref swimbots (dark blue)
-				graphCanvas.lineWidth = 2;
+				// blue pref swimbots (dark blue)
 				graphCanvas.strokeStyle = GRAPH_BLUE_PREF_COLOR;
 				graphCanvas.beginPath();
-				graphCanvas.moveTo(left + 140, bluePrefY);
-				graphCanvas.lineTo(left + 250, bluePrefY);
+				graphCanvas.moveTo(legendX1, y1);
+				graphCanvas.lineTo(legendX2, y1);
 				graphCanvas.stroke();
 				graphCanvas.closePath();
+				graphCanvas.fillStyle = GRAPH_BLUE_PREF_COLOR;
+				graphCanvas.fillText("blue pref: " + Math.round(_latestNumBluePref), legendTextX, y1 + 5);
 
-				// legend — green food bits (green)
-				graphCanvas.lineWidth = 2;
+				// green food bits (green)
 				graphCanvas.strokeStyle = GRAPH_FOODBIT_COLOR;
 				graphCanvas.beginPath();
-				graphCanvas.moveTo(left + 140, foodGreenY);
-				graphCanvas.lineTo(left + 250, foodGreenY);
+				graphCanvas.moveTo(legendX1, y2);
+				graphCanvas.lineTo(legendX2, y2);
 				graphCanvas.stroke();
 				graphCanvas.closePath();
+				graphCanvas.fillStyle = GRAPH_FOODBIT_COLOR;
+				graphCanvas.fillText("food green: " + Math.round(_latestNumFoodBits0), legendTextX, y2 + 5);
 
-				// legend — blue food bits (blue)
-				graphCanvas.lineWidth = 2;
+				// blue food bits (blue)
 				graphCanvas.strokeStyle = GRAPH_FOODBIT_1_COLOR;
 				graphCanvas.beginPath();
-				graphCanvas.moveTo(left + 140, foodBlueY);
-				graphCanvas.lineTo(left + 250, foodBlueY);
+				graphCanvas.moveTo(legendX1, y3);
+				graphCanvas.lineTo(legendX2, y3);
 				graphCanvas.stroke();
 				graphCanvas.closePath();
+				graphCanvas.fillStyle = GRAPH_FOODBIT_1_COLOR;
+				graphCanvas.fillText("food blue: " + Math.round(_latestNumFoodBits1), legendTextX, y3 + 5);
 			} else {
 				// --- Food speciation OFF: 2 entries ---
-				let swimbotY = _bottom - GRAPH_BOTTOM_MARGIN + 50;
-				let foodbitY = _bottom - GRAPH_BOTTOM_MARGIN + 67;
+				let y0 = _bottom - GRAPH_BOTTOM_MARGIN + 50;
+				let y1 = _bottom - GRAPH_BOTTOM_MARGIN + 70;
 
-				// legend — swimbots (orange)
 				graphCanvas.lineWidth = 2;
+
+				// swimbots (orange)
 				graphCanvas.strokeStyle = GRAPH_SWIMBOT_COLOR;
 				graphCanvas.beginPath();
-				graphCanvas.moveTo(left + 140, swimbotY);
-				graphCanvas.lineTo(left + 250, swimbotY);
+				graphCanvas.moveTo(legendX1, y0);
+				graphCanvas.lineTo(legendX2, y0);
 				graphCanvas.stroke();
 				graphCanvas.closePath();
+				graphCanvas.fillStyle = GRAPH_SWIMBOT_COLOR;
+				graphCanvas.font = "12px Arial";
+				graphCanvas.fillText("swimbots: " + Math.round(_latestNumSwimbots), legendTextX, y0 + 5);
 
-				// legend — food bits (green)
-				graphCanvas.lineWidth = 2;
+				// food bits (green)
 				graphCanvas.strokeStyle = GRAPH_FOODBIT_COLOR;
 				graphCanvas.beginPath();
-				graphCanvas.moveTo(left + 140, foodbitY);
-				graphCanvas.lineTo(left + 250, foodbitY);
+				graphCanvas.moveTo(legendX1, y1);
+				graphCanvas.lineTo(legendX2, y1);
 				graphCanvas.stroke();
 				graphCanvas.closePath();
+				graphCanvas.fillStyle = GRAPH_FOODBIT_COLOR;
+				graphCanvas.fillText("food bits: " + Math.round(_latestNumFoodBits0), legendTextX, y1 + 5);
 			}
+
+			// Time step label
+			graphCanvas.fillStyle = "rgb(80, 80, 80)";
+			graphCanvas.font = "12px Arial";
+			graphCanvas.fillText("time step: " + Math.floor(_latestClock), _graphLeft + 4, _bottom - GRAPH_BOTTOM_MARGIN + 20);
 		}
 	}
 
@@ -242,18 +354,26 @@ function Graph() {
 	this.renderPopulationLines = function() {
 		let graphCanvas = _graphContext;
 
-		let xInc = _width / (_maxGraphCount);
+		if (_currentCount < 2) return;
 
 		graphCanvas.lineWidth = 1.0;
 
-		for (let g = 1; g < _currentCount; g++) {
-			let xFraction = (g - 1) / _maxGraphCount;
-			let x1 = _graphLeft + xFraction * _graphWidth;
-			let x2 = x1 + xInc;
+		// Compute clock range of visible data for X-axis scaling
+		var startClock = _time[_idx(0)];
+		var endClock = _time[_idx(_currentCount - 1)];
+		var clockRange = endClock - startClock;
+		if (clockRange < 1) clockRange = 1;
 
+		for (var g = 1; g < _currentCount; g++) {
 			// Resolve circular indices for previous and current data points
 			let iPrev = _idx(g - 1);
 			let iCurr = _idx(g);
+
+			// Position X based on actual clock values, not index
+			let clockPrev = _time[iPrev];
+			let clockCurr = _time[iCurr];
+			let x1 = _graphLeft + ((clockPrev - startClock) / clockRange) * _graphWidth;
+			let x2 = _graphLeft + ((clockCurr - startClock) / clockRange) * _graphWidth;
 
 			let swimbotY2 = _graphBottom - (_numSwimbots[iCurr] * RECIPROCAL_OF_MAX_POP) * _graphHeight;
 			let greenPrefY2 = _graphBottom - (_numGreenPref[iCurr] * RECIPROCAL_OF_MAX_POP) * _graphHeight;

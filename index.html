@@ -108,8 +108,7 @@
 			<button id="menuPoolButton" class="basicButton" data-panel="menuPoolButton">pool</button>
 			<button id="menuSwimbotButton" class="basicButton" data-panel="menuSwimbotButton">swimbot</button>
 			<button id="menuTweakButton" class="basicButton" data-panel="menuTweakButton">tweak</button>
-			<button id="menuGraphButton" class="basicButton" data-panel="menuGraphButton">graph</button>
-			<button id="menuInfoButton" class="basicButton" data-panel="menuInfoButton">info</button>
+			<button id="menuInfoButton" class="basicButton" data-panel="menuInfoButton" style="left: 220;">info</button>
 		</div>
 		<div id="mainPanel" class="basicPanel">
 			<div id="tweakPanel" class="menuPanel">
@@ -191,13 +190,6 @@
 				</div>
 			</div>
 
-			<div id="graphPanel" class="menuPanel">
-				<div id="graphTitle" class="basicTitle">population graph</div>
-				<div id="graphData">(no data)</div>
-			</div>
-
-			<canvas id="graphCanvas" width="500" height="500"></canvas>
-
 			<div id="poolPanel" class="menuPanel">
 
 				<div id="startPoolTitle"> start a new pool with one of these presets... </div>
@@ -275,6 +267,22 @@
 				</font>
 			</div>
 		</div>
+	</div>
+
+	<!-- Graph panel: standalone, fixed, draggable, resizable, collapsible -->
+	<div id="graphPanel">
+		<div id="graphPanelHeader">
+			<span id="graphPanelTitle">population graph</span>
+			<button id="toggleGraphPanel">−</button>
+		</div>
+		<div id="graphPanelContent">
+			<canvas id="graphCanvas" width="500" height="500"></canvas>
+			<div id="samplesPerTickRow">
+				<label id="samplesPerTickLabel" for="samplesPerTickInput">samples/tick</label>
+				<input type="number" id="samplesPerTickInput" min="1" max="50" value="10">
+			</div>
+		</div>
+		<div id="graphPanelResize"></div>
 	</div>
 
 	<div id="popUpPanel">

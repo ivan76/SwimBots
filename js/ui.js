@@ -65,6 +65,7 @@ function initializeUI() {
 	attachEventListeners();
 
 	initFloatingPanel();
+	initGraphPanel();
 
 	// This starts an update loop that is called
 	// periodically to adjust UI states and stuff.
@@ -237,7 +238,6 @@ function updateEcosystemUI() {
 function closeAllPanels() {
 	$('poolPanel').style.visibility = 'hidden';
 	$('swimbotPanel').style.visibility = 'hidden';
-	$('graphPanel').style.visibility = 'hidden';
 	$('tweakPanel').style.visibility = 'hidden';
 	$('infoPanel').style.visibility = 'hidden';
 	$('infoText').style.visibility = 'hidden';
@@ -252,17 +252,13 @@ function closeAllPanels() {
 	$('menuSwimbotButton').style.top = 0;
 	$('menuTweakButton').style.top = 0;
 	$('menuInfoButton').style.top = 0;
-	$('menuGraphButton').style.top = 0;
 
 	$('menuPoolButton').style = "border-bottom-width: 3; border-bottom-left-radius: 4px; border-bottom-right-radius: 4px;"
 	$('menuSwimbotButton').style = "border-bottom-width: 3; border-bottom-left-radius: 4px; border-bottom-right-radius: 4px;"
 	$('menuTweakButton').style = "border-bottom-width: 3; border-bottom-left-radius: 4px; border-bottom-right-radius: 4px;"
 	$('menuInfoButton').style = "border-bottom-width: 3; border-bottom-left-radius: 4px; border-bottom-right-radius: 4px;"
-	$('menuGraphButton').style = "border-bottom-width: 3; border-bottom-left-radius: 4px; border-bottom-right-radius: 4px;"
 
 	closePopupPanel();
-
-	_graph.clear();
 }
 
 function openPanel(buttonID) {
@@ -278,8 +274,6 @@ function openPanel(buttonID) {
 		openTweakPanel(); }
 	if (buttonID === 'menuInfoButton') { panelID = 'infoPanel';
 		openInfoPanel(); }
-	if (buttonID === 'menuGraphButton') { panelID = 'graphPanel';
-		openGraphPanel() }
 
 	$(buttonID).style.backgroundColor = DEFAULT_BASIC_PANEL_COLOR;
 
@@ -289,10 +283,6 @@ function openPanel(buttonID) {
 function openPoolPanel() {
 	$('poolPanel').style.visibility = 'visible';
 	_updateFoodPlaceButtons();
-}
-
-function openGraphPanel() {
-	$('graphPanel').style.visibility = 'visible';
 }
 
 function openSwimbotPanel() {
@@ -781,25 +771,8 @@ function updateUI() {
 		state.numFoodTypes > 1
 	);
 
-	// render the graph....
-	if ($('graphPanel').style.visibility === 'visible') {
-		let speciationOn = state.numFoodTypes > 1;
-		let html = "time step: " + state.clock + "<br>";
-
-		if (speciationOn) {
-			html += "green pref: " + state.numSwimbotsPreferringType0 + "<br>" +
-				"blue pref: " + state.numSwimbotsPreferringType1 + "<br>" +
-				"food bits green: " + state.numFoodBits0 + "<br>" +
-				"food bits blue: " + state.numFoodBits1;
-		} else {
-			html += "swimbots: " + state.numSwimbots + "<br>" +
-				"food bits: " + state.numFoodBits0;
-		}
-
-		$('graphData').innerHTML = html;
-
-		_graph.render();
-	}
+	// render the graph (always, panel is standalone)
+	_graph.render();
 
 	// trigger next update... (throttled to UI_UPDATE_PERIOD via rAF)
 	_scheduleNextUIUpdate();
@@ -1049,6 +1022,13 @@ function attachEventListeners() {
 	$('closeDataDisplay').addEventListener('click', closeDataDisplay);
 	$('closeTweakGenesPanel').addEventListener('click', closeTweakGenesPanel);
 	$('noRenderPanel').addEventListener('click', function() { setRendering(true); });
+
+	// Graph controls
+	$('samplesPerTickInput').addEventListener('change', function() {
+		var val = parseInt(this.value);
+		if (isNaN(val)) val = 1;
+		_graph.setSamplesPerTick(val);
+	});
 }
 
 $('Canvas').onmousedown = function(e) {
@@ -1182,3 +1162,100 @@ function initFloatingPanel() {
 		document.removeEventListener("mouseup", closeDragElement);
 	}
 }
+
+//------------------------------
+/**
+ * Graph panel: drag & drop + expand / collapse + resize.
+ * Mirrors initFloatingPanel() for the master panel.
+ */
+function initGraphPanel() {
+	const panel = $("graphPanel");
+	const header = $("graphPanelHeader");
+	const content = $("graphPanelContent");
+	const toggleBtn = $("toggleGraphPanel");
+	const resizeHandle = $("graphPanelResize");
+	const canvas = $("graphCanvas");
+
+	if (!panel || !header || !content || !toggleBtn) return;
+
+	// 1. Expand / Collapse
+	let collapsed = false;
+	toggleBtn.addEventListener("click", function(e) {
+		e.stopPropagation();
+		collapsed = !collapsed;
+		if (collapsed) {
+			content.style.display = "none";
+			panel.style.minHeight = "0";
+			toggleBtn.innerText = "+";
+		} else {
+			content.style.display = "flex";
+			panel.style.minHeight = "";
+			toggleBtn.innerText = "−";
+		}
+	});
+
+	// 2. Drag & Drop
+	let dragOffsetX = 0, dragOffsetY = 0;
+
+	header.addEventListener("mousedown", function(e) {
+		if (e.target === toggleBtn) return;
+		e.preventDefault();
+		dragOffsetX = e.clientX - panel.offsetLeft;
+		dragOffsetY = e.clientY - panel.offsetTop;
+
+		// Switch from CSS `right` to explicit `left` so the drag math works cleanly.
+		panel.style.right = "auto";
+
+		document.addEventListener("mousemove", elementDrag);
+		document.addEventListener("mouseup", closeDragElement);
+	});
+
+	function elementDrag(e) {
+		e.preventDefault();
+		panel.style.left = (e.clientX - dragOffsetX) + "px";
+		panel.style.top = (e.clientY - dragOffsetY) + "px";
+	}
+
+	function closeDragElement() {
+		document.removeEventListener("mousemove", elementDrag);
+		document.removeEventListener("mouseup", closeDragElement);
+	}
+
+	// 3. Resize via bottom-right handle
+	var resizeStartX = 0, resizeStartY = 0, resizeStartW = 0, resizeStartH = 0;
+
+	if (resizeHandle) {
+		resizeHandle.addEventListener("mousedown", function(e) {
+			e.preventDefault();
+			e.stopPropagation();
+			resizeStartX = e.clientX;
+			resizeStartY = e.clientY;
+			resizeStartW = panel.offsetWidth;
+			resizeStartH = panel.offsetHeight;
+			document.addEventListener("mousemove", onResize);
+			document.addEventListener("mouseup", onResizeEnd);
+		});
+
+		function onResize(e) {
+			e.preventDefault();
+			var dx = e.clientX - resizeStartX;
+			var dy = e.clientY - resizeStartY;
+			var newW = Math.max(300, resizeStartW + dx);
+			var newH = Math.max(200, resizeStartH + dy);
+			panel.style.width = newW + "px";
+			panel.style.height = newH + "px";
+
+			// Resize the canvas to fit the new panel width
+			var canvasNewW = Math.max(200, newW - 20); // 20px padding
+			canvas.width = canvasNewW;
+			canvas.style.width = canvasNewW + "px";
+		}
+
+		function onResizeEnd() {
+			document.removeEventListener("mousemove", onResize);
+			document.removeEventListener("mouseup", onResizeEnd);
+		}
+	}
+}
+
+//------------------------------
