@@ -1221,17 +1221,15 @@ function initGraphPanel() {
 		document.removeEventListener("mouseup", closeDragElement);
 	}
 
-	// 3. Resize via bottom-right handle
-	var resizeStartX = 0, resizeStartY = 0, resizeStartW = 0, resizeStartH = 0;
+	// 3. Resize via bottom-right handle (width only)
+	var resizeStartX = 0, resizeStartW = 0;
 
 	if (resizeHandle) {
 		resizeHandle.addEventListener("mousedown", function(e) {
 			e.preventDefault();
 			e.stopPropagation();
 			resizeStartX = e.clientX;
-			resizeStartY = e.clientY;
 			resizeStartW = panel.offsetWidth;
-			resizeStartH = panel.offsetHeight;
 			document.addEventListener("mousemove", onResize);
 			document.addEventListener("mouseup", onResizeEnd);
 		});
@@ -1239,11 +1237,8 @@ function initGraphPanel() {
 		function onResize(e) {
 			e.preventDefault();
 			var dx = e.clientX - resizeStartX;
-			var dy = e.clientY - resizeStartY;
 			var newW = Math.max(300, resizeStartW + dx);
-			var newH = Math.max(200, resizeStartH + dy);
 			panel.style.width = newW + "px";
-			panel.style.height = newH + "px";
 
 			// Resize the canvas to fit the new panel width
 			var canvasNewW = Math.max(200, newW - 20); // 20px padding

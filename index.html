@@ -73,202 +73,202 @@
 		</div>
 
 		<div id="masterPanelContent">
-		<div id="viewPanel" class="basicPanel">
-			<div id="viewNavPanel">
+			<div id="viewPanel" class="basicPanel">
+				<div id="viewNavPanel">
 
-				<button id="leftNav" class="navigationButton"></button>
-				<button id="rightNav" class="navigationButton"></button>
-				<button id="downNav" class="navigationButton"></button>
-				<button id="upNav" class="navigationButton"></button>
-				<button id="inNav" class="navigationButton"></button>
-				<button id="outNav" class="navigationButton"></button>
-			</div>
+					<button id="leftNav" class="navigationButton"></button>
+					<button id="rightNav" class="navigationButton"></button>
+					<button id="downNav" class="navigationButton"></button>
+					<button id="upNav" class="navigationButton"></button>
+					<button id="inNav" class="navigationButton"></button>
+					<button id="outNav" class="navigationButton"></button>
+				</div>
 
-			<div id="viewTrackingPanel">
+				<div id="viewTrackingPanel">
 
-				<button id="viewWholePoolButton" class="basicButton" data-view-mode="WHOLE_POOL">whole pool</button>
-				<button id="viewAutoTrackButton" class="basicButton" data-view-mode="AUTOTRACK">autotracking</button>
-				<button id="viewSelectedButton" class="basicButton" data-view-mode="SELECTED">selected</button>
-				<button id="viewMutualButton" class="basicButton" data-view-mode="MUTUAL">mutual love</button>
-				<button id="viewProlificButton" class="basicButton" data-view-mode="PROLIFIC">most prolific</button>
-				<button id="viewEfficientButton" class="basicButton" data-view-mode="EFFICIENT">most efficient</button>
-				<button id="viewVirginButton" class="basicButton" data-view-mode="VIRGIN">oldest virgin</button>
-				<button id="viewGluttonButton" class="basicButton" data-view-mode="HUNGRY">glutton</button>
-			</div>
-			<div id="viewOptionsPanel">
-				<button id="viewGoalButton" class="basicButton">mouth/genital</button>
-				<button id="showGoalsButton" class="basicButton">show goals</button>
-				<button id="freezeButton" class="basicButton">freeze</button>
-				<button id="noRenderButton" class="basicButton">rendering OFF</button>
-				<button id="fastButton" class="basicButton">fastest</button>
-			</div>
-		</div>
-
-		<div id="menuButtonPanel">
-			<button id="menuPoolButton" class="basicButton" data-panel="menuPoolButton">pool</button>
-			<button id="menuSwimbotButton" class="basicButton" data-panel="menuSwimbotButton">swimbot</button>
-			<button id="menuTweakButton" class="basicButton" data-panel="menuTweakButton">tweak</button>
-			<button id="menuInfoButton" class="basicButton" data-panel="menuInfoButton" style="left: 220;">info</button>
-		</div>
-		<div id="mainPanel" class="basicPanel">
-			<div id="tweakPanel" class="menuPanel">
-				<input type="range" id="foodGrowthDelaySlider" class="EcoSlider" name="foodGrowthDelay" step=1 autocomplete="off">
-				<input type="number" id="foodGrowthDelayValue" class="EcoSliderValueDisplay" step=1 autocomplete="off">
-				<label id="foodGrowthDelayLabel" class="EcoSliderLabelDisplay" for="foodGrowthDelay">food growth delay</label>
-				<input type="range" id="foodSpreadSlider" class="EcoSlider" name="foodSpread" step=10 autocomplete="off">
-				<input type="number" id="foodSpreadValue" class="EcoSliderValueDisplay" step=10 autocomplete="off">
-				<label id="foodSpreadLabel" class="EcoSliderLabelDisplay" for="foodSpread">food spread</label>
-				<input type="range" id="foodBitEnergySlider" class="EcoSlider" name="foodBitEnergy" step=10 autocomplete="off">
-				<input type="number" id="foodBitEnergyValue" class="EcoSliderValueDisplay" step=10 autocomplete="off">
-				<label id="foodBitEnergyLabel" class="EcoSliderLabelDisplay" for="foodBitEnergy">food bit energy</label>
-				<input type="range" id="hungerThresholdSlider" class="EcoSlider" name="hungerThreshold" step=1 autocomplete="off">
-				<input type="number" id="hungerThresholdValue" class="EcoSliderValueDisplay" step=1 autocomplete="off">
-				<label id="hungerThresholdLabel" class="EcoSliderLabelDisplay" for="hungerThreshold">hunger threshold</label>
-				<input type="range" id="energyToOffspringSlider" class="EcoSlider" name="energyToOffspring" step=0.1 autocomplete="off">
-				<input type="number" id="energyToOffspringValue" class="EcoSliderValueDisplay" step=0.1 autocomplete="off">
-				<label id="energyToOffspringLabel" class="EcoSliderLabelDisplay" for="energyToOffspring"> offspring energy ratio</label>
-				<input type="range" id="maxAgeSlider" class="EcoSlider" name="maximumAge" step=0.1 autocomplete="off">
-				<input type="number" id="maxAgeValue" class="EcoSliderValueDisplay" step=0.1 autocomplete="off">
-				<label id="maxAgeLabel" class="EcoSliderLabelDisplay" for="maximumAge"> maximum age</label>
-				<input type="range" id="mutationRateSlider" class="EcoSlider" name="mutationRate" step=0.1 autocomplete="off">
-				<input type="number" id="mutationRateValue" class="EcoSliderValueDisplay" step=0.1 autocomplete="off">
-				<label id="mutationRateLabel" class="EcoSliderLabelDisplay" for="mutationRate"> mutation rate</label>
-				<button id="tweakDefaultButton" class="basicButton">reset to defaults</button>
-
-				<div id="attractionPanel">Swimbot mate preferences
-					<!-- colorful -->
-					<input type="radio" id="radioColorful" name="attractionRadioButton" value="colorful">
-					<label id="colorfulLabel" for="radioColorful">colorful</label>
-					<!-- big -->
-					<input type="radio" id="radioBig" name="attractionRadioButton" value="big">
-					<label id="bigLabel" for="radioBig">big</label>
-					<!-- hyper -->
-					<input type="radio" id="radioHyper" name="attractionRadioButton" value="hyper">
-					<label id="hyperLabel" for="radioHyper">hyper</label>
-					<!-- long -->
-					<input type="radio" id="radioLong" name="attractionRadioButton" value="long">
-					<label id="longLabel" for="radioLong">long</label>
-					<!-- straight -->
-					<input type="radio" id="radioStraight" name="attractionRadioButton" value="straight">
-					<label id="straightLabel" for="radioStraight">straight</label>
-					<!-- no color -->
-					<input type="radio" id="radioNoColor" name="attractionRadioButton" value="noColor">
-					<label id="noColorLabel" for="radioNoColor">not colorful</label>
-					<!-- small -->
-					<input type="radio" id="radioSmall" name="attractionRadioButton" value="small">
-					<label id="smallLabel" for="radioSmall">small</label>
-					<!-- still -->
-					<input type="radio" id="radioStill" name="attractionRadioButton" value="still">
-					<label id="stillLabel" for="radioStill">still</label>
-					<!-- short -->
-					<input type="radio" id="radioShort" name="attractionRadioButton" value="short">
-					<label id="shortLabel" for="radioShort">short</label>
-					<!-- crooked -->
-					<input type="radio" id="radioCrooked" name="attractionRadioButton" value="crooked">
-					<label id="crookedLabel" for="radioCrooked">crooked</label>
-					<!-- similar color -->
-					<input type="radio" id="radioSimilarColor" name="attractionRadioButton" value="similarColor">
-					<label id="similarColorLabel" for="radioSimilarColor">similar color</label>
-					<!-- similar size -->
-					<input type="radio" id="radioSimilarSize" name="attractionRadioButton" value="similarSize">
-					<label id="similarSizeLabel" for="radioSimilarSize">similar size</label>
-					<!-- similar hyper -->
-					<input type="radio" id="radioSimilarHyper" name="attractionRadioButton" value="similarHyper">
-					<label id="similarHyperLabel" for="radioSimilarHyper">similar hyper</label>
-					<!-- similar length -->
-					<input type="radio" id="radioSimilarLength" name="attractionRadioButton" value="similarLength">
-					<label id="similarLengthLabel" for="radioSimilarLength">similar length</label>
-					<!-- similar straight -->
-					<input type="radio" id="radioSimilarStraight" name="attractionRadioButton" value="similarStraight">
-					<label id="similarStraightLabel" for="radioStraightSize">similar straight</label>
-					<!-- closest -->
-					<input type="radio" id="radioClosest" name="attractionRadioButton" value="closest">
-					<label id="closestLabel" for="radioClosest">closest</label>
-					<!-- random -->
-					<input type="radio" id="radioRandom" name="attractionRadioButton" value="random">
-					<label id="randomLabel" for="radioRandom">random</label>
+					<button id="viewWholePoolButton" class="basicButton" data-view-mode="WHOLE_POOL">whole pool</button>
+					<button id="viewAutoTrackButton" class="basicButton" data-view-mode="AUTOTRACK">autotracking</button>
+					<button id="viewSelectedButton" class="basicButton" data-view-mode="SELECTED">selected</button>
+					<button id="viewMutualButton" class="basicButton" data-view-mode="MUTUAL">mutual love</button>
+					<button id="viewProlificButton" class="basicButton" data-view-mode="PROLIFIC">most prolific</button>
+					<button id="viewEfficientButton" class="basicButton" data-view-mode="EFFICIENT">most efficient</button>
+					<button id="viewVirginButton" class="basicButton" data-view-mode="VIRGIN">oldest virgin</button>
+					<button id="viewGluttonButton" class="basicButton" data-view-mode="HUNGRY">glutton</button>
+				</div>
+				<div id="viewOptionsPanel">
+					<button id="viewGoalButton" class="basicButton">mouth/genital</button>
+					<button id="showGoalsButton" class="basicButton">show goals</button>
+					<button id="freezeButton" class="basicButton">freeze</button>
+					<button id="noRenderButton" class="basicButton">rendering OFF</button>
+					<button id="fastButton" class="basicButton">fastest</button>
 				</div>
 			</div>
 
-			<div id="poolPanel" class="menuPanel">
+			<div id="menuButtonPanel">
+				<button id="menuPoolButton" class="basicButton" data-panel="menuPoolButton">pool</button>
+				<button id="menuSwimbotButton" class="basicButton" data-panel="menuSwimbotButton">swimbot</button>
+				<button id="menuTweakButton" class="basicButton" data-panel="menuTweakButton">tweak</button>
+				<button id="menuInfoButton" class="basicButton" data-panel="menuInfoButton" style="left: 220;">info</button>
+			</div>
+			<div id="mainPanel" class="basicPanel">
+				<div id="tweakPanel" class="menuPanel">
+					<input type="range" id="foodGrowthDelaySlider" class="EcoSlider" name="foodGrowthDelay" step=1 autocomplete="off">
+					<input type="number" id="foodGrowthDelayValue" class="EcoSliderValueDisplay" step=1 autocomplete="off">
+					<label id="foodGrowthDelayLabel" class="EcoSliderLabelDisplay" for="foodGrowthDelay">food growth delay</label>
+					<input type="range" id="foodSpreadSlider" class="EcoSlider" name="foodSpread" step=10 autocomplete="off">
+					<input type="number" id="foodSpreadValue" class="EcoSliderValueDisplay" step=10 autocomplete="off">
+					<label id="foodSpreadLabel" class="EcoSliderLabelDisplay" for="foodSpread">food spread</label>
+					<input type="range" id="foodBitEnergySlider" class="EcoSlider" name="foodBitEnergy" step=10 autocomplete="off">
+					<input type="number" id="foodBitEnergyValue" class="EcoSliderValueDisplay" step=10 autocomplete="off">
+					<label id="foodBitEnergyLabel" class="EcoSliderLabelDisplay" for="foodBitEnergy">food bit energy</label>
+					<input type="range" id="hungerThresholdSlider" class="EcoSlider" name="hungerThreshold" step=1 autocomplete="off">
+					<input type="number" id="hungerThresholdValue" class="EcoSliderValueDisplay" step=1 autocomplete="off">
+					<label id="hungerThresholdLabel" class="EcoSliderLabelDisplay" for="hungerThreshold">hunger threshold</label>
+					<input type="range" id="energyToOffspringSlider" class="EcoSlider" name="energyToOffspring" step=0.1 autocomplete="off">
+					<input type="number" id="energyToOffspringValue" class="EcoSliderValueDisplay" step=0.1 autocomplete="off">
+					<label id="energyToOffspringLabel" class="EcoSliderLabelDisplay" for="energyToOffspring"> offspring energy ratio</label>
+					<input type="range" id="maxAgeSlider" class="EcoSlider" name="maximumAge" step=0.1 autocomplete="off">
+					<input type="number" id="maxAgeValue" class="EcoSliderValueDisplay" step=0.1 autocomplete="off">
+					<label id="maxAgeLabel" class="EcoSliderLabelDisplay" for="maximumAge"> maximum age</label>
+					<input type="range" id="mutationRateSlider" class="EcoSlider" name="mutationRate" step=0.1 autocomplete="off">
+					<input type="number" id="mutationRateValue" class="EcoSliderValueDisplay" step=0.1 autocomplete="off">
+					<label id="mutationRateLabel" class="EcoSliderLabelDisplay" for="mutationRate"> mutation rate</label>
+					<button id="tweakDefaultButton" class="basicButton">reset to defaults</button>
 
-				<div id="startPoolTitle"> start a new pool with one of these presets... </div>
-				<button id="pool1Button" class="basicButton" data-pool-preset="RANDOM">random</button>
-				<button id="pool2Button" class="basicButton" data-pool-preset="NEIGHBORHOOD">neighborhoods</button>
-				<button id="pool3Button" class="basicButton" data-pool-preset="FROGGIES">froggies</button>
-				<button id="pool4Button" class="basicButton" data-pool-preset="SPECIES">**Speciation**</button>
-				<button id="pool5Button" class="basicButton" data-pool-preset="RACE">food race</button>
-				<button id="pool6Button" class="basicButton" data-pool-preset="BIG_BANG">big bang</button>
-				<label id="obstacleToggle" class="obstacleToggle"><input type="checkbox" id="obstacleCheckbox"> obstacle</label>
-				<button id="pool8Button" class="basicButton" data-pool-preset="EMPTY">end pool</button>
-
-				<button id="pool9Button" class="basicButton" data-pool-preset="TANGO">Tango</button>
-				<button id="pool10Button" class="basicButton" data-pool-preset="BAD_PARENTS">Bad parents</button>
-
-				<label id="foodSpeciationToggle" class="foodSpeciationToggle"><input type="checkbox" id="foodSpeciationCheckbox"> food speciation</label>
-				<button id="addFoodBitButton" class="basicButton">add foodbit</button>
-				<button id="addGreenFoodBitButton" class="basicButton" style="display:none">add green</button>
-				<button id="addBlueFoodBitButton" class="basicButton" style="display:none">add blue</button>
-				<div id="saveLoadPanel">
-					<div id="saveLoadTitle">
-						save the current pool or load one from file...
+					<div id="attractionPanel">Swimbot mate preferences
+						<!-- colorful -->
+						<input type="radio" id="radioColorful" name="attractionRadioButton" value="colorful">
+						<label id="colorfulLabel" for="radioColorful">colorful</label>
+						<!-- big -->
+						<input type="radio" id="radioBig" name="attractionRadioButton" value="big">
+						<label id="bigLabel" for="radioBig">big</label>
+						<!-- hyper -->
+						<input type="radio" id="radioHyper" name="attractionRadioButton" value="hyper">
+						<label id="hyperLabel" for="radioHyper">hyper</label>
+						<!-- long -->
+						<input type="radio" id="radioLong" name="attractionRadioButton" value="long">
+						<label id="longLabel" for="radioLong">long</label>
+						<!-- straight -->
+						<input type="radio" id="radioStraight" name="attractionRadioButton" value="straight">
+						<label id="straightLabel" for="radioStraight">straight</label>
+						<!-- no color -->
+						<input type="radio" id="radioNoColor" name="attractionRadioButton" value="noColor">
+						<label id="noColorLabel" for="radioNoColor">not colorful</label>
+						<!-- small -->
+						<input type="radio" id="radioSmall" name="attractionRadioButton" value="small">
+						<label id="smallLabel" for="radioSmall">small</label>
+						<!-- still -->
+						<input type="radio" id="radioStill" name="attractionRadioButton" value="still">
+						<label id="stillLabel" for="radioStill">still</label>
+						<!-- short -->
+						<input type="radio" id="radioShort" name="attractionRadioButton" value="short">
+						<label id="shortLabel" for="radioShort">short</label>
+						<!-- crooked -->
+						<input type="radio" id="radioCrooked" name="attractionRadioButton" value="crooked">
+						<label id="crookedLabel" for="radioCrooked">crooked</label>
+						<!-- similar color -->
+						<input type="radio" id="radioSimilarColor" name="attractionRadioButton" value="similarColor">
+						<label id="similarColorLabel" for="radioSimilarColor">similar color</label>
+						<!-- similar size -->
+						<input type="radio" id="radioSimilarSize" name="attractionRadioButton" value="similarSize">
+						<label id="similarSizeLabel" for="radioSimilarSize">similar size</label>
+						<!-- similar hyper -->
+						<input type="radio" id="radioSimilarHyper" name="attractionRadioButton" value="similarHyper">
+						<label id="similarHyperLabel" for="radioSimilarHyper">similar hyper</label>
+						<!-- similar length -->
+						<input type="radio" id="radioSimilarLength" name="attractionRadioButton" value="similarLength">
+						<label id="similarLengthLabel" for="radioSimilarLength">similar length</label>
+						<!-- similar straight -->
+						<input type="radio" id="radioSimilarStraight" name="attractionRadioButton" value="similarStraight">
+						<label id="similarStraightLabel" for="radioStraightSize">similar straight</label>
+						<!-- closest -->
+						<input type="radio" id="radioClosest" name="attractionRadioButton" value="closest">
+						<label id="closestLabel" for="radioClosest">closest</label>
+						<!-- random -->
+						<input type="radio" id="radioRandom" name="attractionRadioButton" value="random">
+						<label id="randomLabel" for="radioRandom">random</label>
 					</div>
-
-					<!-- file input cache pour charger un pool -->
-					<input type="file" id="fileInput" accept=".txt" style="display:none">
-
-					<button id="saveButton" class="basicButton">save pool</button>
-					<button id="loadButton" class="basicButton">load pool</button>
-
 				</div>
-			</div>
 
-			<div id="swimbotPanel" class="menuPanel">
+				<div id="poolPanel" class="menuPanel">
 
-				<div id="noSelectedSwimbotPanel"> No swimbot is selected. <br> Please select one in the pool. Or... <br>
-					<br> Create a new swimbot with randoized genes: <br>
-					<br>
-					<button id="loadGenesButton" class="basicButton">load genes</button>
-					<br>
-					Create a new swimbot by loading genes from a file: <br>
-					<br>
-					<br> Create a new swimbot with genes from one of these presets: 
-					<button id="createRandomSwimbotButton" class="basicButton">create random</button>
-					<button id="presetSwimbot1Button" class="basicButton" data-swimbot-preset="0">Darwin</button>
-					<button id="presetSwimbot2Button" class="basicButton" data-swimbot-preset="1">Wallace</button>
-					<button id="presetSwimbot3Button" class="basicButton" data-swimbot-preset="2">Mendel</button>
-					<button id="presetSwimbot4Button" class="basicButton" data-swimbot-preset="3">Turing</button>
-					<button id="presetSwimbot5Button" class="basicButton" data-swimbot-preset="4">Margulis</button>
-					<button id="presetSwimbot6Button" class="basicButton" data-swimbot-preset="5">Wilson</button>
-					<button id="presetSwimbot7Button" class="basicButton" data-swimbot-preset="6">Dawkins</button>
-					<button id="presetSwimbot8Button" class="basicButton" data-swimbot-preset="7">Dennett</button>
+					<div id="startPoolTitle"> start a new pool with one of these presets... </div>
+					<button id="pool1Button" class="basicButton" data-pool-preset="RANDOM">random</button>
+					<button id="pool2Button" class="basicButton" data-pool-preset="NEIGHBORHOOD">neighborhoods</button>
+					<button id="pool3Button" class="basicButton" data-pool-preset="FROGGIES">froggies</button>
+					<button id="pool4Button" class="basicButton" data-pool-preset="SPECIES">**Speciation**</button>
+					<button id="pool5Button" class="basicButton" data-pool-preset="RACE">food race</button>
+					<button id="pool6Button" class="basicButton" data-pool-preset="BIG_BANG">big bang</button>
+					<label id="obstacleToggle" class="obstacleToggle"><input type="checkbox" id="obstacleCheckbox"> obstacle</label>
+					<button id="pool8Button" class="basicButton" data-pool-preset="EMPTY">end pool</button>
+
+					<button id="pool9Button" class="basicButton" data-pool-preset="TANGO">Tango</button>
+					<button id="pool10Button" class="basicButton" data-pool-preset="BAD_PARENTS">Bad parents</button>
+
+					<label id="foodSpeciationToggle" class="foodSpeciationToggle"><input type="checkbox" id="foodSpeciationCheckbox"> food speciation</label>
+					<button id="addFoodBitButton" class="basicButton">add foodbit</button>
+					<button id="addGreenFoodBitButton" class="basicButton" style="display:none">add green</button>
+					<button id="addBlueFoodBitButton" class="basicButton" style="display:none">add blue</button>
+					<div id="saveLoadPanel">
+						<div id="saveLoadTitle">
+							save the current pool or load one from file...
+						</div>
+
+						<!-- file input cache pour charger un pool -->
+						<input type="file" id="fileInput" accept=".txt" style="display:none">
+
+						<button id="saveButton" class="basicButton">save pool</button>
+						<button id="loadButton" class="basicButton">load pool</button>
+
+					</div>
 				</div>
-				<div id="selectedSwimbotPanel" class="basicPanel">
-					<div id="swimbotDataPanel"></div>
-					<button id="showPerceptionButton" class="basicButton">show perception</button>
-					<button id="zapSwimbotButton" class="basicButton">mutate</button>
-					<button id="randomizeSwimbotButton" class="basicButton">randomize</button>
-					<button id="cloneSwimbotButton" class="basicButton">clone</button>
-					<button id="killSwimbotButton" class="basicButton">kill</button>
 
-					<button id="showGenesButton" class="basicButton">save genes</button>
-					
-					<button id="tweakGenesButton" class="basicButton">tweak genes!</button>
+				<div id="swimbotPanel" class="menuPanel">
+
+					<div id="noSelectedSwimbotPanel"> No swimbot is selected. <br> Please select one in the pool. Or... <br>
+						<br> Create a new swimbot with randoized genes: <br>
+						<br>
+						<button id="loadGenesButton" class="basicButton">load genes</button>
+						<br>
+						Create a new swimbot by loading genes from a file: <br>
+						<br>
+						<br> Create a new swimbot with genes from one of these presets: 
+						<button id="createRandomSwimbotButton" class="basicButton">create random</button>
+						<button id="presetSwimbot1Button" class="basicButton" data-swimbot-preset="0">Darwin</button>
+						<button id="presetSwimbot2Button" class="basicButton" data-swimbot-preset="1">Wallace</button>
+						<button id="presetSwimbot3Button" class="basicButton" data-swimbot-preset="2">Mendel</button>
+						<button id="presetSwimbot4Button" class="basicButton" data-swimbot-preset="3">Turing</button>
+						<button id="presetSwimbot5Button" class="basicButton" data-swimbot-preset="4">Margulis</button>
+						<button id="presetSwimbot6Button" class="basicButton" data-swimbot-preset="5">Wilson</button>
+						<button id="presetSwimbot7Button" class="basicButton" data-swimbot-preset="6">Dawkins</button>
+						<button id="presetSwimbot8Button" class="basicButton" data-swimbot-preset="7">Dennett</button>
+					</div>
+					<div id="selectedSwimbotPanel" class="basicPanel">
+						<div id="swimbotDataPanel"></div>
+						<button id="showPerceptionButton" class="basicButton">show perception</button>
+						<button id="zapSwimbotButton" class="basicButton">mutate</button>
+						<button id="randomizeSwimbotButton" class="basicButton">randomize</button>
+						<button id="cloneSwimbotButton" class="basicButton">clone</button>
+						<button id="killSwimbotButton" class="basicButton">kill</button>
+
+						<button id="showGenesButton" class="basicButton">save genes</button>
+						
+						<button id="tweakGenesButton" class="basicButton">tweak genes!</button>
+					</div>
 				</div>
-			</div>
 
-			<div id="infoPanel" class="menuPanel">
-				<div id="infoText"></div>
+				<div id="infoPanel" class="menuPanel">
+					<div id="infoText"></div>
 
-				<font size=3 color='#335500' face='arial'>
-					<button id="prevInfoButton" class="basicButton">previous</button>
-					<div id="pageNumberLabel">page 1 of 28</div>
-					<button id="nextInfoButton" class="basicButton">next</button>
-				</font>
+					<font size=3 color='#335500' face='arial'>
+						<button id="prevInfoButton" class="basicButton">previous</button>
+						<div id="pageNumberLabel">page 1 of 28</div>
+						<button id="nextInfoButton" class="basicButton">next</button>
+					</font>
+				</div>
 			</div>
 		</div>
 	</div>
-
 	<!-- Graph panel: standalone, fixed, draggable, resizable, collapsible -->
 	<div id="graphPanel">
 		<div id="graphPanelHeader">

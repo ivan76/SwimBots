@@ -1327,15 +1327,21 @@ body
     color: #505050;
 }
 
-/* Resize handle for graph panel */
+/* Resize handle for graph panel (width only) */
 #graphPanelResize
 {
     position: absolute;
     right: 0;
+    top: 0;
     bottom: 0;
-    width: 16px;
-    height: 16px;
-    cursor: nwse-resize;
-    background: linear-gradient(135deg, transparent 50%, #999 50%, #999 60%, transparent 60%, transparent 70%, #999 70%, #999 80%, transparent 80%);
+    width: 8px;
+    cursor: ew-resize;
+    background: repeating-linear-gradient(
+        0deg,
+        #999,
+        #999 2px,
+        transparent 2px,
+        transparent 6px
+    );
     z-index: 101;
 }
