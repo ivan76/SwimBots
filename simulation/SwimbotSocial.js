@@ -40,6 +40,7 @@ class SwimbotSocial {
 
         if (attractionCriterion === ATTRACTION_CLOSEST) { attractiveness = this.getCloseness(judge); }
         if (attractionCriterion === ATTRACTION_RANDOM) { attractiveness = Math.random(); }
+        if (attractionCriterion === ATTRACTION_ENERGY) { attractiveness = this.getEnergyScore(); }
 
         return attractiveness;
     }
@@ -89,6 +90,14 @@ class SwimbotSocial {
         }
 
         return ONE - (closest / SWIMBOT_VIEW_RADIUS);
+    }
+
+    getEnergyScore() {
+        const s = this._swimbot;
+        const energy = s.getEnergy();
+        let score = energy / MAX_SWIMBOT_HUNGER_THRESHOLD;
+        score = Math.max(ZERO, Math.min(ONE, score));
+        return score;
     }
 
     getSimilarity(judge) {

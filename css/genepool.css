@@ -985,7 +985,7 @@ body
     height:     200px;
 }
 
-#radioColorful, #radioBig, #radioHyper, #radioLong, #radioStraight, #radioClosest, #radioRandom
+#radioColorful, #radioBig, #radioHyper, #radioLong, #radioStraight, #radioClosest, #radioRandom, #radioEnergy
 {
     position: absolute; 
     left: 0; 
@@ -1048,7 +1048,13 @@ body
     top: 150; 
 }
 
-#colorfulLabel, #bigLabel, #hyperLabel, #straightLabel, #longLabel, #randomLabel, #closestLabel
+#radioEnergy
+{
+    position: absolute; 
+    top: 170; 
+}
+
+#colorfulLabel, #bigLabel, #hyperLabel, #straightLabel, #longLabel, #randomLabel, #closestLabel, #energyLabel
 {
     position: absolute; 
     left:  25; 
@@ -1089,6 +1095,9 @@ body
 
 #closestLabel
 { top: 150; }
+
+#energyLabel
+{ top: 170; }
 
 #popUpPanel
 {

@@ -121,6 +121,7 @@ function _attractionValueToConstant(value) {
 	if (value === "similarStraight") return ATTRACTION_SIMILAR_STRAIGHT;
 	if (value === "random") return ATTRACTION_RANDOM;
 	if (value === "closest") return ATTRACTION_CLOSEST;
+	if (value === "energy") return ATTRACTION_ENERGY;
 	return ATTRACTION_SIMILAR_COLOR; // default
 }
 
