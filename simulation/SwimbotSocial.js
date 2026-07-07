@@ -94,8 +94,8 @@ class SwimbotSocial {
 
     getEnergyScore() {
         const s = this._swimbot;
-        const energy = s.getEnergy();
-        let score = energy / MAX_SWIMBOT_HUNGER_THRESHOLD;
+        const foodBitsEaten = s.getNumFoodBitsEaten();
+        let score = foodBitsEaten / DEFAULT_SWIMBOT_HUNGER_THRESHOLD;
         score = Math.max(ZERO, Math.min(ONE, score));
         return score;
     }
