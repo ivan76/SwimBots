@@ -1114,22 +1114,30 @@ document.onkeyup = function(e) {
 function initFloatingPanel() {
 	const panel = $("masterPanel");
 	const header = $("masterPanelHeader");
-	const content = $("masterPanelContent");
 	const toggleBtn = $("toggleMasterPanel");
+	const menuButtonPanel = $("menuButtonPanel");
+	const mainPanel = $("mainPanel");
 
-	if (!panel || !header || !content || !toggleBtn) return;
+	if (!panel || !header || !toggleBtn) return;
 
-	// 1. Expand / Collapse
+	// 1. Expand / Collapse (viewPanel stays visible)
 	let collapsed = false;
 	toggleBtn.addEventListener("click", function(e) {
 		e.stopPropagation();
 		collapsed = !collapsed;
 		if (collapsed) {
-			content.style.display = "none";
+			if (menuButtonPanel) menuButtonPanel.style.display = "none";
+			if (mainPanel) mainPanel.style.display = "none";
+			var viewPanel = $("viewPanel");
+			var collapsedH = header.offsetHeight;
+			if (viewPanel) collapsedH += viewPanel.offsetHeight;
+			panel.style.height = collapsedH + "px";
 			panel.style.minHeight = "0";
 			toggleBtn.innerText = "+";
 		} else {
-			content.style.display = "flex";
+			if (menuButtonPanel) menuButtonPanel.style.display = "";
+			if (mainPanel) mainPanel.style.display = "";
+			panel.style.height = "";
 			panel.style.minHeight = "";
 			toggleBtn.innerText = "−";
 		}

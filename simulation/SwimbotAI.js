@@ -36,7 +36,12 @@ class SwimbotAI {
                 let yy = s._chosenFoodBit.getPosition().y - s.getMouthPosition().y;
                 let distance = Math.sqrt(xx * xx + yy * yy);
 
-                if (distance < SWIMBOT_MOUTH_LENGTH) {
+                // Abandon if the food is outside perception radius (stale target).
+                if (distance > SWIMBOT_VIEW_RADIUS) {
+                    s._brain.setFoundFoodBit(false);
+                    s._chosenFoodBit = null;
+                    s._chosenFoodBitIndex = NULL_INDEX;
+                } else if (distance < SWIMBOT_MOUTH_LENGTH) {
                     s._tryingToEat = true;
                 }
             }
@@ -50,8 +55,12 @@ class SwimbotAI {
                 let yy = s._chosenMate.getGenitalPosition().y - s.getGenitalPosition().y;
                 let distance = Math.sqrt(xx * xx + yy * yy);
 
-                if (distance < SWIMBOT_GENITAL_LENGTH)
-                {
+                // Abandon if the mate is outside perception radius (stale target).
+                if (distance > SWIMBOT_VIEW_RADIUS) {
+                    s._brain.setFoundSwimbot(false);
+                    s._chosenMate = null;
+                    s._chosenMateIndex = NULL_INDEX;
+                } else if (distance < SWIMBOT_GENITAL_LENGTH) {
                     s._tryingToMate = true;
                 }
             }
